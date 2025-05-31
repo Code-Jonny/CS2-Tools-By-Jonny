@@ -1,21 +1,65 @@
 <script lang="ts">
-  import NeutralinoCheck from "./lib/NeutralinoCheck.svelte";
+  import { onMount } from "svelte";
+  // Import the reactive settings store and the reset function
+  import { settings, resetToDefaults } from "./lib/settingsStore.svelte.ts";
+
+  async function handleResetToDefaults() {
+    if (
+      confirm("Are you sure you want to reset all settings to their defaults?")
+    ) {
+      try {
+        await resetToDefaults();
+        alert("Settings have been reset to defaults.");
+      } catch (error) {
+        console.error("Error resetting settings:", error);
+        alert("Failed to reset settings.");
+      }
+    }
+  }
+
+  onMount(() => {
+    console.log(
+      "App.svelte mounted. Current settings from store:",
+      settings.setting1,
+      settings.setting2
+    );
+  });
 </script>
 
-<main class="container-fluid">
-  <nav>
-    <ul>
-      <li><strong>CS2 Tools by Jonny</strong></li>
-    </ul>
-    <ul>
-      <li><a href="#">About</a></li>
-      <li><a href="#">Services</a></li>
-      <li><a href="#">Products</a></li>
-    </ul>
-  </nav>
+<main>
+  <div class="container">
+    <h2>Settings</h2>
+    <form onsubmit={(e) => e.preventDefault()}>
+      <label for="storeSetting1">Setting 1 (Store)</label>
+      <input
+        type="text"
+        id="storeSetting1"
+        name="storeSetting1"
+        bind:value={settings.setting1}
+      />
+      <label for="storeSetting2">Setting 2 (Store)</label>
+      <input
+        type="text"
+        id="storeSetting2"
+        name="storeSetting2"
+        bind:value={settings.setting2}
+      />
+      <button type="submit">Save (Auto)</button>
+      <button type="button" onclick={handleResetToDefaults}>
+        Reset to Defaults
+      </button>
+    </form>
 
-  <h1>Test</h1>
+    <hr />
+    <h3>Current Settings (Live View from Store)</h3>
+    <p>Setting 1: {settings.setting1}</p>
+    <p>Setting 2: {settings.setting2}</p>
+  </div>
 </main>
 
-<style>
+<style scoped>
+  hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
 </style>
