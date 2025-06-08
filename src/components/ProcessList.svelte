@@ -28,9 +28,10 @@
   }
 
   // Reactive statement for displayed processes
-  $: displayedProcesses =
-    ($runningProcesses,
-    runningProcesses.getBySearch(searchTerm, filter, sortKey, sortOrder));
+  $: displayedProcesses = (() => {
+    const _ = $runningProcesses; // Ensures reactivity to the store for initial load and updates
+    return runningProcesses.getBySearch(searchTerm, filter, sortKey, sortOrder);
+  })();
   $: errorMessage = $runningProcesses.errorMessage;
 
   function convertBytesToHumanReadable(bytes: number): string {
