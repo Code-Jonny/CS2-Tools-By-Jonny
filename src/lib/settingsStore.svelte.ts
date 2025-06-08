@@ -5,11 +5,22 @@ import { saveData, getData, exists } from "./neutralinoStorage";
 export const defaultAppSettings = {
   setting1: "Default Store Value 1",
   setting2: "Default Store Value 2",
+  pollingInterval: 5000, // Default polling interval in milliseconds
+  processesToKill: [] as string[], // Changed: Explicitly type as string[]
   // theme: 'dark',
   // notificationsEnabled: true,
 };
 
 export type AppSettings = typeof defaultAppSettings;
+
+// Helper function to satisfy TypeScript's indexed assignment rules
+function setTypedValue<Data extends object, K extends keyof Data>(
+  stateObject: Data,
+  key: K,
+  value: Data[K]
+) {
+  stateObject[key] = value;
+}
 
 let isInitializing = true; // Flag to prevent proxy from saving during initial load or reset phases
 
@@ -52,24 +63,27 @@ export const settings: AppSettings = new Proxy(
  * This function is called automatically when the module is imported.
  */
 async function loadAndInitializeSettings() {
-  console.log("Initializing settings module (Proxy version)...");
   isInitializing = true; // Prevent proxy's save logic during this phase
 
-  for (const key in defaultAppSettings) {
-    const typedKey = key as keyof AppSettings;
-    if (await exists(typedKey)) {
-      const storedValue = await getData<AppSettings[typeof typedKey]>(typedKey);
+  for (const key of Object.keys(defaultAppSettings) as Array<
+    keyof AppSettings
+  >) {
+    if (await exists(key)) {
+      const storedValue = await getData<AppSettings[typeof key]>(key);
       if (storedValue !== undefined) {
-        _internalSettings[typedKey] = storedValue; // Directly update internal state
+        // _internalSettings[typedKey] = storedValue; // Directly update internal state // Replaced
+        setTypedValue(_internalSettings, key, storedValue);
       } else {
         // Key exists but value is undefined (e.g., corrupt data), use default and save it
-        _internalSettings[typedKey] = defaultAppSettings[typedKey];
-        await saveData(typedKey, defaultAppSettings[typedKey]);
+        // _internalSettings[typedKey] = defaultAppSettings[typedKey]; // Replaced
+        setTypedValue(_internalSettings, key, defaultAppSettings[key]);
+        await saveData(key, defaultAppSettings[key]);
       }
     } else {
       // Key does not exist, use default and save it
-      _internalSettings[typedKey] = defaultAppSettings[typedKey];
-      await saveData(typedKey, defaultAppSettings[typedKey]);
+      // _internalSettings[typedKey] = defaultAppSettings[typedKey]; // Replaced
+      setTypedValue(_internalSettings, key, defaultAppSettings[key]);
+      await saveData(key, defaultAppSettings[key]);
     }
   }
 
@@ -89,13 +103,15 @@ export async function resetToDefaults() {
   isInitializing = true; // Temporarily disable proxy's auto-save during reset
 
   try {
-    for (const key in defaultAppSettings) {
-      const typedKey = key as keyof AppSettings;
-      const defaultValue = defaultAppSettings[typedKey];
+    for (const key of Object.keys(defaultAppSettings) as Array<
+      keyof AppSettings
+    >) {
+      const defaultValue = defaultAppSettings[key];
       // Update reactive state directly
-      _internalSettings[typedKey] = defaultValue;
+      // _internalSettings[typedKey] = defaultValue; // Replaced
+      setTypedValue(_internalSettings, key, defaultValue);
       // Save the default value to storage, effectively overwriting any existing value.
-      await saveData(typedKey, defaultValue);
+      await saveData(key, defaultValue);
     }
     console.log(
       "Settings have been reset to defaults and saved:",

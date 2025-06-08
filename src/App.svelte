@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   // Import the reactive settings store and the reset function
-  import { settings, resetToDefaults } from "./lib/settingsStore.svelte.ts";
+  import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
 
-  import ProcessList from "./components/ProcessList.svelte";
+  import ProcessList from "@components/ProcessList.svelte";
 
   async function handleResetToDefaults() {
     if (
@@ -18,14 +18,6 @@
       }
     }
   }
-
-  onMount(() => {
-    console.log(
-      "App.svelte mounted. Current settings from store:",
-      settings.setting1,
-      settings.setting2
-    );
-  });
 </script>
 
 <main>
@@ -50,6 +42,32 @@
       <button type="button" onclick={handleResetToDefaults}>
         Reset to Defaults
       </button>
+
+      {#if settings.processesToKill && settings.processesToKill.length > 0}
+        <div style="margin-top: 1rem;">
+          <h4>Processes to Kill:</h4>
+          <ul>
+            {#each settings.processesToKill as processName, index ("process-to-kill-" + index)}
+              <li>
+                {processName}
+                <button
+                  type="button"
+                  onclick={() => {
+                    settings.processesToKill = settings.processesToKill.filter(
+                      (_, i) => i !== index
+                    );
+                  }}
+                  style="margin-left: 8px;"
+                >
+                  Remove
+                </button>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {:else}
+        <p style="margin-top: 1rem;">No processes configured to be killed.</p>
+      {/if}
     </form>
 
     <hr />

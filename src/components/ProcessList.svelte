@@ -1,5 +1,6 @@
 <script lang="ts">
   import { os } from "@neutralinojs/lib";
+  import { settings } from "@lib/settingsStore.svelte.ts";
 
   interface ProcessInfo {
     name: string;
@@ -131,22 +132,22 @@
 
 <h3>Process List</h3>
 
-<button on:click={getProcessList}>Refresh</button>
+<button onclick={getProcessList}>Refresh</button>
 
 <button
-  on:click={() => {
+  onclick={() => {
     filter = "service";
   }}>Only Services</button
 >
 
 <button
-  on:click={() => {
+  onclick={() => {
     filter = "app";
   }}>Only Apps</button
 >
 
 <button
-  on:click={() => {
+  onclick={() => {
     filter = "all";
   }}>All types</button
 >
@@ -164,10 +165,11 @@
 <table>
   <thead>
     <tr>
-      <th on:click={() => handleSort("name")}>Name</th>
-      <th on:click={() => handleSort("service")}>Type</th>
-      <th on:click={() => handleSort("pid")}>PID</th>
-      <th on:click={() => handleSort("ramUsage")}>RAM Usage</th>
+      <th onclick={() => handleSort("name")}>Name</th>
+      <th onclick={() => handleSort("service")}>Type</th>
+      <th onclick={() => handleSort("pid")}>PID</th>
+      <th onclick={() => handleSort("ramUsage")}>RAM Usage</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -177,6 +179,18 @@
         <td>{process.service ? "Service" : "App"}</td>
         <td>{process.pid}</td>
         <td>{convertBytesToHumanReadable(process.ramUsage)}</td>
+        <td>
+          <button
+            onclick={() => {
+              settings.processesToKill = [
+                ...settings.processesToKill,
+                process.name,
+              ];
+            }}
+          >
+            Add to kill list
+          </button>
+        </td>
       </tr>
     {/each}
   </tbody>
