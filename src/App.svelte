@@ -3,6 +3,8 @@
   // Import the reactive settings store and the reset function
   import { settings, resetToDefaults } from "./lib/settingsStore.svelte.ts";
 
+  import ProcessList from "./components/ProcessList.svelte";
+
   async function handleResetToDefaults() {
     if (
       confirm("Are you sure you want to reset all settings to their defaults?")
@@ -54,6 +56,10 @@
     <h3>Current Settings (Live View from Store)</h3>
     <p>Setting 1: {settings.setting1}</p>
     <p>Setting 2: {settings.setting2}</p>
+  </div>
+
+  <div class="container">
+    <ProcessList />
   </div>
 </main>
 
