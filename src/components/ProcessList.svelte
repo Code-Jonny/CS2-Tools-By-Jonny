@@ -5,18 +5,15 @@
     name: string;
     pid: number;
     ramUsage: number; // RAM usage in bytes
+    service: boolean;
   }
 
   let processes: ProcessInfo[] = [];
   let errorMessage: string = "";
   let filter: "service" | "app" | "all" = "all"; // Default filter to show all processes
-
-  interface ProcessInfo {
-    name: string;
-    pid: number;
-    ramUsage: number; // RAM usage in bytes
-    service: boolean;
-  }
+  let sortKey: keyof ProcessInfo | null = null;
+  let sortOrder: "asc" | "desc" = "asc";
+  let searchTerm: string = ""; // Added for search functionality
 
   async function getProcessList() {
     try {
@@ -61,26 +58,68 @@
     } catch (err: any) {
       console.error("Error fetching process list:", err);
       errorMessage = `Failed to fetch process list: ${err.message || err}`;
-      processes = [];
+      processes = []; // Clear processes on error
     }
-
-    return processes;
+    // No explicit return needed as 'processes' is updated directly
   }
 
-  async function filterProcessesByType(type: "service" | "app" | "all") {
-    if (type !== "service" && type !== "app" && type !== "all") {
-      throw new Error(
-        "Invalid type specified. Use 'service', 'app', or 'all'."
+  function handleSort(key: keyof ProcessInfo) {
+    if (sortKey === key) {
+      sortOrder = sortOrder === "asc" ? "desc" : "asc";
+    } else {
+      sortKey = key;
+      sortOrder = "asc";
+    }
+    // displayedProcesses will update reactively
+  }
+
+  // Reactive statement for displayed processes
+  $: displayedProcesses = (() => {
+    let tempProcesses = [...processes];
+
+    // 1. Filter by type
+    if (filter === "service") {
+      tempProcesses = tempProcesses.filter((p) => p.service);
+    } else if (filter === "app") {
+      tempProcesses = tempProcesses.filter((p) => !p.service);
+    }
+
+    // 2. Filter by search term (fuzzy: case-insensitive includes)
+    if (searchTerm.trim() !== "") {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      tempProcesses = tempProcesses.filter((p) =>
+        p.name.toLowerCase().includes(lowerSearchTerm)
       );
     }
-    let filteredProcesses = await getProcessList();
-    if (type === "service") {
-      processes = filteredProcesses.filter((p) => p.service);
-    } else if (type === "app") {
-      processes = filteredProcesses.filter((p) => !p.service);
-    } else {
-      processes = filteredProcesses;
+
+    // 3. Sort
+    if (sortKey) {
+      tempProcesses.sort((a, b) => {
+        const valA = a[sortKey!]; // Non-null assertion as sortKey is checked
+        const valB = b[sortKey!]; // Non-null assertion
+
+        let comparison = 0;
+        if (typeof valA === "string" && typeof valB === "string") {
+          comparison = valA.localeCompare(valB);
+        } else if (typeof valA === "number" && typeof valB === "number") {
+          comparison = valA - valB;
+        } else if (typeof valA === "boolean" && typeof valB === "boolean") {
+          comparison = valA === valB ? 0 : valA ? -1 : 1; // true before false or vice-versa based on preference
+        }
+        // Add more type comparisons if needed (e.g., boolean for 'service' column)
+
+        return sortOrder === "asc" ? comparison : -comparison;
+      });
     }
+    return tempProcesses;
+  })();
+
+  function convertBytesToHumanReadable(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   }
 
   // Call it on component mount or via a button click
@@ -92,44 +131,52 @@
 
 <h3>Process List</h3>
 
-<button
-  on:click={() => {
-    filterProcessesByType(filter);
-  }}>Refresh</button
->
+<button on:click={getProcessList}>Refresh</button>
 
 <button
   on:click={() => {
     filter = "service";
-    filterProcessesByType(filter);
   }}>Only Services</button
 >
 
 <button
   on:click={() => {
     filter = "app";
-    filterProcessesByType(filter);
   }}>Only Apps</button
 >
 
 <button
   on:click={() => {
     filter = "all";
-    filterProcessesByType(filter);
   }}>All types</button
 >
+
+<input
+  type="text"
+  placeholder="Search by name..."
+  bind:value={searchTerm}
+  style="margin-left: 10px;"
+/>
 
 {#if errorMessage}
   <p class="error">{errorMessage}</p>
 {/if}
 <table>
+  <thead>
+    <tr>
+      <th on:click={() => handleSort("name")}>Name</th>
+      <th on:click={() => handleSort("service")}>Type</th>
+      <th on:click={() => handleSort("pid")}>PID</th>
+      <th on:click={() => handleSort("ramUsage")}>RAM Usage</th>
+    </tr>
+  </thead>
   <tbody>
-    {#each processes as process}
+    {#each displayedProcesses as process (process.pid)}
       <tr>
         <td>{process.name}</td>
         <td>{process.service ? "Service" : "App"}</td>
         <td>{process.pid}</td>
-        <td>{process.ramUsage}</td>
+        <td>{convertBytesToHumanReadable(process.ramUsage)}</td>
       </tr>
     {/each}
   </tbody>
