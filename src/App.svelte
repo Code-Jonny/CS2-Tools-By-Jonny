@@ -1,7 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { os } from "@neutralinojs/lib";
   // Import the reactive settings store and the reset function
   import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
+
+  import {
+    runningProcesses,
+    type ProcessInfo,
+    type FilterType,
+    type SortKey,
+    type SortOrder,
+  } from "@lib/runningProcesses.svelte.ts";
 
   import ProcessList from "@components/ProcessList.svelte";
 
@@ -18,6 +27,25 @@
       }
     }
   }
+
+  onMount(() => {
+    console.log("App.svelte mounted");
+
+    setInterval(async () => {
+      let date = new Date();
+      let time = date.toLocaleTimeString();
+
+      const command = 'tasklist | findstr /i "cs2.exe"';
+      const output = await os.execCommand(command);
+
+      runningProcesses.refresh();
+      const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
+
+      console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
+
+      // console.log(time, "Polling for active processes...");
+    }, settings.pollingInterval || 5000);
+  });
 </script>
 
 <main>
