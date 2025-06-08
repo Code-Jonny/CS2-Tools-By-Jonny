@@ -54,7 +54,7 @@
                   type="button"
                   onclick={() => {
                     settings.processesToKill = settings.processesToKill.filter(
-                      (_, i) => i !== index
+                      (_: string, i: number) => i !== index
                     );
                   }}
                   style="margin-left: 8px;"

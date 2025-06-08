@@ -36,7 +36,12 @@ const settingsProxyHandler: ProxyHandler<AppSettings> = {
     const typedKey = propertyKey as keyof AppSettings;
 
     // Update the underlying $state object. This will trigger Svelte's reactivity.
-    _internalSettings[typedKey] = value;
+    // _internalSettings[typedKey] = value; // Original line causing the error
+    setTypedValue(
+      _internalSettings,
+      typedKey,
+      value as AppSettings[typeof typedKey]
+    ); // Use helper with type assertion
 
     if (!isInitializing) {
       // console.log(`Proxy: Auto-saving setting ${typedKey}:`, value);

@@ -4,6 +4,7 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
+    "moduleResolution": "Bundler", // Added
     "resolveJsonModule": true,
     "baseUrl": "./", // Added: Base directory for path resolution
     "paths": {
