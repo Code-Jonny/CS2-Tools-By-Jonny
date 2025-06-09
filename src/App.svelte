@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { os } from "@neutralinojs/lib";
+  import { terminateProcess } from "@lib/terminateProcess";
   // Import the reactive settings store and the reset function
   import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
+  import { getPowerPlans, setActivePowerPlan } from "@lib/powerplan";
 
   import {
     runningProcesses,
@@ -13,6 +15,7 @@
   } from "@lib/runningProcesses.svelte.ts";
 
   import ProcessList from "@components/ProcessList.svelte";
+  import test from "node:test";
 
   async function handleResetToDefaults() {
     if (
@@ -28,23 +31,35 @@
     }
   }
 
-  onMount(() => {
-    console.log("App.svelte mounted");
+  onMount(async () => {
+    let powerPlans = await getPowerPlans();
 
-    setInterval(async () => {
-      let date = new Date();
-      let time = date.toLocaleTimeString();
+    // find the first not active power plan
+    // const notActivePowerPlan = powerPlans.find((plan) => !plan.isActive);
+    // setActivePowerPlan(notActivePowerPlan.guid);
 
-      const command = 'tasklist | findstr /i "cs2.exe"';
-      const output = await os.execCommand(command);
+    // powerPlans = await getPowerPlans();
+    // console.log("Power Plans:", powerPlans);
 
-      runningProcesses.refresh();
-      const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
-
-      console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
-
-      // console.log(time, "Polling for active processes...");
-    }, settings.pollingInterval || 5000);
+    // setInterval(async () => {
+    // let date = new Date();
+    // let time = date.toLocaleTimeString();
+    // const command = 'tasklist | findstr /i "cs2.exe"';
+    // const output = await os.execCommand(command);
+    // runningProcesses.refresh();
+    // const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
+    // console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
+    // if (cs2Running) {
+    //   // kill processes if they are running
+    //   if (settings.processesToKill && settings.processesToKill.length > 0) {
+    //     for (const processName of settings.processesToKill) {
+    //       // use terminateProcess.ts module to kill the process
+    //       await terminateProcess(processName);
+    //     }
+    //   }
+    // }
+    // console.log(time, "Polling for active processes...");
+    // }, settings.pollingInterval || 5000);
   });
 </script>
 

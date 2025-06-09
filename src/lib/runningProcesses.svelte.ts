@@ -29,7 +29,6 @@ export const runningProcesses = {
   subscribe: store.subscribe,
 
   refresh: async () => {
-    console.log("[runningProcesses] Refreshing process list...");
     try {
       const command = "tasklist /FO CSV /NH";
       const output = await os.execCommand(command);

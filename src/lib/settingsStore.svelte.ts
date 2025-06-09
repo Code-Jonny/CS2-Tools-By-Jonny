@@ -93,10 +93,6 @@ async function loadAndInitializeSettings() {
   }
 
   isInitializing = false; // Initialization complete, proxy can now save changes
-  console.log(
-    "Settings module initialized. Current settings:",
-    JSON.parse(JSON.stringify(_internalSettings))
-  );
 }
 
 /**

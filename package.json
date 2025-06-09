@@ -19,7 +19,7 @@
     "vite": "^6.0.5"
   },
   "dependencies": {
-    "@neutralinojs/lib": "^5.5.0",
+    "@neutralinojs/lib": "^6.1.0",
     "@picocss/pico": "^2.1.1",
     "execa": "^9.5.2"
   }

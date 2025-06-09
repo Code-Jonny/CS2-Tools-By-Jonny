@@ -14,7 +14,13 @@
     "enabled": true,
     "writeToLogFile": true
   },
-  "nativeAllowList": ["app.*", "os.*", "debug.log", "storage.*"],
+  "nativeAllowList": [
+    "app.*",
+    "os.*",
+    "debug.log",
+    "storage.*",
+    "filesystem.*"
+  ],
   "modes": {
     "window": {
       "title": "CS2 Tools by Jonny",
