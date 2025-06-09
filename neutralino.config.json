@@ -45,7 +45,7 @@
     "binaryName": "cs2tools",
     "resourcesPath": "/app/",
     "extensionsPath": "/extensions/",
-    "binaryVersion": "5.5.0",
+    "binaryVersion": "6.1.0",
     "clientVersion": "5.5.0"
   }
 }
