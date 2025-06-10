@@ -5,7 +5,7 @@
   // Import the reactive settings store
   import { settings } from "@lib/settingsStore.svelte.ts";
   import { getPowerPlans, setActivePowerPlan } from "@lib/powerplan";
-  import { writable } from "svelte/store"; // Added for view management
+  // import { writable } from "svelte/store"; // Removed: writable replaced by $state
 
   import {
     runningProcesses,
@@ -29,19 +29,19 @@
   let currentPollingInterval = settings.pollingIntervalMs; // To track changes
 
   // Client-side routing
-  let currentView = writable("dashboard"); // Default view
+  let currentView = $state("dashboard"); // Default view. Changed from writable to $state
 
   function updateView() {
     const hash = window.location.hash.substring(1); // Remove #
     if (hash === "/process-management") {
-      currentView.set("process-management");
+      currentView = "process-management";
     } else if (hash === "/power-plan-management") {
-      currentView.set("power-plan-management");
+      currentView = "power-plan-management";
     } else if (hash === "/settings") {
-      currentView.set("settings");
+      currentView = "settings";
     } else {
       // Default to dashboard for '/' or other/empty hashes
-      currentView.set("dashboard");
+      currentView = "dashboard";
     }
   }
 
@@ -117,7 +117,7 @@
   });
 
   // Reactive statement to restart the loop if pollingInterval changes
-  $: {
+  $effect(() => {
     if (
       settings.pollingIntervalMs !== undefined &&
       settings.pollingIntervalMs !== currentPollingInterval
@@ -126,7 +126,7 @@
       currentPollingInterval = settings.pollingIntervalMs;
       startMainLoop();
     }
-  }
+  });
 
   onDestroy(() => {
     stopMainLoop(); // Clean up the interval when the component is destroyed
@@ -146,7 +146,7 @@
 </nav>
 
 <main>
-  {#if $currentView === "dashboard"}
+  {#if currentView === "dashboard"}
     <div class="container">
       <!-- Dashboard content will go here, currently empty as requested -->
       <h3>Dashboard</h3>
@@ -154,11 +154,11 @@
         Welcome to the Dashboard. This area is currently under construction.
       </p>
     </div>
-  {:else if $currentView === "process-management"}
+  {:else if currentView === "process-management"}
     <ProcessManagement />
-  {:else if $currentView === "power-plan-management"}
+  {:else if currentView === "power-plan-management"}
     <PowerPlanManagement />
-  {:else if $currentView === "settings"}
+  {:else if currentView === "settings"}
     <!-- Render Settings.svelte if it's still used for general settings -->
     <Settings />
   {/if}
