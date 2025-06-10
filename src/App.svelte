@@ -4,12 +4,7 @@
   import { terminateProcess } from "@lib/terminateProcess";
   // Import the reactive settings store and the reset function
   import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
-  import {
-    getPowerPlans,
-    setActivePowerPlan,
-    isPowerShellAvailable,
-    canRunUnsignedScripts,
-  } from "@lib/powerplan";
+  import { getPowerPlans, setActivePowerPlan } from "@lib/powerplan";
 
   import {
     runningProcesses,
@@ -37,31 +32,8 @@
   }
 
   onMount(async () => {
-    if (!(await isPowerShellAvailable())) {
-      // Use Neutralino's dialogs to show a user-friendly error
-      await os.showMessageBox(
-        "PowerShell Not Found",
-        "PowerShell is required for this feature but it could not be found on your system. Please ensure it is installed and available in your system's PATH.",
-        "OK",
-        "ERROR"
-      );
-      return; // Stop execution
-    }
-
-    if (!(await canRunUnsignedScripts())) {
-      await os.showMessageBox(
-        "PowerShell Security Policy",
-        "Your system's PowerShell security policy is set to 'Restricted' or 'AllSigned', which prevents this application from running necessary scripts. Please see the application's documentation for information on how to adjust the policy.",
-        "OK",
-        "ERROR"
-      );
-      return; // Stop execution
-    }
-
-    // const command = "powercfg /list";
-    // const output = await os.execCommand(command);
-    // console.log("Power Plans Output:", output);
     let powerPlans = await getPowerPlans();
+    console.log("Available Power Plans:", powerPlans);
 
     // setInterval(async () => {
     // let date = new Date();

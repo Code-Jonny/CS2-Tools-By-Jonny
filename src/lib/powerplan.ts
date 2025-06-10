@@ -10,53 +10,11 @@ export interface PowerPlan {
 }
 
 /**
- * Checks if PowerShell is available on the system PATH.
- * @returns {Promise<boolean>} True if available, otherwise false.
+ * Checks if a given power plan is the active one.
+ * @param guid - The GUID of the power plan to check.
+ * @param plans - An array of PowerPlan objects.
+ * @returns {boolean} - Returns true if the plan is active, false otherwise.
  */
-export async function isPowerShellAvailable() {
-  try {
-    // The 'where' command is a standard utility on Windows to locate executables.
-    // It exits with code 0 if found, which Neutralinojs treats as success.
-    // It exits with a non-zero code if not found, which causes execCommand to throw an error.
-    await os.execCommand("where powershell.exe");
-    return true;
-  } catch (err) {
-    // The command failed, indicating powershell.exe was not found in the PATH.
-    console.error(
-      "PowerShell check failed: 'where powershell.exe' was not successful.",
-      err
-    );
-    return false;
-  }
-}
-
-/**
- * Checks if the PowerShell execution policy is permissive enough to run local scripts.
- * @returns {Promise<boolean>} True if scripts can likely run, otherwise false.
- */
-export async function canRunUnsignedScripts() {
-  try {
-    const { stdOut } = await os.execCommand(
-      'powershell -NoProfile -Command "Get-ExecutionPolicy"'
-    );
-
-    // The output will be the policy name, e.g., "Restricted\r\n". We trim it to get just the name.
-    const policy = stdOut.trim();
-
-    // These policies will block unsigned, local scripts from running.
-    const restrictivePolicies = ["Restricted", "AllSigned", "Undefined"];
-
-    // If the current policy is NOT in the restrictive list, we are good to go.
-    // Your script will be called with `-ExecutionPolicy Bypass`, but this check
-    // ensures that the system isn't completely locked down by a Group Policy.
-    return !restrictivePolicies.includes(policy);
-  } catch (err) {
-    // This would happen if the Get-ExecutionPolicy command itself fails for some reason.
-    console.error("Failed to get PowerShell execution policy.", err);
-    return false;
-  }
-}
-
 function isActivePlan(guid: string, plans: PowerPlan[]): boolean {
   return plans.some((plan) => plan.guid === guid && plan.isActive);
 }
@@ -65,11 +23,29 @@ export async function getPowerPlans() {
   try {
     const powerPlans: PowerPlan[] = [];
 
-    const scriptPath = `${NL_PATH}\\app\\get_powerplans.ps1`;
+    const absoluteNLPath = await filesystem.getAbsolutePath(NL_PATH);
+    const windowsPath = absoluteNLPath.replace(/\//g, "\\");
+    const binaryPath = `${windowsPath}\\app\\power_plans.exe`;
 
-    const command = `powershell -ExecutionPolicy Bypass -NoProfile -File "${scriptPath}"`;
-    const result = await os.execCommand(command);
+    const result = await os.execCommand(binaryPath);
 
+    if (result.exitCode !== 0) {
+      console.error("Failed to execute power plans command:", result);
+      return powerPlans;
+    }
+
+    const jsonOutput = JSON.parse(result.stdOut.trim());
+
+    // Iterate over the JSON output to populate powerPlans array
+    for (const plan of jsonOutput) {
+      const guid = plan.guid;
+      const name = plan.name;
+      const isActive = plan.isActive;
+
+      powerPlans.push({ guid, name, isActive });
+    }
+
+    /*
     const lines = result.stdOut.trim().split("\n");
     // Regex to find GUID, name, and optionally an asterisk for active plan.
     // This regex looks for:
@@ -95,7 +71,8 @@ export async function getPowerPlans() {
         powerPlans.push({ guid, name, isActive });
       }
     }
-
+    
+    */
     return powerPlans;
   } catch (error) {
     console.error("Critical error in getPowerPlans:", error);
