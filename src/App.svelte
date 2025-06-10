@@ -102,9 +102,6 @@
   }
 
   onMount(async () => {
-    let powerPlans = await getPowerPlans();
-    console.log("Available Power Plans:", powerPlans);
-
     // Start the main loop
     startMainLoop();
     currentPollingInterval = settings.pollingIntervalMs; // Initialize currentPollingInterval
