@@ -26,6 +26,8 @@
   let mainLoopIntervalId: NodeJS.Timeout | undefined = undefined; // Modified type
   let isMainLoopLogicRunning: boolean = false;
   let currentPollingInterval = settings.pollingIntervalMs; // To track changes
+  let previousCs2RunningState: boolean = false; // Added to store previous CS2 running state
+  let cs2RunningStateChanged: boolean = false; // Added to track if CS2 running state changed
 
   // Client-side routing
   let currentView = $state("dashboard"); // Default view. Changed from writable to $state
@@ -64,6 +66,14 @@
 
       const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
       // console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
+
+      // Update cs2RunningStateChanged
+      cs2RunningStateChanged = cs2Running !== previousCs2RunningState;
+      previousCs2RunningState = cs2Running; // Update previous state for next tick
+
+      if (cs2RunningStateChanged) {
+        console.log(`CS2 running state changed to: ${cs2Running}`);
+      }
 
       if (cs2Running) {
         // only run if the setting is enabled and there are processes in the kill list
