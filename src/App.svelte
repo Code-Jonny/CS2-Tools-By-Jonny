@@ -73,10 +73,10 @@
       if (cs2RunningStateChanged && settings.powerPlanManagementActive) {
         // console.log(time, "CS2 running state changed. Updating power plan.");
         // If CS2 running state changed and power plan management is active, set the active power plan
-        if (cs2Running) {
-          await powerPlans.setActivePowerPlan("cs2");
-        } else {
-          await powerPlans.setActivePowerPlan("default");
+        if (cs2Running && settings.powerPlanCS2) {
+          await powerPlans.setActive(settings.powerPlanCS2);
+        } else if (!cs2Running && settings.powerPlanDefault) {
+          await powerPlans.setActive(settings.powerPlanDefault);
         }
       }
 

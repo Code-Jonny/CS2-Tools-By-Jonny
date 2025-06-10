@@ -6,7 +6,7 @@ declare const NL_PATH: string;
 export interface PowerPlan {
   guid: string;
   name: string;
-  isActive: boolean;
+  isActive?: boolean;
 }
 
 interface PowerPlanState {
