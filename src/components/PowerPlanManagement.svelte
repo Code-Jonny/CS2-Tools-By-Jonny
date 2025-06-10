@@ -2,6 +2,7 @@
   import { settings } from "@lib/settingsStore.svelte.ts";
   import { powerPlans, type PowerPlan } from "@lib/powerplans.svelte.ts";
   import { onMount } from "svelte";
+  import Toggle from "@elements/Toggle.svelte"; // Added import for Toggle component
 
   let availablePowerPlans = $derived(powerPlans.plans);
 
@@ -26,15 +27,13 @@
 <div class="container">
   <h2>Power Plan Management</h2>
 
-  <div>
-    <label for="powerPlanManagementActive">Enable Power Plan Management</label>
-    <input
-      type="checkbox"
-      id="powerPlanManagementActive"
-      name="powerPlanManagementActive"
-      bind:checked={settings.powerPlanManagementActive}
-    />
-  </div>
+  <Toggle
+    label="Enable Power Plan Management"
+    id="powerPlanManagementActive"
+    name="powerPlanManagementActive"
+    checked={settings.powerPlanManagementActive}
+    checkedChanged={(newVal) => (settings.powerPlanManagementActive = newVal)}
+  />
 
   {#if settings.powerPlanManagementActive}
     <form onsubmit={(e) => e.preventDefault()}>
@@ -119,17 +118,12 @@
     display: block;
     margin-top: 10px;
   }
-  select,
-  input[type="checkbox"] {
+  select {
     /* Combined styles for select and checkbox */
     width: auto; /* Let the browser decide or set a specific width if needed */
     padding: 8px;
     margin-top: 5px;
     margin-bottom: 10px;
     box-sizing: border-box;
-  }
-  input[type="checkbox"] {
-    /* Specific adjustments for checkbox if needed */
-    margin-right: 5px; /* Example: add some space to the right of the checkbox */
   }
 </style>

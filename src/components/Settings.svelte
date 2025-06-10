@@ -3,6 +3,7 @@
   import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
   import { onMount } from "svelte";
   import Button from "@elements/Button.svelte";
+  import Toggle from "@elements/Toggle.svelte"; // Import the Toggle component
 
   // Local state for polling interval in seconds for the input field
   let pollingIntervalSeconds: number = $state(
@@ -58,25 +59,21 @@
 <div class="container">
   <h2>General Settings</h2>
   <form onsubmit={(e) => e.preventDefault()}>
-    <div>
-      <label for="autostartWithWindows">Autostart with Windows</label>
-      <input
-        type="checkbox"
-        id="autostartWithWindows"
-        name="autostartWithWindows"
-        bind:checked={settings.autostartWithWindows}
-      />
-    </div>
+    <Toggle
+      label="Autostart with Windows"
+      id="autostartWithWindows"
+      name="autostartWithWindows"
+      checked={settings.autostartWithWindows}
+      checkedChanged={(newVal) => (settings.autostartWithWindows = newVal)}
+    />
 
-    <div>
-      <label for="startMinimized">Start Minimized</label>
-      <input
-        type="checkbox"
-        id="startMinimized"
-        name="startMinimized"
-        bind:checked={settings.startMinimized}
-      />
-    </div>
+    <Toggle
+      label="Start Minimized"
+      id="startMinimized"
+      name="startMinimized"
+      checked={settings.startMinimized}
+      checkedChanged={(newVal) => (settings.startMinimized = newVal)}
+    />
 
     <div>
       <label for="pollingInterval">Polling Interval (seconds)</label>
@@ -123,12 +120,6 @@
   label {
     display: block;
     margin-top: 10px;
-  }
-  input[type="checkbox"] {
-    /* More specific selector for checkbox */
-    width: auto; /* Override general input width for checkbox */
-    margin-right: 5px;
-    vertical-align: middle;
   }
   input[type="text"] {
     /* Style for text input */

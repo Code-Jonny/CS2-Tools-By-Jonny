@@ -2,20 +2,19 @@
   import { settings } from "@lib/settingsStore.svelte.ts";
   import ProcessList from "@components/ProcessList.svelte";
   import Button from "@elements/Button.svelte";
+  import Toggle from "@elements/Toggle.svelte";
 </script>
 
 <div class="container">
   <h2>Process Management</h2>
 
-  <div>
-    <label for="processManagementActive">Enable Process Management</label>
-    <input
-      type="checkbox"
-      id="processManagementActive"
-      name="processManagementActive"
-      bind:checked={settings.processManagementActive}
-    />
-  </div>
+  <Toggle
+    label="Enable Process Management"
+    id="processManagementActive"
+    name="processManagementActive"
+    checked={settings.processManagementActive}
+    checkedChanged={(newVal) => (settings.processManagementActive = newVal)}
+  />
 
   {#if settings.processManagementActive}
     <form onsubmit={(e) => e.preventDefault()}>
@@ -57,14 +56,5 @@
   }
   .container {
     /* Add any specific styles for this component if needed */
-  }
-  label {
-    display: block; /* Ensure label and checkbox are on separate lines or manage layout as needed */
-    margin-top: 10px;
-  }
-  input[type="checkbox"] {
-    margin-top: 5px;
-    margin-bottom: 10px; /* Consistent margin with other inputs */
-    margin-right: 5px; /* Space between checkbox and label text if label is inline */
   }
 </style>
