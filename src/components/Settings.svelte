@@ -68,6 +68,16 @@
     </div>
 
     <div>
+      <label for="startMinimized">Start Minimized</label>
+      <input
+        type="checkbox"
+        id="startMinimized"
+        name="startMinimized"
+        bind:checked={settings.startMinimized}
+      />
+    </div>
+
+    <div>
       <label for="pollingInterval">Polling Interval (seconds)</label>
       <input
         type="text"
@@ -95,6 +105,7 @@
   <hr />
   <h3>Current General Settings (Live View from Store)</h3>
   <p>Autostart with Windows: {settings.autostartWithWindows}</p>
+  <p>Start Minimized: {settings.startMinimized}</p>
   <p>
     Polling Interval: {settings.pollingIntervalMs / 1000} seconds ({settings.pollingIntervalMs}ms)
   </p>
