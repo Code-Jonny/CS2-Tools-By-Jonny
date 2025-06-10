@@ -10,10 +10,10 @@
   } from "@lib/runningProcesses.svelte.ts";
   import { onMount } from "svelte";
 
-  let filter: FilterType = "all"; // Default filter to show all processes
-  let sortKey: SortKey = "name";
-  let sortOrder: SortOrder = "asc";
-  let searchTerm: string = ""; // Added for search functionality
+  let filter: FilterType = $state("all"); // Default filter to show all processes
+  let sortKey: SortKey = $state("name");
+  let sortOrder: SortOrder = $state("asc");
+  let searchTerm: string = $state(""); // Added for search functionality
 
   async function getProcessList() {
     await runningProcesses.refresh();
@@ -29,117 +29,124 @@
   }
 
   // Reactive statement for displayed processes
-  $: displayedProcesses = (() => {
-    const allProcesses = $runningProcesses.processes.slice(); // React to store changes, work with a copy
+  const displayedProcesses = $derived(
+    (() => {
+      const allProcesses = $runningProcesses.processes.slice(); // React to store changes, work with a copy
 
-    // Apply filter
-    let processesToGroup = allProcesses;
-    if (filter !== "all") {
-      processesToGroup = processesToGroup.filter((p: ProcessInfo) =>
-        filter === "service" ? p.service : !p.service
-      );
-    }
+      // Apply filter
+      let processesToGroup = allProcesses;
+      if (filter !== "all") {
+        processesToGroup = processesToGroup.filter((p: ProcessInfo) =>
+          filter === "service" ? p.service : !p.service
+        );
+      }
 
-    // Apply search term
-    if (searchTerm && searchTerm.trim() !== "") {
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      processesToGroup = processesToGroup.filter((p: ProcessInfo) =>
-        p.name.toLowerCase().includes(lowerSearchTerm)
-      );
-    }
+      // Apply search term
+      if (searchTerm && searchTerm.trim() !== "") {
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        processesToGroup = processesToGroup.filter((p: ProcessInfo) =>
+          p.name.toLowerCase().includes(lowerSearchTerm)
+        );
+      }
 
-    // Grouping logic
-    const grouped = processesToGroup.reduce(
-      (
-        acc: Record<
+      // Grouping logic
+      const grouped = processesToGroup.reduce(
+        (
+          acc: Record<
+            string,
+            {
+              name: string;
+              count: number;
+              ramUsage: number;
+              types: Set<boolean>;
+            }
+          >,
+          process: ProcessInfo
+        ) => {
+          if (!acc[process.name]) {
+            acc[process.name] = {
+              name: process.name,
+              count: 0,
+              ramUsage: 0,
+              types: new Set<boolean>(), // true for service, false for app
+            };
+          }
+          acc[process.name].count++;
+          acc[process.name].ramUsage += process.ramUsage;
+          acc[process.name].types.add(process.service);
+          return acc;
+        },
+        {} as Record<
           string,
           { name: string; count: number; ramUsage: number; types: Set<boolean> }
-        >,
-        process: ProcessInfo
-      ) => {
-        if (!acc[process.name]) {
-          acc[process.name] = {
-            name: process.name,
-            count: 0,
-            ramUsage: 0,
-            types: new Set<boolean>(), // true for service, false for app
+        >
+      );
+
+      // Transform grouped data for display
+      let result = Object.values(grouped).map(
+        (group: {
+          name: string;
+          count: number;
+          ramUsage: number;
+          types: Set<boolean>;
+        }) => {
+          let typeDisplay = "";
+          const hasService = group.types.has(true);
+          const hasApp = group.types.has(false);
+
+          if (hasService && hasApp) {
+            typeDisplay = "App & Service";
+          } else if (hasService) {
+            typeDisplay = "Service";
+          } else if (hasApp) {
+            typeDisplay = "App";
+          } else {
+            typeDisplay = "Unknown"; // Should not happen if processes always have a defined type
+          }
+          return {
+            nameForActionAndSort: group.name, // For unique key, sorting by name, and actions
+            displayName:
+              group.count > 1 ? `${group.name} (${group.count}x)` : group.name,
+            count: group.count,
+            ramUsage: group.ramUsage,
+            typeDisplay: typeDisplay,
           };
         }
-        acc[process.name].count++;
-        acc[process.name].ramUsage += process.ramUsage;
-        acc[process.name].types.add(process.service);
-        return acc;
-      },
-      {} as Record<
-        string,
-        { name: string; count: number; ramUsage: number; types: Set<boolean> }
-      >
-    );
+      );
 
-    // Transform grouped data for display
-    let result = Object.values(grouped).map(
-      (group: {
-        name: string;
-        count: number;
-        ramUsage: number;
-        types: Set<boolean>;
-      }) => {
-        let typeDisplay = "";
-        const hasService = group.types.has(true);
-        const hasApp = group.types.has(false);
+      // Apply current sort (sortKey, sortOrder) to the grouped results
+      // PID sorting is removed from UI, but handle if sortKey was 'pid'
+      const currentSortKey = sortKey === "pid" ? "name" : sortKey;
 
-        if (hasService && hasApp) {
-          typeDisplay = "App & Service";
-        } else if (hasService) {
-          typeDisplay = "Service";
-        } else if (hasApp) {
-          typeDisplay = "App";
-        } else {
-          typeDisplay = "Unknown"; // Should not happen if processes always have a defined type
+      result.sort((a, b) => {
+        let valA, valB;
+        switch (currentSortKey) {
+          case "name":
+            valA = a.nameForActionAndSort.toLowerCase();
+            valB = b.nameForActionAndSort.toLowerCase();
+            break;
+          case "ramUsage":
+            valA = a.ramUsage;
+            valB = b.ramUsage;
+            break;
+          case "service": // Sorting by the displayed type string
+            valA = a.typeDisplay.toLowerCase();
+            valB = b.typeDisplay.toLowerCase();
+            break;
+          default:
+            return 0;
         }
-        return {
-          nameForActionAndSort: group.name, // For unique key, sorting by name, and actions
-          displayName:
-            group.count > 1 ? `${group.name} (${group.count}x)` : group.name,
-          count: group.count,
-          ramUsage: group.ramUsage,
-          typeDisplay: typeDisplay,
-        };
-      }
-    );
 
-    // Apply current sort (sortKey, sortOrder) to the grouped results
-    // PID sorting is removed from UI, but handle if sortKey was 'pid'
-    const currentSortKey = sortKey === "pid" ? "name" : sortKey;
+        if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+        if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
 
-    result.sort((a, b) => {
-      let valA, valB;
-      switch (currentSortKey) {
-        case "name":
-          valA = a.nameForActionAndSort.toLowerCase();
-          valB = b.nameForActionAndSort.toLowerCase();
-          break;
-        case "ramUsage":
-          valA = a.ramUsage;
-          valB = b.ramUsage;
-          break;
-        case "service": // Sorting by the displayed type string
-          valA = a.typeDisplay.toLowerCase();
-          valB = b.typeDisplay.toLowerCase();
-          break;
-        default:
-          return 0;
-      }
+      return result;
+    })()
+  );
 
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  })();
-
-  $: errorMessage = $runningProcesses.errorMessage;
+  const errorMessage = $derived($runningProcesses.errorMessage);
 
   function convertBytesToHumanReadable(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
