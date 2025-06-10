@@ -18,9 +18,9 @@
     const valueWithDot = rawValue.replace(",", ".");
     const value = parseFloat(valueWithDot);
 
-    if (isNaN(value) || value < 0.1) {
+    if (isNaN(value) || value < 1) {
       pollingIntervalError =
-        "Polling interval must be a valid number (e.g., 0.5) and at least 0.1 seconds. Use a dot as the decimal separator.";
+        "Polling interval must be a valid number (e.g., 0.5) and at least 1 second. Use a dot as the decimal separator.";
       // Do not update state if input is invalid
       return;
     }
