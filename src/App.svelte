@@ -18,10 +18,8 @@
   // Import new components for subpages
   import ProcessManagement from "@components/ProcessManagement.svelte";
   import PowerPlanManagement from "@components/PowerPlanManagement.svelte";
-  // Settings component might still be used if it contains other settings, or can be removed if all are moved.
-  // For now, let's assume it might still have general settings or the reset button.
-  // If not, this import can be removed later.
   import Settings from "@components/Settings.svelte";
+  import Dashboard from "@components/Dashboard.svelte"; // Import the Dashboard component
 
   // New variables and functions for the main loop
   let mainLoopIntervalId: NodeJS.Timeout | undefined = undefined; // Modified type
@@ -147,19 +145,12 @@
 
 <main>
   {#if currentView === "dashboard"}
-    <div class="container">
-      <!-- Dashboard content will go here, currently empty as requested -->
-      <h3>Dashboard</h3>
-      <p>
-        Welcome to the Dashboard. This area is currently under construction.
-      </p>
-    </div>
+    <Dashboard /> <!-- Use the Dashboard component -->
   {:else if currentView === "process-management"}
     <ProcessManagement />
   {:else if currentView === "power-plan-management"}
     <PowerPlanManagement />
   {:else if currentView === "settings"}
-    <!-- Render Settings.svelte if it's still used for general settings -->
     <Settings />
   {/if}
 </main>
