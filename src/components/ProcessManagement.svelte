@@ -12,8 +12,8 @@
     label="Enable Process Management"
     id="processManagementActive"
     name="processManagementActive"
-    checked={settings.processManagementActive}
-    checkedChanged={(newVal) => (settings.processManagementActive = newVal)}
+    bind:checked={settings.processManagementActive}
+    checkedChanged={() => {}}
   />
 
   {#if settings.processManagementActive}
@@ -32,7 +32,6 @@
                       (_: string, i: number) => i !== index
                     );
                   }}
-                  style="margin-left: 8px;"
                 >
                   Remove
                 </Button>
@@ -49,7 +48,7 @@
   {/if}
 </div>
 
-<style scoped>
+<style>
   hr {
     margin-top: 20px;
     margin-bottom: 20px;

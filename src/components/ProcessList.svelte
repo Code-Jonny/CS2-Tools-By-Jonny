@@ -115,8 +115,9 @@
       );
 
       // Apply current sort (sortKey, sortOrder) to the grouped results
-      // PID sorting is removed from UI, but handle if sortKey was 'pid'
-      const currentSortKey = sortKey === "pid" ? "name" : sortKey;
+      // PID sorting is removed from UI.
+      // Assert the type of sortKey for current context, as it's controlled by UI to be one of these.
+      const currentSortKey = sortKey as "name" | "ramUsage" | "service";
 
       result.sort((a, b) => {
         let valA, valB;

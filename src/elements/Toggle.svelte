@@ -9,7 +9,7 @@
      * The current state of the toggle (true for checked, false for unchecked).
      * Can be bound using bind:checked.
      */
-    checked, // This is the prop from the parent
+    checked = $bindable(), // This is the prop from the parent
 
     /**
      * A unique identifier for the toggle's input element.
