@@ -1,6 +1,14 @@
 <script lang="ts">
   // Import the reactive settings store and the reset function
   import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
+  import { getPowerPlans, type PowerPlan } from "@lib/powerplan";
+  import { onMount } from "svelte";
+
+  let availablePowerPlans: PowerPlan[] = $state([]);
+
+  onMount(async () => {
+    availablePowerPlans = await getPowerPlans();
+  });
 
   async function handleResetToDefaults() {
     if (
@@ -13,6 +21,22 @@
         console.error("Error resetting settings:", error);
         alert("Failed to reset settings.");
       }
+    }
+  }
+
+  function handlePowerPlanChange(
+    event: Event & { currentTarget: HTMLSelectElement },
+    targetSetting: "powerPlanCS2" | "powerPlanDefault"
+  ) {
+    const selectedGuid = event.currentTarget.value;
+    const selectedPlan = availablePowerPlans.find(
+      (plan) => plan.guid === selectedGuid
+    );
+    if (selectedPlan) {
+      settings[targetSetting] = {
+        guid: selectedPlan.guid,
+        name: selectedPlan.name,
+      };
     }
   }
 </script>
@@ -33,7 +57,51 @@
       id="storeSetting2"
       name="storeSetting2"
       bind:value={settings.setting2}
-    /> <button type="submit">Save (Auto)</button>
+    />
+
+    <label for="powerPlanCS2">Power Plan for CS2</label>
+    <select
+      id="powerPlanCS2"
+      name="powerPlanCS2"
+      value={settings.powerPlanCS2?.guid}
+      onchange={(e) => handlePowerPlanChange(e, "powerPlanCS2")}
+    >
+      {#if availablePowerPlans.length === 0}
+        <option value="" disabled selected>Loading power plans...</option>
+      {:else}
+        <option value="" disabled selected>
+          {settings.powerPlanCS2?.name
+            ? `Current: ${settings.powerPlanCS2.name}`
+            : "Select a power plan"}
+        </option>
+        {#each availablePowerPlans as plan (plan.guid)}
+          <option value={plan.guid}>{plan.name}</option>
+        {/each}
+      {/if}
+    </select>
+
+    <label for="powerPlanDefault">Default Power Plan</label>
+    <select
+      id="powerPlanDefault"
+      name="powerPlanDefault"
+      value={settings.powerPlanDefault?.guid}
+      onchange={(e) => handlePowerPlanChange(e, "powerPlanDefault")}
+    >
+      {#if availablePowerPlans.length === 0}
+        <option value="" disabled selected>Loading power plans...</option>
+      {:else}
+        <option value="" disabled selected>
+          {settings.powerPlanDefault?.name
+            ? `Current: ${settings.powerPlanDefault.name}`
+            : "Select a power plan"}
+        </option>
+        {#each availablePowerPlans as plan (plan.guid)}
+          <option value={plan.guid}>{plan.name}</option>
+        {/each}
+      {/if}
+    </select>
+
+    <button type="submit">Save (Auto)</button>
     <button type="button" onclick={handleResetToDefaults}>
       Reset to Defaults
     </button>
@@ -69,6 +137,14 @@
   <h3>Current Settings (Live View from Store)</h3>
   <p>Setting 1: {settings.setting1}</p>
   <p>Setting 2: {settings.setting2}</p>
+  <p>
+    CS2 Power Plan: {settings.powerPlanCS2?.name} ({settings.powerPlanCS2
+      ?.guid})
+  </p>
+  <p>
+    Default Power Plan: {settings.powerPlanDefault?.name} ({settings
+      .powerPlanDefault?.guid})
+  </p>
 </div>
 
 <style scoped>
