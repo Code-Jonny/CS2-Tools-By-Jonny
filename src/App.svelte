@@ -26,7 +26,7 @@
   // New variables and functions for the main loop
   let mainLoopIntervalId: NodeJS.Timeout | undefined = undefined; // Modified type
   let isMainLoopLogicRunning: boolean = false;
-  let currentPollingInterval = settings.pollingInterval; // To track changes
+  let currentPollingInterval = settings.pollingIntervalMs; // To track changes
 
   // Client-side routing
   let currentView = writable("dashboard"); // Default view
@@ -89,7 +89,7 @@
     if (mainLoopIntervalId !== undefined) {
       clearInterval(mainLoopIntervalId);
     }
-    const interval = settings.pollingInterval || 5000; // Default to 5 seconds if not set
+    const interval = settings.pollingIntervalMs || 5000; // Default to 5 seconds if not set
     mainLoopIntervalId = setInterval(mainLoop, interval);
     // console.log(`Main loop started with interval: ${interval}ms`);
   }
@@ -109,7 +109,7 @@
 
     // Start the main loop
     startMainLoop();
-    currentPollingInterval = settings.pollingInterval; // Initialize currentPollingInterval
+    currentPollingInterval = settings.pollingIntervalMs; // Initialize currentPollingInterval
 
     // Setup client-side routing
     window.addEventListener("hashchange", updateView);
@@ -119,11 +119,11 @@
   // Reactive statement to restart the loop if pollingInterval changes
   $: {
     if (
-      settings.pollingInterval !== undefined &&
-      settings.pollingInterval !== currentPollingInterval
+      settings.pollingIntervalMs !== undefined &&
+      settings.pollingIntervalMs !== currentPollingInterval
     ) {
-      // console.log(`Polling interval changed from ${currentPollingInterval} to ${settings.pollingInterval}. Restarting main loop.`);
-      currentPollingInterval = settings.pollingInterval;
+      // console.log(`Polling interval changed from ${currentPollingInterval} to ${settings.pollingIntervalMs}. Restarting main loop.`);
+      currentPollingInterval = settings.pollingIntervalMs;
       startMainLoop();
     }
   }
