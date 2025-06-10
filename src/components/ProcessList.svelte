@@ -201,16 +201,28 @@
         <td>{process.typeDisplay}</td>
         <td>{convertBytesToHumanReadable(process.ramUsage)}</td>
         <td>
-          <button
-            onclick={() => {
-              settings.processesToKill = [
-                ...settings.processesToKill,
-                process.nameForActionAndSort, // Use the base name for the kill list
-              ];
-            }}
-          >
-            Add to kill list
-          </button>
+          {#if settings.processesToKill.includes(process.nameForActionAndSort)}
+            <button
+              onclick={() => {
+                settings.processesToKill = settings.processesToKill.filter(
+                  (name) => name !== process.nameForActionAndSort
+                );
+              }}
+            >
+              Remove from kill list
+            </button>
+          {:else}
+            <button
+              onclick={() => {
+                settings.processesToKill = [
+                  ...settings.processesToKill,
+                  process.nameForActionAndSort, // Use the base name for the kill list
+                ];
+              }}
+            >
+              Add to kill list
+            </button>
+          {/if}
         </td>
       </tr>
     {/each}
