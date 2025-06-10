@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"; // Modified to include onDestroy
-  import { os } from "@neutralinojs/lib";
   import { terminateProcess } from "@lib/terminateProcess";
   // Import the reactive settings store
   import { settings } from "@lib/settingsStore.svelte.ts";
