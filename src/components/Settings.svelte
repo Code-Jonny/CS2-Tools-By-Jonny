@@ -2,6 +2,7 @@
   // Import the reactive settings store and the reset function
   import { settings, resetToDefaults } from "@lib/settingsStore.svelte.ts";
   import { onMount } from "svelte";
+  import Button from "@elements/Button.svelte";
 
   // Local state for polling interval in seconds for the input field
   let pollingIntervalSeconds: number = $state(
@@ -93,13 +94,13 @@
       {/if}
     </div>
 
-    <button
+    <Button
       type="button"
       onclick={handleResetToDefaults}
       style="margin-top: 15px;"
     >
       Reset to Defaults
-    </button>
+    </Button>
   </form>
 
   <hr />
@@ -136,9 +137,5 @@
     margin-top: 5px;
     margin-bottom: 5px; /* Reduced bottom margin to make space for error message */
     box-sizing: border-box;
-  }
-  button {
-    margin-right: 10px;
-    padding: 10px 15px;
   }
 </style>

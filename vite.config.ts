@@ -97,19 +97,20 @@ const neutralino = (): PluginOption => [
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [svelte(), neutralino()],
-  server: {
-    host: "127.0.0.1",
-    open: false,
-  },
-  build: {
-    outDir: neuResourcesRoot,
-  },
   resolve: {
     alias: {
       "@assets": path.resolve(__dirname, "./src/assets"),
       "@components": path.resolve(__dirname, "./src/components"),
       "@lib": path.resolve(__dirname, "./src/lib"),
       "@src": path.resolve(__dirname, "./src"),
+      "@elements": path.resolve(__dirname, "./src/elements"),
     },
+  },
+  server: {
+    host: "127.0.0.1",
+    open: false,
+  },
+  build: {
+    outDir: neuResourcesRoot,
   },
 });

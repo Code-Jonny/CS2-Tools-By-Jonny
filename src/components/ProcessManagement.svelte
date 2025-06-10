@@ -1,6 +1,7 @@
 <script lang="ts">
   import { settings } from "@lib/settingsStore.svelte.ts";
   import ProcessList from "@components/ProcessList.svelte";
+  import Button from "@elements/Button.svelte";
 </script>
 
 <div class="container">
@@ -25,7 +26,7 @@
             {#each settings.processesToKill as processName, index ("process-to-kill-" + index)}
               <li>
                 {processName}
-                <button
+                <Button
                   type="button"
                   onclick={() => {
                     settings.processesToKill = settings.processesToKill.filter(
@@ -35,7 +36,7 @@
                   style="margin-left: 8px;"
                 >
                   Remove
-                </button>
+                </Button>
               </li>
             {/each}
           </ul>
@@ -65,9 +66,5 @@
     margin-top: 5px;
     margin-bottom: 10px; /* Consistent margin with other inputs */
     margin-right: 5px; /* Space between checkbox and label text if label is inline */
-  }
-  button {
-    margin-right: 10px;
-    padding: 10px 15px;
   }
 </style>

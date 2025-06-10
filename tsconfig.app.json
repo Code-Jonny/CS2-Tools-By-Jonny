@@ -12,6 +12,7 @@
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
       "@lib/*": ["src/lib/*"],
+      "@elements/*": ["src/elements/*"], // Add this line
       "@src/*": ["src/*"]
     },
     /**

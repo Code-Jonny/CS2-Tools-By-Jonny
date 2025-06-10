@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Button from "@elements/Button.svelte"; // Add this import
   import { settings } from "@lib/settingsStore.svelte.ts";
   import {
     runningProcesses,
@@ -155,24 +156,24 @@
 
 <h3>Process List</h3>
 
-<button onclick={getProcessList}>Refresh</button>
+<Button onclick={getProcessList}>Refresh</Button>
 
-<button
+<Button
   onclick={() => {
     filter = "service";
-  }}>Only Services</button
+  }}>Only Services</Button
 >
 
-<button
+<Button
   onclick={() => {
     filter = "app";
-  }}>Only Apps</button
+  }}>Only Apps</Button
 >
 
-<button
+<Button
   onclick={() => {
     filter = "all";
-  }}>All types</button
+  }}>All types</Button
 >
 
 <input
@@ -202,7 +203,7 @@
         <td>{convertBytesToHumanReadable(process.ramUsage)}</td>
         <td>
           {#if settings.processesToKill.includes(process.nameForActionAndSort)}
-            <button
+            <Button
               onclick={() => {
                 settings.processesToKill = settings.processesToKill.filter(
                   (name) => name !== process.nameForActionAndSort
@@ -210,9 +211,9 @@
               }}
             >
               Remove from kill list
-            </button>
+            </Button>
           {:else}
-            <button
+            <Button
               onclick={() => {
                 settings.processesToKill = [
                   ...settings.processesToKill,
@@ -221,7 +222,7 @@
               }}
             >
               Add to kill list
-            </button>
+            </Button>
           {/if}
         </td>
       </tr>
