@@ -6,6 +6,7 @@
     type?: "button" | "submit" | "reset";
     disabled?: boolean;
     children: Snippet;
+    style?: string; // Add style prop
   }
 
   let {
@@ -13,9 +14,10 @@
     type = "button",
     disabled = false,
     children,
+    style = "", // Initialize style prop
   }: Props = $props();
 </script>
 
-<button {type} {disabled} {onclick}>
+<button {type} {disabled} {onclick} {style}>
   {@render children()}
 </button>
