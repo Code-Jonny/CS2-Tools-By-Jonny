@@ -110,13 +110,4 @@
     position: relative;
     display: inline-block; /* Allows label and switch to align nicely */
   }
-
-  .icon {
-    color: var(--icon-color);
-    transition: color 0.3s ease;
-  }
-
-  .icon--enabled {
-    color: var(--success-color);
-  }
 </style>

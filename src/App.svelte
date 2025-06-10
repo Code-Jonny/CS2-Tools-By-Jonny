@@ -60,9 +60,6 @@
       // Refresh running processes
       await runningProcesses.refresh();
 
-      // Refresh power plans
-      await powerPlans.refresh();
-
       const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
       // console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
 
@@ -128,7 +125,7 @@
     startMainLoop();
     currentPollingInterval = settings.pollingIntervalMs; // Initialize currentPollingInterval
 
-    // Initial fetch of power plans and processes
+    // Initial fetch of processes
     await powerPlans.refresh();
     await runningProcesses.refresh();
 
