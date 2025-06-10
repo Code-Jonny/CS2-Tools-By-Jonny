@@ -1,20 +1,17 @@
 <script lang="ts">
   import { settings } from "@lib/settingsStore.svelte.ts";
-  import { getPowerPlans, type PowerPlan } from "@lib/powerplan";
+  import { powerPlans, type PowerPlan } from "@lib/powerplans.svelte.ts";
   import { onMount } from "svelte";
 
-  let availablePowerPlans: PowerPlan[] = $state([]);
-
-  onMount(async () => {
-    availablePowerPlans = await getPowerPlans();
-  });
+  let availablePowerPlans = $derived(powerPlans.plans);
 
   function handlePowerPlanChange(
     event: Event & { currentTarget: HTMLSelectElement },
     targetSetting: "powerPlanCS2" | "powerPlanDefault"
   ) {
     const selectedGuid = event.currentTarget.value;
-    const selectedPlan = availablePowerPlans.find(
+    const currentPlans = availablePowerPlans;
+    const selectedPlan = currentPlans.find(
       (plan) => plan.guid === selectedGuid
     );
     if (selectedPlan) {
@@ -47,9 +44,14 @@
         name="powerPlanCS2"
         value={settings.powerPlanCS2?.guid}
         onchange={(e) => handlePowerPlanChange(e, "powerPlanCS2")}
+        disabled={powerPlans.isLoading || !!powerPlans.error}
       >
-        {#if availablePowerPlans.length === 0}
+        {#if powerPlans.isLoading}
           <option value="" disabled selected>Loading power plans...</option>
+        {:else if powerPlans.error}
+          <option value="" disabled selected>Error: {powerPlans.error}</option>
+        {:else if availablePowerPlans.length === 0}
+          <option value="" disabled selected>No power plans found.</option>
         {:else}
           <option value="" disabled selected>
             {settings.powerPlanCS2?.name
@@ -68,9 +70,14 @@
         name="powerPlanDefault"
         value={settings.powerPlanDefault?.guid}
         onchange={(e) => handlePowerPlanChange(e, "powerPlanDefault")}
+        disabled={powerPlans.isLoading || !!powerPlans.error}
       >
-        {#if availablePowerPlans.length === 0}
+        {#if powerPlans.isLoading}
           <option value="" disabled selected>Loading power plans...</option>
+        {:else if powerPlans.error}
+          <option value="" disabled selected>Error: {powerPlans.error}</option>
+        {:else if availablePowerPlans.length === 0}
+          <option value="" disabled selected>No power plans found.</option>
         {:else}
           <option value="" disabled selected>
             {settings.powerPlanDefault?.name

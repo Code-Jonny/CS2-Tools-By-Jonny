@@ -4,7 +4,8 @@
   import { terminateProcess } from "@lib/terminateProcess";
   // Import the reactive settings store
   import { settings } from "@lib/settingsStore.svelte.ts";
-  import { getPowerPlans, setActivePowerPlan } from "@lib/powerplan";
+  // import { getPowerPlans, setActivePowerPlan } from "@lib/powerplans"; // Removed old import
+  import { powerPlans } from "@lib/powerplans.svelte.ts"; // Import the new power plan store
   // import { writable } from "svelte/store"; // Removed: writable replaced by $state
 
   import {
@@ -55,9 +56,11 @@
       const time = date.toLocaleTimeString();
       console.log("Main loop tick:", time);
 
-      // It's generally better to use the runningProcesses store if it's already polling/updating
-      // For example, if runningProcesses.refresh() is efficient and updates the store:
-      await runningProcesses.refresh(); // Assuming this updates the list of processes
+      // Refresh running processes
+      await runningProcesses.refresh();
+
+      // Refresh power plans
+      await powerPlans.refresh();
 
       const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
       // console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
@@ -104,6 +107,10 @@
     // Start the main loop
     startMainLoop();
     currentPollingInterval = settings.pollingIntervalMs; // Initialize currentPollingInterval
+
+    // Initial fetch of power plans and processes
+    await powerPlans.refresh();
+    await runningProcesses.refresh();
 
     // Setup client-side routing
     window.addEventListener("hashchange", updateView);

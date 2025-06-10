@@ -2,6 +2,7 @@
   import { runningProcesses } from "@lib/runningProcesses.svelte.ts";
   import { settings } from "@lib/settingsStore.svelte.ts"; // Import settings store
   import type { ProcessInfo } from "@lib/runningProcesses.svelte.ts"; // Import ProcessInfo for typing
+  import { powerPlans } from "@lib/powerplans.svelte.ts"; // Import the power plan store
 
   // Use $runningProcesses to get the reactive value of the store (ProcessStoreState).
   // Then access .processes on that value.
@@ -20,6 +21,9 @@
       ),
     }))
   );
+
+  // Get the active power plan reactively
+  let activePowerPlan = $derived(powerPlans.activePlan);
 </script>
 
 <div class="container">
@@ -50,6 +54,17 @@
     </ul>
   {:else if settings.processManagementActive}
     <p>No processes configured in the kill list.</p>
+  {/if}
+
+  <h4>Active Power Plan:</h4>
+  {#if powerPlans.isLoading}
+    <p>Loading power plan...</p>
+  {:else if powerPlans.error}
+    <p style="color: red;">Error loading power plan: {powerPlans.error}</p>
+  {:else if activePowerPlan}
+    <p style="color: blue; font-weight: bold;">{activePowerPlan.name}</p>
+  {:else}
+    <p>No active power plan found or power plans not loaded yet.</p>
   {/if}
 
   <p>This is the main dashboard. More features can be added here.</p>
