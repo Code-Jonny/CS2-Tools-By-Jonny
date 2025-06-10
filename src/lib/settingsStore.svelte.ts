@@ -16,6 +16,7 @@ export const defaultAppSettings = {
   runCS2OnHighPriority: true,
   closeLaucherOnGameStart: true,
   powerPlanManagementActive: false, // Default value for the new setting
+  processManagementActive: false, // Default value for the new setting
 };
 
 export type AppSettings = typeof defaultAppSettings;
