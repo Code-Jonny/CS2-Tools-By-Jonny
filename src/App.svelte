@@ -66,7 +66,12 @@
       // console.log(time, cs2Running ? "CS2 is running." : "CS2 is not running.");
 
       if (cs2Running) {
-        if (settings.processesToKill && settings.processesToKill.length > 0) {
+        // only run if the setting is enabled and there are processes in the kill list
+        if (
+          settings.processManagementActive &&
+          settings.processesToKill &&
+          settings.processesToKill.length > 0
+        ) {
           for (const processName of settings.processesToKill) {
             // Check if the process is running before attempting to terminate
             if (runningProcesses.isProcessRunning(processName)) {

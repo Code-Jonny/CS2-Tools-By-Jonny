@@ -57,9 +57,7 @@
   {/if}
 
   <h4>Active Power Plan:</h4>
-  {#if powerPlans.isLoading}
-    <p>Loading power plan...</p>
-  {:else if powerPlans.error}
+  {#if powerPlans.error}
     <p style="color: red;">Error loading power plan: {powerPlans.error}</p>
   {:else if activePowerPlan}
     <p style="color: blue; font-weight: bold;">{activePowerPlan.name}</p>
