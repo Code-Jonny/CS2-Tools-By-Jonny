@@ -116,11 +116,14 @@ export const powerPlans = {
   refresh: async () => {
     await _fetchAndUpdatePowerPlansInternal();
   },
-  setActive: async (guid: string) => {
+  setActive: async (planOrGuid: string | PowerPlan) => {
     // Indicate loading state during set operation.
     // The subsequent refresh call will also manage isLoading, but setting it here provides immediate feedback.
     store.isLoading = true;
     store.error = null; // Clear previous errors
+
+    const guid = typeof planOrGuid === "string" ? planOrGuid : planOrGuid.guid;
+
     try {
       const command = `powercfg /setactive ${guid}`;
       const result = await os.execCommand(command);
