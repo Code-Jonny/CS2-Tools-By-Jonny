@@ -55,14 +55,6 @@
       const time = date.toLocaleTimeString();
       console.log("Main loop tick:", time);
 
-      if (runningProcesses.isProcessRunning("notepad.exe")) {
-        console.log(time, "Notepad is running.");
-      }
-
-      // --- Integrated logic from previous setInterval ---
-      // const command = 'tasklist | findstr /i "cs2.exe"'; // This might be platform specific
-      // const output = await os.execCommand(command); // Consider error handling for execCommand
-
       // It's generally better to use the runningProcesses store if it's already polling/updating
       // For example, if runningProcesses.refresh() is efficient and updates the store:
       await runningProcesses.refresh(); // Assuming this updates the list of processes
@@ -73,8 +65,11 @@
       if (cs2Running) {
         if (settings.processesToKill && settings.processesToKill.length > 0) {
           for (const processName of settings.processesToKill) {
-            // console.log(time, `CS2 is running. Attempting to kill ${processName}`);
-            await terminateProcess(processName);
+            // Check if the process is running before attempting to terminate
+            if (runningProcesses.isProcessRunning(processName)) {
+              // Call the terminateProcess function
+              await terminateProcess(processName);
+            }
           }
         }
       }
@@ -139,8 +134,6 @@
     <li><a href="#/process-management">Process Management</a></li>
     <li><a href="#/power-plan-management">Power Plan Management</a></li>
     <li><a href="#/settings">Settings</a></li>
-    <!-- Link to general settings if Settings.svelte still has relevant content -->
-    <!-- <li><a href="#/settings">Settings</a></li> -->
   </ul>
 </nav>
 
