@@ -13,6 +13,9 @@ export const defaultAppSettings = {
     name: "Ausbalanciert",
     guid: "381B4222-F694-41F0-9685-FF5BB260DF2E",
   },
+  runCS2OnHighPriority: true,
+  closeLaucherOnGameStart: true,
+  powerPlanManagementActive: false, // Default value for the new setting
 };
 
 export type AppSettings = typeof defaultAppSettings;

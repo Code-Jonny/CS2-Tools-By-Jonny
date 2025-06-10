@@ -28,63 +28,76 @@
 
 <div class="container">
   <h2>Power Plan Management</h2>
-  <form onsubmit={(e) => e.preventDefault()}>
-    <label for="powerPlanCS2">Power Plan for CS2</label>
-    <select
-      id="powerPlanCS2"
-      name="powerPlanCS2"
-      value={settings.powerPlanCS2?.guid}
-      onchange={(e) => handlePowerPlanChange(e, "powerPlanCS2")}
-    >
-      {#if availablePowerPlans.length === 0}
-        <option value="" disabled selected>Loading power plans...</option>
-      {:else}
-        <option value="" disabled selected>
-          {settings.powerPlanCS2?.name
-            ? `Current: ${settings.powerPlanCS2.name}`
-            : "Select a power plan"}
-        </option>
-        {#each availablePowerPlans as plan (plan.guid)}
-          <option value={plan.guid}>{plan.name}</option>
-        {/each}
-      {/if}
-    </select>
 
-    <label for="powerPlanDefault">Default Power Plan</label>
-    <select
-      id="powerPlanDefault"
-      name="powerPlanDefault"
-      value={settings.powerPlanDefault?.guid}
-      onchange={(e) => handlePowerPlanChange(e, "powerPlanDefault")}
-    >
-      {#if availablePowerPlans.length === 0}
-        <option value="" disabled selected>Loading power plans...</option>
-      {:else}
-        <option value="" disabled selected>
-          {settings.powerPlanDefault?.name
-            ? `Current: ${settings.powerPlanDefault.name}`
-            : "Select a power plan"}
-        </option>
-        {#each availablePowerPlans as plan (plan.guid)}
-          <option value={plan.guid}>{plan.name}</option>
-        {/each}
-      {/if}
-    </select>
+  <div>
+    <label for="powerPlanManagementActive">Enable Power Plan Management</label>
+    <input
+      type="checkbox"
+      id="powerPlanManagementActive"
+      name="powerPlanManagementActive"
+      bind:checked={settings.powerPlanManagementActive}
+    />
+  </div>
 
-    <!-- Removed Save button as settings are auto-saved by the store -->
-    <!-- <button type="submit">Save (Auto)</button> -->
-  </form>
+  {#if settings.powerPlanManagementActive}
+    <form onsubmit={(e) => e.preventDefault()}>
+      <label for="powerPlanCS2">Power Plan for CS2</label>
+      <select
+        id="powerPlanCS2"
+        name="powerPlanCS2"
+        value={settings.powerPlanCS2?.guid}
+        onchange={(e) => handlePowerPlanChange(e, "powerPlanCS2")}
+      >
+        {#if availablePowerPlans.length === 0}
+          <option value="" disabled selected>Loading power plans...</option>
+        {:else}
+          <option value="" disabled selected>
+            {settings.powerPlanCS2?.name
+              ? `Current: ${settings.powerPlanCS2.name}`
+              : "Select a power plan"}
+          </option>
+          {#each availablePowerPlans as plan (plan.guid)}
+            <option value={plan.guid}>{plan.name}</option>
+          {/each}
+        {/if}
+      </select>
 
-  <hr />
-  <h3>Current Power Plan Settings (Live View from Store)</h3>
-  <p>
-    CS2 Power Plan: {settings.powerPlanCS2?.name} ({settings.powerPlanCS2
-      ?.guid})
-  </p>
-  <p>
-    Default Power Plan: {settings.powerPlanDefault?.name} ({settings
-      .powerPlanDefault?.guid})
-  </p>
+      <label for="powerPlanDefault">Default Power Plan</label>
+      <select
+        id="powerPlanDefault"
+        name="powerPlanDefault"
+        value={settings.powerPlanDefault?.guid}
+        onchange={(e) => handlePowerPlanChange(e, "powerPlanDefault")}
+      >
+        {#if availablePowerPlans.length === 0}
+          <option value="" disabled selected>Loading power plans...</option>
+        {:else}
+          <option value="" disabled selected>
+            {settings.powerPlanDefault?.name
+              ? `Current: ${settings.powerPlanDefault.name}`
+              : "Select a power plan"}
+          </option>
+          {#each availablePowerPlans as plan (plan.guid)}
+            <option value={plan.guid}>{plan.name}</option>
+          {/each}
+        {/if}
+      </select>
+
+      <!-- Removed Save button as settings are auto-saved by the store -->
+      <!-- <button type="submit">Save (Auto)</button> -->
+    </form>
+
+    <hr />
+    <h3>Current Power Plan Settings (Live View from Store)</h3>
+    <p>
+      CS2 Power Plan: {settings.powerPlanCS2?.name} ({settings.powerPlanCS2
+        ?.guid})
+    </p>
+    <p>
+      Default Power Plan: {settings.powerPlanDefault?.name} ({settings
+        .powerPlanDefault?.guid})
+    </p>
+  {/if}
 </div>
 
 <style scoped>
@@ -99,11 +112,17 @@
     display: block;
     margin-top: 10px;
   }
-  select {
-    width: 100%;
+  select,
+  input[type="checkbox"] {
+    /* Combined styles for select and checkbox */
+    width: auto; /* Let the browser decide or set a specific width if needed */
     padding: 8px;
     margin-top: 5px;
     margin-bottom: 10px;
     box-sizing: border-box;
+  }
+  input[type="checkbox"] {
+    /* Specific adjustments for checkbox if needed */
+    margin-right: 5px; /* Example: add some space to the right of the checkbox */
   }
 </style>
