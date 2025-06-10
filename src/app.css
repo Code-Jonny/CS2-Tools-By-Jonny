@@ -30,8 +30,10 @@ html {
     sans-serif;
 }
 
-.container {
-  padding: 20px;
-  border-bottom: 2px solid black;
-  margin-bottom: 20px;
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #eeeeee;
+  padding-bottom: 10px;
 }

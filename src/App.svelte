@@ -157,6 +157,7 @@
 
 <nav>
   <ul>
+    <li class="sidebar-title">CS2Tools by Jonny</li>
     <li>
       <a href="#/" class:active={currentView === "dashboard"}
         ><Icon icon="solar:home-smile-linear" width="24" height="24" /> Dashboard</a
@@ -204,12 +205,19 @@
     height: 100vh;
     width: 200px; /* Adjust width as needed */
     background-color: #f0f0f0; /* Example background color */
-    padding-top: 20px;
 
     ul {
       list-style: none;
       padding: 0;
       margin: 0;
+    }
+
+    .sidebar-title {
+      font-weight: bold;
+      text-align: center;
+      padding: 30px 10px 20px 10px;
+      background-color: #e0e0e0; /* Example title background */
+      display: block;
     }
 
     li a {
@@ -218,7 +226,7 @@
       display: block;
       padding: 20px;
       display: flex;
-      gap: 4px;
+      gap: 8px;
       align-items: center;
 
       &:hover {
@@ -235,6 +243,6 @@
 
   main {
     margin-left: 220px; /* Adjust to be slightly more than nav width to account for padding or borders */
-    padding: 20px;
+    padding: 30px;
   }
 </style>

@@ -27,7 +27,7 @@
 </script>
 
 <div class="container">
-  <h3>Dashboard</h3>
+  <h1>Dashboard</h1>
   {#if isCS2Running}
     <p style="color: green; font-weight: bold;">
       Counter-Strike 2 (cs2.exe) is currently running.
@@ -39,7 +39,7 @@
   {/if}
 
   {#if settings.processManagementActive && killListProcessStatuses.length > 0}
-    <h4>Kill List Process Status:</h4>
+    <h2>Kill List Process Status:</h2>
     <ul>
       {#each killListProcessStatuses as process}
         <li>
@@ -56,7 +56,7 @@
     <p>No processes configured in the kill list.</p>
   {/if}
 
-  <h4>Active Power Plan:</h4>
+  <h2>Active Power Plan:</h2>
   {#if powerPlans.error}
     <p style="color: red;">Error loading power plan: {powerPlans.error}</p>
   {:else if activePowerPlan}
@@ -68,16 +68,8 @@
   <p>This is the main dashboard. More features can be added here.</p>
 </div>
 
-<style scoped>
-  .container {
-    /* Styles for the dashboard container */
-    padding: 1em;
-  }
-  h3 {
-    margin-bottom: 0.5em;
-    font-size: 1.5em;
-  }
-  h4 {
+<style>
+  h2 {
     margin-top: 1em;
     margin-bottom: 0.3em;
     font-size: 1.2em;
