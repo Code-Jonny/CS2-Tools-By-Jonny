@@ -203,8 +203,10 @@
     top: 0;
     left: 0;
     height: 100vh;
-    width: 200px; /* Adjust width as needed */
-    background-color: #f0f0f0; /* Example background color */
+    width: 250px; /* Adjusted width */
+    background-color: var(--background-secondary);
+    padding-top: 20px; /* Add some padding at the top */
+    border-right: 1px solid var(--background-primary); /* Subtle border */
 
     ul {
       list-style: none;
@@ -213,36 +215,51 @@
     }
 
     .sidebar-title {
-      font-weight: bold;
+      font-size: 20px; /* Slightly smaller than H2, but prominent */
+      font-weight: 600; /* Inter Semi-Bold */
       text-align: center;
-      padding: 30px 10px 20px 10px;
-      background-color: #e0e0e0; /* Example title background */
-      display: block;
+      padding: 20px 15px 30px 15px; /* Adjusted padding */
+      color: var(--primary-accent); /* Use accent for the title */
+      border-bottom: 1px solid var(--background-primary);
+      margin-bottom: 10px;
     }
 
     li a {
       text-decoration: none;
-      color: #333; /* Example link color */
-      display: block;
-      padding: 20px;
-      display: flex;
-      gap: 8px;
+      color: var(--text-primary);
+      display: flex; /* Keep flex for icon alignment */
       align-items: center;
+      gap: 12px; /* Increased gap */
+      padding: 15px 20px; /* Adjusted padding */
+      font-size: 16px; /* Body Text for nav items */
+      font-weight: 400; /* Inter Regular */
+      transition:
+        background-color 0.2s ease-in-out,
+        color 0.2s ease-in-out;
 
       &:hover {
-        background-color: #ddd; /* Example hover effect */
+        background-color: var(--background-primary);
+        color: var(--primary-accent);
       }
 
       &.active {
-        background-color: #ccc; /* Style for active link */
-        font-weight: bold;
-        color: #000; /* Darker text for active link */
+        background-color: var(--primary-accent);
+        color: var(--background-primary); /* Dark text on accent background */
+        font-weight: 600; /* Inter Semi-Bold for active link */
+      }
+
+      /* Style for the icon within the link */
+      :global(svg) {
+        color: currentColor; /* Icon inherits color from parent <a> */
+        transition: color 0.2s ease-in-out;
       }
     }
   }
 
   main {
-    margin-left: 220px; /* Adjust to be slightly more than nav width to account for padding or borders */
-    padding: 30px;
+    margin-left: 250px; /* Match nav width */
+    padding: 25px; /* Consistent padding */
+    background-color: var(--background-primary);
+    min-height: 100vh; /* Ensure main content area takes full height */
   }
 </style>

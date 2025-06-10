@@ -35,6 +35,10 @@
       // This assignment is crucial to revert the visual input if the user types something invalid.
       // For example, if it was '5' and user types 'abc', it should revert to '5'.
       // The `value` prop of TextInput will be bound to `pollingIntervalSeconds`
+      // To ensure the input field visually reverts, we might need to re-assign pollingIntervalSeconds
+      // to itself if the component doesn't automatically re-render with the old value.
+      // However, since `value` is bound to `pollingIntervalSeconds.toString()`, and `pollingIntervalSeconds`
+      // is not changed here, the input should retain its previous valid state or the store's initial state.
       return;
     }
 
@@ -76,16 +80,14 @@
       label="Autostart with Windows"
       id="autostartWithWindows"
       name="autostartWithWindows"
-      checked={settings.autostartWithWindows}
-      checkedChanged={(newVal) => (settings.autostartWithWindows = newVal)}
+      bind:checked={settings.autostartWithWindows}
     />
 
     <Toggle
       label="Start Minimized"
       id="startMinimized"
       name="startMinimized"
-      checked={settings.startMinimized}
-      checkedChanged={(newVal) => (settings.startMinimized = newVal)}
+      bind:checked={settings.startMinimized}
     />
 
     <TextInput
@@ -94,7 +96,6 @@
       name="pollingInterval"
       value={pollingIntervalSeconds.toString()}
       on:input={handlePollingIntervalChange}
-      min="1"
       inputmode="decimal"
       error={pollingIntervalError}
       placeholder="e.g., 1.5"
