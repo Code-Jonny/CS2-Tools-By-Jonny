@@ -30,7 +30,7 @@ async function _fetchAndUpdatePowerPlansInternal() {
     const powerPlansResult: PowerPlan[] = [];
     const absoluteNLPath = await filesystem.getAbsolutePath(NL_PATH);
     const windowsPath = absoluteNLPath.replace(/\//g, "\\");
-    const binaryPath = `${windowsPath}\\app\\power_plans.exe`;
+    const binaryPath = `${NL_PATH}\\power_plans.exe`;
 
     const result = await os.execCommand(binaryPath);
 

@@ -3,6 +3,8 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { $ } from "execa";
 import fs from "node:fs/promises";
 import path from "node:path";
+import archiver from "archiver";
+import { createWriteStream } from "node:fs";
 
 const neuConfig = JSON.parse(
   await fs.readFile("neutralino.config.json", "utf8")
@@ -56,11 +58,38 @@ const neutralino = (): PluginOption => [
     async closeBundle() {
       // Build Neutralino after Vite builds
       await $`neu build`;
-      console.log(
-        `✓ Neutralino build completed. Build artifacts are located in "${path.resolve(
-          path.join("./dist", neuConfig.cli.binaryName)
-        )}" folder.`
+
+      const binaryName = neuConfig.cli.binaryName;
+      const binaryPath = path.resolve(
+        path.join("./dist/", binaryName, binaryName + "-win_x64.exe")
       );
+      const resourcesNeuPath = path.resolve(
+        path.join("./dist/", binaryName, "resources.neu")
+      );
+      const powerPlansPath = path.resolve("./power_plans.exe");
+      const bundleDir = path.resolve("./dist/bundle");
+      const zipPath = path.join(bundleDir, `${binaryName}.zip`);
+
+      try {
+        await fs.mkdir(bundleDir, { recursive: true });
+
+        const output = createWriteStream(zipPath);
+        const archive = archiver("zip", {
+          zlib: { level: 9 }, // Sets the compression level.
+        });
+
+        archive.pipe(output);
+        archive.file(binaryPath, { name: path.basename(binaryPath) });
+        archive.file(resourcesNeuPath, { name: "resources.neu" });
+        archive.file(powerPlansPath, { name: "power_plans.exe" });
+        await archive.finalize();
+
+        console.log(
+          `✓ Neutralino build completed. Zip bundle created at "${zipPath}".`
+        );
+      } catch (error) {
+        console.error("Failed to create zip bundle:", error);
+      }
     },
   },
 ];
