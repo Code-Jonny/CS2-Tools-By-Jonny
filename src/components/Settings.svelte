@@ -29,7 +29,7 @@
 
     if (isNaN(value) || value < 1) {
       pollingIntervalError =
-        "Polling interval must be a valid number (e.g., 0.5) and at least 1 second. Use a dot as the decimal separator.";
+        "Polling interval must be a valid number (e.g., 3.5) and at least 1 second. Use a dot as the decimal separator.";
       // Do not update state if input is invalid
       // Ensure the input field reflects the last valid 'pollingIntervalSeconds' or the store value if it's the first invalid entry.
       // This assignment is crucial to revert the visual input if the user types something invalid.

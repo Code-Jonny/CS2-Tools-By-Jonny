@@ -5,7 +5,7 @@
   import { settings } from "@lib/settingsStore.svelte.ts";
   // import { getPowerPlans, setActivePowerPlan } from "@lib/powerplans"; // Removed old import
   import { powerPlans } from "@lib/powerplans.svelte.ts"; // Import the new power plan store
-  // import { writable } from "svelte/store"; // Removed: writable replaced by $state
+  import Icon from "@iconify/svelte";
 
   import {
     runningProcesses,
@@ -157,10 +157,30 @@
 
 <nav>
   <ul>
-    <li><a href="#/">Dashboard</a></li>
-    <li><a href="#/process-management">Process Management</a></li>
-    <li><a href="#/power-plan-management">Power Plan Management</a></li>
-    <li><a href="#/settings">Settings</a></li>
+    <li>
+      <a href="#/" class:active={currentView === "dashboard"}
+        ><Icon icon="solar:home-smile-linear" width="24" height="24" /> Dashboard</a
+      >
+    </li>
+    <li>
+      <a
+        href="#/process-management"
+        class:active={currentView === "process-management"}
+        ><Icon icon="solar:cpu-linear" width="24" height="24" /> Process Management</a
+      >
+    </li>
+    <li>
+      <a
+        href="#/power-plan-management"
+        class:active={currentView === "power-plan-management"}
+        ><Icon icon="solar:power-linear" width="24" height="24" /> Power Plan Management</a
+      >
+    </li>
+    <li>
+      <a href="#/settings" class:active={currentView === "settings"}
+        ><Icon icon="solar:settings-linear" width="24" height="24" /> Settings</a
+      >
+    </li>
   </ul>
 </nav>
 
@@ -184,7 +204,7 @@
     height: 100vh;
     width: 200px; /* Adjust width as needed */
     background-color: #f0f0f0; /* Example background color */
-    padding: 20px;
+    padding-top: 20px;
 
     ul {
       list-style: none;
@@ -196,11 +216,19 @@
       text-decoration: none;
       color: #333; /* Example link color */
       display: block;
-      padding: 10px;
-      margin-bottom: 5px;
+      padding: 20px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
 
       &:hover {
         background-color: #ddd; /* Example hover effect */
+      }
+
+      &.active {
+        background-color: #ccc; /* Style for active link */
+        font-weight: bold;
+        color: #000; /* Darker text for active link */
       }
     }
   }
