@@ -40,13 +40,20 @@
 <div class="toggle-component">
   {#if checked}
     <Icon
+      icon="solar:check-circle-bold"
+      width="24"
+      height="24"
+      class="icon icon--enabled"
+      style="color: var(--success-color);"
+    />
+  {:else}
+    <Icon
       icon="solar:check-circle-linear"
       width="24"
       height="24"
-      class="icon"
+      class="icon icon--disabled"
+      style="color: var(--icon-color);"
     />
-  {:else}
-    <Icon icon="solar:check-circle-bold" width="24" height="24" class="icon" />
   {/if}
   <label for={id} class:disabled class="toggle-label">{label}</label>
   <div class="toggle-switch-container">
@@ -62,6 +69,13 @@
 </div>
 
 <style>
+  :global(:root) {
+    --spacing-small: 8px;
+    --spacing-medium: 16px;
+    --font-size-normal: 16px;
+    --icon-color: #666;
+  }
+
   .toggle-component {
     display: flex;
     align-items: center;
@@ -100,5 +114,9 @@
   .icon {
     color: var(--icon-color);
     transition: color 0.3s ease;
+  }
+
+  .icon--enabled {
+    color: var(--success-color);
   }
 </style>

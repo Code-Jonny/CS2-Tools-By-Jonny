@@ -373,9 +373,9 @@
   .process-table th:hover {
     color: var(--primary-accent);
   }
-  .process-table th Icon {
+  /* .process-table th Icon {
     margin-left: 5px;
-  }
+  } */
 
   .process-table tbody tr:nth-child(even) {
     background-color: var(--background-primary); /* Zebra striping */

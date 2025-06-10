@@ -115,12 +115,12 @@
     width: 100%;
   }
 
-  .input-icon {
+  /* .input-icon {
     position: absolute;
     left: 12px;
     color: var(--text-secondary);
-    pointer-events: none; /* So it doesn't interfere with input click */
-  }
+    pointer-events: none;
+  } */
 
   .styled-input {
     width: 100%;
