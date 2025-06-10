@@ -11,13 +11,15 @@
 
   function handlePollingIntervalChange(event: Event) {
     const inputElement = event.target as HTMLInputElement;
-    const value = parseFloat(inputElement.value);
+    const rawValue = inputElement.value;
+    // Replace comma with dot to ensure consistent parsing and allow comma input
+    const valueWithDot = rawValue.replace(",", ".");
+    const value = parseFloat(valueWithDot);
 
     if (isNaN(value) || value < 0.1) {
       pollingIntervalError =
-        "Polling interval must be a number and at least 0.1 seconds.";
-      // Optionally, reset to a valid or previous valid value if desired
-      // For now, we just show an error and don't update the store
+        "Polling interval must be a valid number (e.g., 0.5) and at least 0.1 seconds. Use a dot as the decimal separator.";
+      // Do not update state if input is invalid
       return;
     }
 
@@ -68,13 +70,13 @@
     <div>
       <label for="pollingInterval">Polling Interval (seconds)</label>
       <input
-        type="number"
+        type="text"
         id="pollingInterval"
         name="pollingInterval"
         value={pollingIntervalSeconds}
         oninput={handlePollingIntervalChange}
         min="0.1"
-        step="0.1"
+        inputmode="decimal"
       />
       {#if pollingIntervalError}
         <p style="color: red; font-size: 0.9em;">{pollingIntervalError}</p>
@@ -116,8 +118,8 @@
     margin-right: 5px;
     vertical-align: middle;
   }
-  input[type="number"] {
-    /* Style for number input */
+  input[type="text"] {
+    /* Style for text input */
     width: 100%;
     padding: 8px;
     margin-top: 5px;
