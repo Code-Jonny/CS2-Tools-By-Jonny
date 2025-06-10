@@ -4,6 +4,7 @@
   import { onMount } from "svelte";
   import Button from "@elements/Button.svelte";
   import Toggle from "@elements/Toggle.svelte"; // Import the Toggle component
+  import TextInput from "@elements/TextInput.svelte"; // Import the TextInput component
 
   // Local state for polling interval in seconds for the input field
   let pollingIntervalSeconds: number = $state(
@@ -11,8 +12,16 @@
   );
   let pollingIntervalError: string | null = $state(null);
 
-  function handlePollingIntervalChange(event: Event) {
-    const inputElement = event.target as HTMLInputElement;
+  function handlePollingIntervalChange(customEvent: CustomEvent<Event>) {
+    const nativeEvent = customEvent.detail;
+    if (!nativeEvent || !(nativeEvent.target instanceof HTMLInputElement)) {
+      console.error(
+        "Polling interval input event: nativeEvent.target is not an HTMLInputElement or is null.",
+        nativeEvent ? nativeEvent.target : "nativeEvent is null"
+      );
+      return;
+    }
+    const inputElement = nativeEvent.target as HTMLInputElement;
     const rawValue = inputElement.value;
     // Replace comma with dot to ensure consistent parsing and allow comma input
     const valueWithDot = rawValue.replace(",", ".");
@@ -22,6 +31,10 @@
       pollingIntervalError =
         "Polling interval must be a valid number (e.g., 0.5) and at least 1 second. Use a dot as the decimal separator.";
       // Do not update state if input is invalid
+      // Ensure the input field reflects the last valid 'pollingIntervalSeconds' or the store value if it's the first invalid entry.
+      // This assignment is crucial to revert the visual input if the user types something invalid.
+      // For example, if it was '5' and user types 'abc', it should revert to '5'.
+      // The `value` prop of TextInput will be bound to `pollingIntervalSeconds`
       return;
     }
 
@@ -75,21 +88,17 @@
       checkedChanged={(newVal) => (settings.startMinimized = newVal)}
     />
 
-    <div>
-      <label for="pollingInterval">Polling Interval (seconds)</label>
-      <input
-        type="text"
-        id="pollingInterval"
-        name="pollingInterval"
-        value={pollingIntervalSeconds}
-        oninput={handlePollingIntervalChange}
-        min="0.1"
-        inputmode="decimal"
-      />
-      {#if pollingIntervalError}
-        <p style="color: red; font-size: 0.9em;">{pollingIntervalError}</p>
-      {/if}
-    </div>
+    <TextInput
+      label="Polling Interval (seconds)"
+      id="pollingInterval"
+      name="pollingInterval"
+      value={pollingIntervalSeconds.toString()}
+      on:input={handlePollingIntervalChange}
+      min="1"
+      inputmode="decimal"
+      error={pollingIntervalError}
+      placeholder="e.g., 1.5"
+    />
 
     <Button
       type="button"
@@ -117,16 +126,5 @@
   .container {
     /* Add any specific styles for this component if needed */
   }
-  label {
-    display: block;
-    margin-top: 10px;
-  }
-  input[type="text"] {
-    /* Style for text input */
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    margin-bottom: 5px; /* Reduced bottom margin to make space for error message */
-    box-sizing: border-box;
-  }
+  /* Removed label and input[type="text"] styles as TextInput handles them */
 </style>
