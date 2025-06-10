@@ -15,8 +15,13 @@
     type SortOrder,
   } from "@lib/runningProcesses.svelte.ts";
 
-  import ProcessList from "@components/ProcessList.svelte";
-  import Settings from "@components/Settings.svelte"; // Import the new Settings component
+  // Import new components for subpages
+  import ProcessManagement from "@components/ProcessManagement.svelte";
+  import PowerPlanManagement from "@components/PowerPlanManagement.svelte";
+  // Settings component might still be used if it contains other settings, or can be removed if all are moved.
+  // For now, let's assume it might still have general settings or the reset button.
+  // If not, this import can be removed later.
+  import Settings from "@components/Settings.svelte";
 
   // New variables and functions for the main loop
   let mainLoopIntervalId: NodeJS.Timeout | undefined = undefined; // Modified type
@@ -28,7 +33,11 @@
 
   function updateView() {
     const hash = window.location.hash.substring(1); // Remove #
-    if (hash === "/settings") {
+    if (hash === "/process-management") {
+      currentView.set("process-management");
+    } else if (hash === "/power-plan-management") {
+      currentView.set("power-plan-management");
+    } else if (hash === "/settings") {
       currentView.set("settings");
     } else {
       // Default to dashboard for '/' or other/empty hashes
@@ -128,17 +137,30 @@
 <nav>
   <ul>
     <li><a href="#/">Dashboard</a></li>
+    <li><a href="#/process-management">Process Management</a></li>
+    <li><a href="#/power-plan-management">Power Plan Management</a></li>
     <li><a href="#/settings">Settings</a></li>
+    <!-- Link to general settings if Settings.svelte still has relevant content -->
+    <!-- <li><a href="#/settings">Settings</a></li> -->
   </ul>
 </nav>
 
 <main>
-  {#if $currentView === "settings"}
-    <Settings />
-  {:else if $currentView === "dashboard"}
+  {#if $currentView === "dashboard"}
     <div class="container">
-      <ProcessList />
+      <!-- Dashboard content will go here, currently empty as requested -->
+      <h3>Dashboard</h3>
+      <p>
+        Welcome to the Dashboard. This area is currently under construction.
+      </p>
     </div>
+  {:else if $currentView === "process-management"}
+    <ProcessManagement />
+  {:else if $currentView === "power-plan-management"}
+    <PowerPlanManagement />
+  {:else if $currentView === "settings"}
+    <!-- Render Settings.svelte if it's still used for general settings -->
+    <Settings />
   {/if}
 </main>
 

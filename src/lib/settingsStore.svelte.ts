@@ -2,8 +2,7 @@ import { saveData, getData, exists } from "./neutralinoStorage";
 
 // Define the default structure and values for your application settings
 export const defaultAppSettings = {
-  setting1: "Default Store Value 1",
-  setting2: "Default Store Value 2",
+  autostartWithWindows: false, // Added autostart setting
   pollingInterval: 5000, // Default polling interval in milliseconds
   processesToKill: [] as string[], // Explicitly type as string[]
   powerPlanCS2: {
