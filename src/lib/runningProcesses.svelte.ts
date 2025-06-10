@@ -134,6 +134,8 @@ export const runningProcesses = {
 
   isProcessRunning: (processName: string): boolean => {
     const processes = svelteGet(store).processes;
-    return processes.some((p) => p.name === processName);
+    return processes.some(
+      (p) => p.name.toLowerCase() === processName.toLowerCase()
+    );
   },
 };

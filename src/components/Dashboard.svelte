@@ -1,9 +1,25 @@
 <script lang="ts">
   import { runningProcesses } from "@lib/runningProcesses.svelte.ts";
+  import { settings } from "@lib/settingsStore.svelte.ts"; // Import settings store
+  import type { ProcessInfo } from "@lib/runningProcesses.svelte.ts"; // Import ProcessInfo for typing
 
-  // Reactive state to check if cs2.exe is running
-  // The $derived rune creates a memoized value that updates when its dependencies change.
-  let isCS2Running = $derived(runningProcesses.isProcessRunning("cs2.exe"));
+  // Use $runningProcesses to get the reactive value of the store (ProcessStoreState).
+  // Then access .processes on that value.
+  let isCS2Running = $derived(
+    $runningProcesses.processes.some(
+      (p: ProcessInfo) => p.name.toLowerCase() === "cs2.exe"
+    )
+  );
+
+  // Derive killListProcessStatuses similarly, using $runningProcesses.processes.
+  let killListProcessStatuses = $derived(
+    settings.processesToKill.map((processName) => ({
+      name: processName,
+      isRunning: $runningProcesses.processes.some(
+        (p: ProcessInfo) => p.name.toLowerCase() === processName.toLowerCase()
+      ),
+    }))
+  );
 </script>
 
 <div class="container">
@@ -17,6 +33,25 @@
       Counter-Strike 2 (cs2.exe) is not running.
     </p>
   {/if}
+
+  {#if settings.processManagementActive && killListProcessStatuses.length > 0}
+    <h4>Kill List Process Status:</h4>
+    <ul>
+      {#each killListProcessStatuses as process}
+        <li>
+          {process.name}:
+          {#if process.isRunning}
+            <span style="color: orange; font-weight: bold;">Running</span>
+          {:else}
+            <span style="color: grey;">Not Running</span>
+          {/if}
+        </li>
+      {/each}
+    </ul>
+  {:else if settings.processManagementActive}
+    <p>No processes configured in the kill list.</p>
+  {/if}
+
   <p>This is the main dashboard. More features can be added here.</p>
 </div>
 
@@ -29,8 +64,20 @@
     margin-bottom: 0.5em;
     font-size: 1.5em;
   }
+  h4 {
+    margin-top: 1em;
+    margin-bottom: 0.3em;
+    font-size: 1.2em;
+  }
   p {
     font-size: 1.1em;
     line-height: 1.6;
+  }
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  li {
+    margin-bottom: 0.3em;
   }
 </style>

@@ -55,6 +55,10 @@
       const time = date.toLocaleTimeString();
       console.log("Main loop tick:", time);
 
+      if (runningProcesses.isProcessRunning("notepad.exe")) {
+        console.log(time, "Notepad is running.");
+      }
+
       // --- Integrated logic from previous setInterval ---
       // const command = 'tasklist | findstr /i "cs2.exe"'; // This might be platform specific
       // const output = await os.execCommand(command); // Consider error handling for execCommand
