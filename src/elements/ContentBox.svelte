@@ -19,7 +19,8 @@
 <style>
   .content-box-container {
     background-color: var(--background-secondary);
-    padding: 15px;
+    padding: 30px 15px;
     border-radius: var(--window-corner-radius);
+    font-size: 18px;
   }
 </style>

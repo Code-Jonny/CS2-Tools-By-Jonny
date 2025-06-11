@@ -83,7 +83,7 @@
   }
 
   .toggle-label {
-    font-size: var(--font-size-normal);
+    /* font-size: var(--font-size-normal); */
     color: var(--text-color-primary);
     cursor: pointer;
     user-select: none; /* Prevent text selection on click */

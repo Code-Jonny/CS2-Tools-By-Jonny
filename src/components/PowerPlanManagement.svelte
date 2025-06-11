@@ -5,6 +5,7 @@
   import Icon from "@iconify/svelte";
   import Card from "@elements/Card.svelte"; // Import Card component
   import ContentBox from "@elements/ContentBox.svelte"; // Import ContentBox component
+  import Button from "@elements/Button.svelte"; // Import Button component
 
   // Changed: Use $state for local component state, initialized with current plans from the store.
   // Access powerPlans.plans directly as it's reactive from the underlying $state in powerplans.svelte.ts
@@ -48,24 +49,25 @@
   </ContentBox>
 
   {#if settings.powerPlanManagementActive}
-    <div class="refresh-section">
-      <button
-        type="button"
-        class="button primary-button refresh-button"
-        onclick={refreshAvailablePowerPlans}
-        disabled={powerPlans.isLoading}
-      >
-        <Icon icon="solar:refresh-linear" width="20" height="20" />
-        Refresh Available Power Plans
-      </button>
-      {#if powerPlans.isLoading && localAvailablePowerPlans.length === 0}
-        <span class="loading-text info-text"> (Loading initial list...)</span>
-      {:else if powerPlans.isLoading}
-        <span class="loading-text info-text">
-          (Refreshing in background...)</span
+    <ContentBox>
+      <div class="refresh-section">
+        <Button
+          variant="primary"
+          onclick={refreshAvailablePowerPlans}
+          disabled={powerPlans.isLoading}
         >
-      {/if}
-    </div>
+          <Icon icon="solar:refresh-linear" width="20" height="20" />
+          Refresh Available Power Plans
+        </Button>
+        {#if powerPlans.isLoading && localAvailablePowerPlans.length === 0}
+          <span class="loading-text info-text"> (Loading initial list...)</span>
+        {:else if powerPlans.isLoading}
+          <span class="loading-text info-text">
+            (Refreshing in background...)</span
+          >
+        {/if}
+      </div>
+    </ContentBox>
 
     <Card titleTag="h3">
       <!-- No title for this card, form elements are self-descriptive -->
@@ -181,12 +183,6 @@
     margin-bottom: 0px; /* No bottom margin, Card will provide separation */
   }
 
-  .button.refresh-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
   .loading-text {
     color: var(--text-secondary);
   }
@@ -226,11 +222,10 @@
     cursor: not-allowed;
   }
 
-  .current-settings-view p {
-    /* This style might still be needed if Card doesn't cover it */
+  /* .current-settings-view p {
     margin-bottom: 8px;
     font-size: 16px;
-  }
+  } */
 
   .guid-text {
     font-size: 14px;
