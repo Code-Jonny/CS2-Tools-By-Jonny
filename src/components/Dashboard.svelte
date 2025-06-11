@@ -4,6 +4,7 @@
   import type { ProcessInfo } from "@lib/runningProcesses.svelte.ts"; // Import ProcessInfo for typing
   import { powerPlans } from "@lib/powerplans.svelte.ts"; // Import the power plan store
   import Icon from "@iconify/svelte"; // Import Icon component for icons
+  import Card from "@elements/Card.svelte"; // Import the new Card component
 
   // Use $runningProcesses to get the reactive value of the store (ProcessStoreState).
   // Then access .processes on that value.
@@ -32,75 +33,55 @@
 <div class="dashboard-container">
   <h1>Dashboard</h1>
 
-  <div class="status-card cs2-status-card">
-    <div class="card-header">
-      <Icon icon="simple-icons:counterstrike" width="28" height="28" />
-      <h3>Counter-Strike 2 Status</h3>
-    </div>
-    <div class="card-content">
-      {#if isCS2Running}
-        <div class="status-indicator running">
-          <Icon icon="solar:play-circle-bold" width="32" height="32" />
-          <span>CS2 is <strong>RUNNING</strong></span>
-        </div>
-      {:else}
-        <div class="status-indicator not-running">
-          <Icon icon="solar:stop-circle-bold" width="32" height="32" />
-          <span>CS2 is <strong>NOT RUNNING</strong></span>
-        </div>
-      {/if}
-    </div>
-  </div>
+  <Card title="Counter-Strike 2 Status" icon="simple-icons:counterstrike">
+    {#if isCS2Running}
+      <div class="status-indicator running">
+        <Icon icon="solar:play-circle-bold" width="32" height="32" />
+        <span>CS2 is <strong>RUNNING</strong></span>
+      </div>
+    {:else}
+      <div class="status-indicator not-running">
+        <Icon icon="solar:stop-circle-bold" width="32" height="32" />
+        <span>CS2 is <strong>NOT RUNNING</strong></span>
+      </div>
+    {/if}
+  </Card>
 
-  <div class="status-card power-plan-card">
-    <div class="card-header">
-      <Icon icon="solar:bolt-linear" width="28" height="28" />
-      <h3>Active Power Plan</h3>
-    </div>
-    <div class="card-content">
-      {#if powerPlans.error}
-        <p class="error-text">
-          <Icon icon="solar:danger-triangle-linear" width="20" height="20" /> Error
-          loading power plan: {powerPlans.error}
-        </p>
-      {:else if activePowerPlan}
-        <p class="status-indicator">{activePowerPlan.name}</p>
-      {:else}
-        <p class="info-text">No active power plan found or not loaded yet.</p>
-      {/if}
-    </div>
-  </div>
+  <Card title="Active Power Plan" icon="solar:bolt-linear">
+    {#if powerPlans.error}
+      <p class="error-text">
+        <Icon icon="solar:danger-triangle-linear" width="20" height="20" /> Error
+        loading power plan: {powerPlans.error}
+      </p>
+    {:else if activePowerPlan}
+      <p class="status-indicator">{activePowerPlan.name}</p>
+    {:else}
+      <p class="info-text">No active power plan found or not loaded yet.</p>
+    {/if}
+  </Card>
 
   {#if settings.processManagementActive}
-    <div class="status-card process-list-card">
-      <div class="card-header">
-        <Icon
-          icon="solar:checklist-minimalistic-linear"
-          width="28"
-          height="28"
-        />
-        <h3>Kill List Process Status</h3>
-      </div>
-      <div class="card-content">
-        {#if killListProcessStatuses.length > 0}
-          <ul class="process-status-list">
-            {#each killListProcessStatuses as process}
-              <li>
-                <span>{process.name}:</span>
-                {#if process.isRunning}
-                  <span class="status-tag running-process">Running</span>
-                {:else}
-                  <span class="status-tag not-running-process">Not Running</span
-                  >
-                {/if}
-              </li>
-            {/each}
-          </ul>
-        {:else}
-          <p class="info-text">No processes configured in the kill list.</p>
-        {/if}
-      </div>
-    </div>
+    <Card
+      title="Kill List Process Status"
+      icon="solar:checklist-minimalistic-linear"
+    >
+      {#if killListProcessStatuses.length > 0}
+        <ul class="process-status-list">
+          {#each killListProcessStatuses as process}
+            <li>
+              <span>{process.name}:</span>
+              {#if process.isRunning}
+                <span class="status-tag running-process">Running</span>
+              {:else}
+                <span class="status-tag not-running-process">Not Running</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="info-text">No processes configured in the kill list.</p>
+      {/if}
+    </Card>
   {/if}
 </div>
 
@@ -116,35 +97,7 @@
     margin-bottom: 25px; /* More space after main title */
   }
 
-  .status-card {
-    background-color: var(--background-secondary);
-    border-radius: var(--window-corner-radius);
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-  }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--background-primary);
-  }
-
-  .card-header h3 {
-    margin-bottom: 0; /* Reset margin as it's handled by card-header */
-    color: var(--primary-accent);
-  }
-
-  .card-header :global(svg) {
-    color: var(--primary-accent);
-  }
-
-  .card-content p,
-  .card-content ul {
-    margin-top: 0;
-  }
+  /* Removed .status-card, .card-header, .card-header h3, .card-header :global(svg), .card-content as Card.svelte handles this */
 
   .status-indicator {
     display: flex;
@@ -171,15 +124,12 @@
     color: var(--text-secondary);
   }
 
-  .power-plan-name {
-    font-size: 18px;
-    font-weight: 500; /* Inter Medium */
-    color: var(--primary-accent);
-  }
+  /* Removed .power-plan-name as it's part of .status-indicator now or handled by Card's title */
 
   .process-status-list {
     list-style: none;
     padding: 0;
+    margin: 0; /* Ensure no default margin */
   }
 
   .process-status-list li {

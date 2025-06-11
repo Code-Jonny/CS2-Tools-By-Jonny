@@ -1,8 +1,10 @@
 <script lang="ts">
   import { settings } from "@lib/settingsStore.svelte.ts";
   import { powerPlans, type PowerPlan } from "@lib/powerplans.svelte.ts";
-  import Toggle from "@elements/Toggle.svelte"; // Added import for Toggle component
+  import Toggle from "@elements/Toggle.svelte";
   import Icon from "@iconify/svelte";
+  import Card from "@elements/Card.svelte"; // Import Card component
+  import ContentBox from "@elements/ContentBox.svelte"; // Import ContentBox component
 
   // Changed: Use $state for local component state, initialized with current plans from the store.
   // Access powerPlans.plans directly as it's reactive from the underlying $state in powerplans.svelte.ts
@@ -36,14 +38,14 @@
 <div class="power-plan-management-container">
   <h2>Power Plan Management</h2>
 
-  <div class="setting-item toggle-setting">
+  <ContentBox>
     <Toggle
       label="Enable Power Plan Management"
       id="powerPlanManagementActive"
       name="powerPlanManagementActive"
       bind:checked={settings.powerPlanManagementActive}
     />
-  </div>
+  </ContentBox>
 
   {#if settings.powerPlanManagementActive}
     <div class="refresh-section">
@@ -65,80 +67,88 @@
       {/if}
     </div>
 
-    <form onsubmit={(e) => e.preventDefault()} class="power-plan-form">
-      <div class="form-group">
-        <label for="powerPlanCS2">Power Plan for CS2:</label>
-        <select
-          id="powerPlanCS2"
-          name="powerPlanCS2"
-          value={settings.powerPlanCS2?.guid}
-          onchange={(e) => handlePowerPlanChange(e, "powerPlanCS2")}
-          disabled={powerPlans.isLoading || !!powerPlans.error}
-          class="styled-select"
-        >
-          {#if powerPlans.error}
-            <option value="" disabled selected>Error: {powerPlans.error}</option
-            >
-          {:else if localAvailablePowerPlans.length === 0}
-            {#if powerPlans.isLoading}
-              <option value="" disabled selected>Loading power plans...</option>
-            {:else}
+    <Card titleTag="h3">
+      <!-- No title for this card, form elements are self-descriptive -->
+      <form onsubmit={(e) => e.preventDefault()} class="power-plan-form">
+        <div class="form-group">
+          <label for="powerPlanCS2">Power Plan for CS2:</label>
+          <select
+            id="powerPlanCS2"
+            name="powerPlanCS2"
+            value={settings.powerPlanCS2?.guid}
+            onchange={(e) => handlePowerPlanChange(e, "powerPlanCS2")}
+            disabled={powerPlans.isLoading || !!powerPlans.error}
+            class="styled-select"
+          >
+            {#if powerPlans.error}
               <option value="" disabled selected
-                >No power plans found. (Try Refresh)</option
+                >Error: {powerPlans.error}</option
               >
-            {/if}
-          {:else}
-            <option value="" disabled selected>
-              {settings.powerPlanCS2?.name
-                ? `Current: ${settings.powerPlanCS2.name}`
-                : "Select a power plan for CS2"}
-            </option>
-            {#each localAvailablePowerPlans as plan (plan.guid)}
-              <option value={plan.guid}>{plan.name}</option>
-            {/each}
-          {/if}
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="powerPlanDefault"
-          >Default Power Plan (when CS2 is not running):</label
-        >
-        <select
-          id="powerPlanDefault"
-          name="powerPlanDefault"
-          value={settings.powerPlanDefault?.guid}
-          onchange={(e) => handlePowerPlanChange(e, "powerPlanDefault")}
-          disabled={powerPlans.isLoading || !!powerPlans.error}
-          class="styled-select"
-        >
-          {#if powerPlans.error}
-            <option value="" disabled selected>Error: {powerPlans.error}</option
-            >
-          {:else if localAvailablePowerPlans.length === 0}
-            {#if powerPlans.isLoading}
-              <option value="" disabled selected>Loading power plans...</option>
+            {:else if localAvailablePowerPlans.length === 0}
+              {#if powerPlans.isLoading}
+                <option value="" disabled selected
+                  >Loading power plans...</option
+                >
+              {:else}
+                <option value="" disabled selected
+                  >No power plans found. (Try Refresh)</option
+                >
+              {/if}
             {:else}
-              <option value="" disabled selected
-                >No power plans found. (Try Refresh)</option
-              >
+              <option value="" disabled selected>
+                {settings.powerPlanCS2?.name
+                  ? `Current: ${settings.powerPlanCS2.name}`
+                  : "Select a power plan for CS2"}
+              </option>
+              {#each localAvailablePowerPlans as plan (plan.guid)}
+                <option value={plan.guid}>{plan.name}</option>
+              {/each}
             {/if}
-          {:else}
-            <option value="" disabled selected>
-              {settings.powerPlanDefault?.name
-                ? `Current: ${settings.powerPlanDefault.name}`
-                : "Select a default power plan"}
-            </option>
-            {#each localAvailablePowerPlans as plan (plan.guid)}
-              <option value={plan.guid}>{plan.name}</option>
-            {/each}
-          {/if}
-        </select>
-      </div>
-    </form>
+          </select>
+        </div>
 
-    <div class="current-settings-view card-style">
-      <h3>Current Power Plan Settings</h3>
+        <div class="form-group">
+          <label for="powerPlanDefault"
+            >Default Power Plan (when CS2 is not running):</label
+          >
+          <select
+            id="powerPlanDefault"
+            name="powerPlanDefault"
+            value={settings.powerPlanDefault?.guid}
+            onchange={(e) => handlePowerPlanChange(e, "powerPlanDefault")}
+            disabled={powerPlans.isLoading || !!powerPlans.error}
+            class="styled-select"
+          >
+            {#if powerPlans.error}
+              <option value="" disabled selected
+                >Error: {powerPlans.error}</option
+              >
+            {:else if localAvailablePowerPlans.length === 0}
+              {#if powerPlans.isLoading}
+                <option value="" disabled selected
+                  >Loading power plans...</option
+                >
+              {:else}
+                <option value="" disabled selected
+                  >No power plans found. (Try Refresh)</option
+                >
+              {/if}
+            {:else}
+              <option value="" disabled selected>
+                {settings.powerPlanDefault?.name
+                  ? `Current: ${settings.powerPlanDefault.name}`
+                  : "Select a default power plan"}
+              </option>
+              {#each localAvailablePowerPlans as plan (plan.guid)}
+                <option value={plan.guid}>{plan.name}</option>
+              {/each}
+            {/if}
+          </select>
+        </div>
+      </form>
+    </Card>
+
+    <Card title="Current Power Plan Settings" titleTag="h3">
       <p>
         <strong>CS2 Power Plan:</strong>
         {settings.powerPlanCS2?.name || "Not set"}
@@ -153,7 +163,7 @@
           <span class="guid-text">({settings.powerPlanDefault.guid})</span>
         {/if}
       </p>
-    </div>
+    </Card>
   {/if}
 </div>
 
@@ -164,24 +174,15 @@
     gap: 20px;
   }
 
-  .setting-item {
-    background-color: var(--background-secondary);
-    padding: 15px;
-    border-radius: var(--window-corner-radius);
-  }
-
   .refresh-section {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 0px; /* No bottom margin, Card will provide separation */
   }
 
   .button.refresh-button {
-    /* Assuming Button.svelte or global button styles will cover this */
-    /* Specific overrides if needed */
-    display: inline-flex; /* Align icon and text */
+    display: inline-flex;
     align-items: center;
     gap: 8px;
   }
@@ -194,9 +195,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background-color: var(--background-secondary);
-    padding: 20px;
-    border-radius: var(--window-corner-radius);
+    /* background-color, padding, border-radius are handled by Card */
   }
 
   .form-group {
@@ -206,9 +205,9 @@
   }
 
   label {
-    font-weight: 500; /* Inter Medium */
+    font-weight: 500;
     color: var(--text-primary);
-    font-size: 14px; /* Labels & Captions */
+    font-size: 14px;
   }
 
   .styled-select {
@@ -227,20 +226,8 @@
     cursor: not-allowed;
   }
 
-  .current-settings-view {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: var(--background-secondary);
-    border-radius: var(--window-corner-radius);
-  }
-
-  .current-settings-view h3 {
-    color: var(--primary-accent);
-    margin-bottom: 10px;
-    font-size: 18px; /* H3 Card/Item Title */
-  }
-
   .current-settings-view p {
+    /* This style might still be needed if Card doesn't cover it */
     margin-bottom: 8px;
     font-size: 16px;
   }

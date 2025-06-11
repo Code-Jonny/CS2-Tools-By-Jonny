@@ -3,23 +3,24 @@
   import ProcessList from "@components/ProcessList.svelte";
   import Button from "@elements/Button.svelte";
   import Toggle from "@elements/Toggle.svelte";
+  import Card from "@elements/Card.svelte"; // Import the new Card component
+  import ContentBox from "@elements/ContentBox.svelte"; // Import ContentBox
 </script>
 
 <div class="process-management-container">
   <h1>Process Management</h1>
 
-  <div class="setting-item toggle-setting">
+  <ContentBox>
     <Toggle
       label="Enable Process Management"
       id="processManagementActive"
       name="processManagementActive"
       bind:checked={settings.processManagementActive}
     />
-  </div>
+  </ContentBox>
 
   {#if settings.processManagementActive}
-    <div class="kill-list-section card-style">
-      <h3>Processes to Kill When CS2 is Running</h3>
+    <Card title="Processes to Kill When CS2 is Running" titleTag="h3">
       {#if settings.processesToKill && settings.processesToKill.length > 0}
         <ul class="kill-list">
           {#each settings.processesToKill as processName, index ("process-to-kill-" + index)}
@@ -41,12 +42,11 @@
       {:else}
         <p class="info-text">No processes configured to be killed.</p>
       {/if}
-    </div>
+    </Card>
 
-    <div class="process-list-section card-style">
-      <h3>Add Processes to Kill List</h3>
+    <Card title="Add Processes to Kill List" titleTag="h3">
       <ProcessList />
-    </div>
+    </Card>
   {/if}
 </div>
 
@@ -55,25 +55,6 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-  }
-
-  .setting-item {
-    background-color: var(--background-secondary);
-    padding: 15px;
-    border-radius: var(--window-corner-radius);
-  }
-
-  .card-style {
-    background-color: var(--background-secondary);
-    padding: 20px;
-    border-radius: var(--window-corner-radius);
-  }
-
-  .kill-list-section h3,
-  .process-list-section h3 {
-    color: var(--primary-accent);
-    margin-bottom: 15px;
-    font-size: 18px; /* H3 Card/Item Title */
   }
 
   .kill-list {
@@ -99,13 +80,9 @@
     color: var(--text-primary);
   }
 
-  /* Button component will have its own styling for variants like 'danger' */
-
   .info-text {
     color: var(--text-secondary);
     font-style: italic;
-    margin-top: 10px;
+    margin-top: 10px; /* Retained for spacing if needed within card content */
   }
-
-  /* Ensure hr is styled if it were used, but it was removed in favor of card separation */
 </style>
