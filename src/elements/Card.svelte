@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
+  import type { Snippet } from "svelte";
 
   /**
    * Props for the Card component.
@@ -9,33 +10,42 @@
     icon?: string; // Iconify icon name string, e.g., "solar:home-linear"
     titleTag?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"; // Optional: specify heading tag, defaults to h3
     hasShadow?: boolean; // Optional: whether the card has a box-shadow
+    children: Snippet; // Default slot content
+    header_actions?: Snippet; // Named slot for header actions
   }
 
-  let { title, icon, titleTag = "h3", hasShadow = true }: Props = $props();
+  let {
+    title,
+    icon,
+    titleTag = "h3",
+    hasShadow = true,
+    children,
+    header_actions,
+  }: Props = $props();
 </script>
 
 <div class="card-container" class:has-shadow={hasShadow}>
-  {#if title || icon || $$slots["header-actions"]}
+  {#if title || icon || header_actions}
     <div class="card-header">
       <div class="card-header-main">
         {#if icon}
           <Icon {icon} width="24" height="24" />
         {/if}
         {#if title}
-          <svelte:element this={titleTag} class="card-title"
-            >{title}</svelte:element
-          >
+          <svelte:element this={titleTag} class="card-title">
+            {title}
+          </svelte:element>
         {/if}
       </div>
-      {#if $$slots["header-actions"]}
+      {#if header_actions}
         <div class="card-header-actions">
-          <slot name="header-actions"></slot>
+          {@render header_actions()}
         </div>
       {/if}
     </div>
   {/if}
   <div class="card-content">
-    <slot></slot>
+    {@render children()}
   </div>
 </div>
 
