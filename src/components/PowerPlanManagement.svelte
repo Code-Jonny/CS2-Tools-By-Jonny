@@ -37,7 +37,7 @@
 </script>
 
 <div class="power-plan-management-container">
-  <h2>Power Plan Management</h2>
+  <h1>Power Plan Management</h1>
 
   <ContentBox>
     <Toggle
@@ -49,27 +49,7 @@
   </ContentBox>
 
   {#if settings.powerPlanManagementActive}
-    <ContentBox>
-      <div class="refresh-section">
-        <Button
-          variant="primary"
-          onclick={refreshAvailablePowerPlans}
-          disabled={powerPlans.isLoading}
-        >
-          <Icon icon="solar:refresh-linear" width="20" height="20" />
-          Refresh Available Power Plans
-        </Button>
-        {#if powerPlans.isLoading && localAvailablePowerPlans.length === 0}
-          <span class="loading-text info-text"> (Loading initial list...)</span>
-        {:else if powerPlans.isLoading}
-          <span class="loading-text info-text">
-            (Refreshing in background...)</span
-          >
-        {/if}
-      </div>
-    </ContentBox>
-
-    <Card titleTag="h3">
+    <Card title="Configure Power Plans" icon="solar:bolt-linear">
       <!-- No title for this card, form elements are self-descriptive -->
       <form onsubmit={(e) => e.preventDefault()} class="power-plan-form">
         <div class="form-group">
@@ -150,6 +130,25 @@
       </form>
     </Card>
 
+    <ContentBox>
+      <div class="refresh-section">
+        <Button
+          variant="primary"
+          onclick={refreshAvailablePowerPlans}
+          disabled={powerPlans.isLoading}
+        >
+          <Icon icon="solar:refresh-linear" width="20" height="20" />
+          Refresh Available Power Plans
+        </Button>
+        {#if powerPlans.isLoading && localAvailablePowerPlans.length === 0}
+          <span class="loading-text info-text"> (Loading initial list...)</span>
+        {:else if powerPlans.isLoading}
+          <span class="loading-text info-text">
+            (Refreshing in background...)</span
+          >
+        {/if}
+      </div>
+    </ContentBox>
     <Card title="Current Power Plan Settings" titleTag="h3">
       <p>
         <strong>CS2 Power Plan:</strong>

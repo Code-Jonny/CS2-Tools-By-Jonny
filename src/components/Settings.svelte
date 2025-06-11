@@ -74,7 +74,7 @@
 </script>
 
 <div class="container">
-  <h2>General Settings</h2>
+  <h1>General Settings</h1>
   <form onsubmit={(e) => e.preventDefault()}>
     <Toggle
       label="Autostart with Windows"
