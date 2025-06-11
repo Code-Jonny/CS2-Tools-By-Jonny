@@ -84,17 +84,16 @@
       } */
     }
 
-    .sidebar-title {
+    /* .sidebar-title {
       display: flex;
       align-items: center;
       font-size: 20px;
       font-weight: 600;
       padding-inline: 20px;
-      /* padding: 20px 15px 30px 15px; */
       height: 80px;
       color: var(--primary-accent);
-      white-space: nowrap; /* Prevent title from wrapping */
-    }
+      white-space: nowrap;
+    } */
 
     li a {
       text-decoration: none;
