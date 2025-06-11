@@ -5,6 +5,43 @@
   import Toggle from "@elements/Toggle.svelte";
   import Card from "@elements/Card.svelte"; // Import the new Card component
   import ContentBox from "@elements/ContentBox.svelte"; // Import ContentBox
+  import TextInput from "@elements/TextInput.svelte"; // Import TextInput
+  import { isProcessProtected } from "@lib/processUtils.ts"; // Import validation utility
+
+  let manualProcessName = "";
+  let errorMessage = ""; // For displaying validation errors
+
+  function handleAddManualProcess() {
+    errorMessage = ""; // Reset error message
+    const trimmedName = manualProcessName.trim();
+
+    if (!trimmedName) {
+      errorMessage = "Process name cannot be empty.";
+      return;
+    }
+
+    if (!trimmedName.toLowerCase().endsWith(".exe")) {
+      errorMessage = "Process name must end with .exe";
+      return;
+    }
+
+    if (isProcessProtected(trimmedName)) {
+      errorMessage = `"${trimmedName}" is a protected process and cannot be added.`;
+      return;
+    }
+
+    if (
+      settings.processesToKill.some(
+        (p) => p.toLowerCase() === trimmedName.toLowerCase()
+      )
+    ) {
+      errorMessage = `"${trimmedName}" is already in the list.`;
+      return;
+    }
+
+    settings.processesToKill = [...settings.processesToKill, trimmedName];
+    manualProcessName = ""; // Clear input after adding
+  }
 </script>
 
 <div class="process-management-container">
@@ -44,7 +81,35 @@
       {/if}
     </Card>
 
-    <Card title="Add Processes to Kill List" titleTag="h3">
+    <Card title="Manually Add Process to Kill List" titleTag="h3">
+      <div class="manual-add-process-form">
+        <TextInput
+          label="Process Name (e.g., chrome.exe)"
+          id="manualProcessName"
+          name="manualProcessName"
+          bind:value={manualProcessName}
+          placeholder="Enter process name..."
+          oninput={() => (errorMessage = "")}
+          onsubmit={handleAddManualProcess}
+        />
+        <Button
+          type="button"
+          variant="primary"
+          onclick={handleAddManualProcess}
+          icon="solar:add-circle-linear"
+        >
+          Add Process
+        </Button>
+        {#if errorMessage}
+          <p class="error-message">{errorMessage}</p>
+        {/if}
+      </div>
+    </Card>
+
+    <Card
+      title="Add Processes to Kill List from Running Processes"
+      titleTag="h3"
+    >
       <ProcessList />
     </Card>
   {/if}
@@ -84,5 +149,22 @@
     color: var(--text-secondary);
     font-style: italic;
     margin-top: 10px; /* Retained for spacing if needed within card content */
+  }
+
+  .manual-add-process-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Spacing between input, button, and error message */
+  }
+
+  .manual-add-process-form > :global(.button-component) {
+    /* Target Button component */
+    align-self: flex-start; /* Align button to the start */
+  }
+
+  .error-message {
+    color: var(--danger); /* Assuming you have a danger color variable */
+    font-size: 0.9em;
+    margin-top: 5px;
   }
 </style>

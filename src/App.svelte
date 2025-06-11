@@ -157,26 +157,26 @@
     <li class="sidebar-title">CS2Tools by Jonny</li>
     <li>
       <a href="#/" class:active={currentView === "dashboard"}
-        ><Icon icon="solar:home-smile-linear" width="24" height="24" /> Dashboard</a
+        ><Icon icon="solar:home-smile-linear" width="16" height="16" /> Dashboard</a
       >
     </li>
     <li>
       <a
         href="#/process-management"
         class:active={currentView === "process-management"}
-        ><Icon icon="solar:cpu-linear" width="24" height="24" /> Process Management</a
+        ><Icon icon="solar:cpu-linear" width="16" height="16" /> Process Management</a
       >
     </li>
     <li>
       <a
         href="#/power-plan-management"
         class:active={currentView === "power-plan-management"}
-        ><Icon icon="solar:power-linear" width="24" height="24" /> Power Plan Management</a
+        ><Icon icon="solar:power-linear" width="16" height="16" /> Power Plan Management</a
       >
     </li>
     <li>
       <a href="#/settings" class:active={currentView === "settings"}
-        ><Icon icon="solar:settings-linear" width="24" height="24" /> Settings</a
+        ><Icon icon="solar:settings-linear" width="16" height="16" /> Settings</a
       >
     </li>
   </ul>
@@ -228,7 +228,7 @@
       align-items: center;
       gap: 12px; /* Increased gap */
       padding: 15px 20px; /* Adjusted padding */
-      font-size: 14px; /* Body Text for nav items */
+      font-size: 13px; /* Body Text for nav items */
       font-weight: 400; /* Inter Regular */
       transition:
         background-color 0.2s ease-in-out,

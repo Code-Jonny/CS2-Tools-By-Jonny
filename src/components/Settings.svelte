@@ -13,16 +13,15 @@
   );
   let pollingIntervalError: string | null = $state(null);
 
-  function handlePollingIntervalChange(customEvent: CustomEvent<Event>) {
-    const nativeEvent = customEvent.detail;
-    if (!nativeEvent || !(nativeEvent.target instanceof HTMLInputElement)) {
+  function handlePollingIntervalChange(event: Event) {
+    if (!event || !(event.target instanceof HTMLInputElement)) {
       console.error(
-        "Polling interval input event: nativeEvent.target is not an HTMLInputElement or is null.",
-        nativeEvent ? nativeEvent.target : "nativeEvent is null"
+        "Polling interval input event: event.target is not an HTMLInputElement or is null.",
+        event ? event.target : "event is null"
       );
       return;
     }
-    const inputElement = nativeEvent.target as HTMLInputElement;
+    const inputElement = event.target as HTMLInputElement; // Directly use event.target
     const rawValue = inputElement.value;
     // Replace comma with dot to ensure consistent parsing and allow comma input
     const valueWithDot = rawValue.replace(",", ".");
@@ -100,7 +99,7 @@
       id="pollingInterval"
       name="pollingInterval"
       value={pollingIntervalSeconds.toString()}
-      on:input={handlePollingIntervalChange}
+      oninput={handlePollingIntervalChange}
       inputmode="decimal"
       error={pollingIntervalError}
       placeholder="e.g., 1.5"

@@ -10,5 +10,5 @@ When you write code, please follow these guidelines:
 6. **Code Comments**: Write clear comments explaining the purpose of complex code blocks. Use JSDoc style comments for functions and components.
 7. **Testing**: Write unit tests for critical components and services. Use Svelte's testing utilities where applicable.
 8. **Performance Optimization**: Optimize performance by minimizing reactivity where possible. Use Svelte's `onMount` and `beforeUpdate` lifecycle methods effectively.
-9. **Svelte 5**: Ensure compatibility with Svelte 5 features and syntax. Use the only the latest features available in Svelte 5.
+9. **Svelte 5**: Ensure compatibility with Svelte 5 features and syntax. Use only the latest features available in Svelte 5. Refrain from using deprecated features or syntax from previous versions, e.g. "on:", reactive let / var statements, slots, svelte fragments, export let, reactive $ statements and so on.
 10. **Typescript**: Use TypeScript for type safety. Define interfaces for props and state where applicable.

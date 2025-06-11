@@ -1,21 +1,8 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
   import Icon from "@iconify/svelte"; // Import Icon component
 
-  /** The label text for the input field. Optional, can be hidden if not provided. */
-  export let label: string | undefined = undefined;
-
-  /** The unique ID for the input field and the `for` attribute of the label. Required if label is present. */
-  export let id: string | undefined = undefined;
-
-  /** The name attribute for the input field. */
-  export let name: string | undefined = undefined; // Optional, but good practice
-
-  /** The current value of the input field. Should be a string, controlled by the parent. */
-  export let value: string = ""; // Initialize to empty string
-
-  /** The inputmode attribute for the input field. */
-  export let inputmode:
+  // Define types for props
+  type InputMode =
     | "none"
     | "text"
     | "decimal"
@@ -23,44 +10,75 @@
     | "tel"
     | "search"
     | "email"
-    | "url"
-    | undefined = "text"; // Default to text
+    | "url";
 
-  /** The placeholder text for the input field. */
-  export let placeholder: string | undefined = undefined;
+  interface Props {
+    label?: string;
+    id?: string; // Input element's id, also used for label's for attribute
+    name?: string;
+    value?: string; // Bindable value
+    inputmode?: InputMode;
+    placeholder?: string;
+    error?: string | null;
+    icon?: string;
+    iconSize?: string;
 
-  /** An error message to display below the input. Null or undefined hides it. */
-  export let error: string | null | undefined = undefined;
-
-  /** Icon to display inside the input field (typically on the left). */
-  export let icon: string | undefined = undefined;
-  /** Icon size */
-  export let iconSize: string = "20";
-
-  const dispatch = createEventDispatcher<{
-    input: Event; // Forward native input event
-    change: Event; // Forward native change event
-    blur: FocusEvent; // Forward native blur event
-    // Add focus if needed
-  }>();
-
-  function onNativeInput(event: Event) {
-    const target = event.target as HTMLInputElement;
-    value = target.value; // Update the bound value
-    dispatch("input", event);
+    // Event callbacks to replace dispatched events
+    oninput?: (event: Event) => void;
+    onchange?: (event: Event) => void;
+    onblur?: (event: FocusEvent) => void;
+    onsubmit?: () => void; // For Enter key press
   }
 
-  function onNativeChange(event: Event) {
-    dispatch("change", event);
+  // Define props using Svelte 5 $props
+  let {
+    label,
+    id: propId, // Renamed to avoid conflict with the const uniqueId
+    name,
+    inputmode = "text",
+    placeholder,
+    error,
+    value = $bindable(""), // Ensures 'value' is a signal, defaulting to ""
+    icon,
+    iconSize = "20",
+    oninput: onInputCallback,
+    onchange: onChangeCallback,
+    onblur: onBlurCallback,
+    onsubmit: onSubmitCallback,
+  }: Props = $props(); // Changed: Type assertion on the destructured object
+
+  function handleInput(event: Event) {
+    // The `value` signal is automatically updated by `bind:value` on the <input> element.
+    // Call the callback prop if provided.
+    if (onInputCallback) {
+      onInputCallback(event);
+    }
   }
 
-  function onNativeBlur(event: FocusEvent) {
-    dispatch("blur", event);
+  function handleChange(event: Event) {
+    if (onChangeCallback) {
+      onChangeCallback(event);
+    }
   }
 
-  // Generate a unique ID if not provided, for label association
+  function handleBlur(event: FocusEvent) {
+    if (onBlurCallback) {
+      onBlurCallback(event);
+    }
+  }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent default form submission if any
+      if (onSubmitCallback) {
+        onSubmitCallback();
+      }
+    }
+  }
+
+  // Generate a unique ID if propId (the passed 'id' prop) is not provided, for label association
   const uniqueId =
-    id || `text-input-${Math.random().toString(36).substring(2, 9)}`;
+    propId || `text-input-${Math.random().toString(36).substring(2, 9)}`;
 </script>
 
 <div class="text-input-wrapper">
@@ -72,15 +90,16 @@
       <Icon {icon} width={iconSize} height={iconSize} class="input-icon" />
     {/if}
     <input
+      bind:value
       type={inputmode === "numeric" || inputmode === "decimal"
         ? "number"
         : "text"}
       id={uniqueId}
       name={name || uniqueId}
-      bind:value
-      on:input={onNativeInput}
-      on:change={onNativeChange}
-      on:blur={onNativeBlur}
+      oninput={handleInput}
+      onchange={handleChange}
+      onblur={handleBlur}
+      onkeydown={handleKeyDown}
       {inputmode}
       {placeholder}
       aria-invalid={error ? true : undefined}
