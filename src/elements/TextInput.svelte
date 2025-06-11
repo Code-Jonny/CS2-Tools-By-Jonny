@@ -102,79 +102,76 @@
       onkeydown={handleKeyDown}
       {inputmode}
       {placeholder}
-      aria-invalid={error ? true : undefined}
-      class="styled-input"
-      class:invalid={error}
-      class:with-icon={icon}
+      class:input-with-icon={icon}
+      aria-invalid={error ? "true" : undefined}
+      aria-describedby={error ? `${uniqueId}-error` : undefined}
     />
   </div>
   {#if error}
-    <p class="error-text">{error}</p>
+    <p id={`${uniqueId}-error`} class="error-message" aria-live="polite">
+      {error}
+    </p>
   {/if}
 </div>
 
-<style scoped>
+<style>
   .text-input-wrapper {
-    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 6px; /* Space between label, input, error */
+    gap: 5px; /* Space between label and input, and input and error */
+    width: 100%; /* Ensure wrapper takes full width */
   }
 
   .input-label {
-    font-size: 14px; /* Labels & Captions */
-    font-weight: 500; /* Inter Medium */
+    font-size: 14px; /* Consistent label size */
     color: var(--text-secondary);
+    font-weight: 500; /* Medium weight for labels */
   }
 
   .input-container {
-    position: relative;
-    display: flex;
+    position: relative; /* For icon positioning */
+    display: flex; /* Align icon and input */
     align-items: center;
-    width: 100%;
+    width: 100%; /* Ensure container takes full width */
+    gap: 10px; /* Space between icon and input */
   }
 
-  /* .input-icon {
-    position: absolute;
-    left: 12px;
-    color: var(--text-secondary);
-    pointer-events: none;
-  } */
-
-  .styled-input {
-    width: 100%;
+  input {
+    flex-grow: 1; /* Make input field take available space */
     padding: 10px;
-    background-color: var(--background-primary);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: var(--input-border-radius, 4px);
+    font-size: 16px;
     color: var(--text-primary);
-    border: 1px solid var(--text-secondary);
-    border-radius: var(--window-corner-radius, 4px);
-    font-size: 16px; /* Body Text */
-    font-family: var(--font-family-inter);
+    background-color: var(--input-background, #444);
     transition:
       border-color 0.2s ease-in-out,
       box-shadow 0.2s ease-in-out;
+    width: 100%; /* Fallback for older browsers or if flex-grow isn't enough */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
   }
 
-  .styled-input.with-icon {
-    padding-left: 40px; /* Make space for the icon */
+  input.input-with-icon {
+    padding-left: 35px; /* Adjust to make space for the icon */
   }
 
-  .styled-input:focus {
+  input:focus {
+    border-color: var(--primary-accent, #007bff);
+    box-shadow: 0 0 0 2px rgba(var(--primary-accent-rgb, 0, 123, 255), 0.25);
     outline: none;
-    border-color: var(--primary-accent);
-    box-shadow: 0 0 0 2px rgba(var(--primary-accent-rgb, 0, 191, 255), 0.3);
   }
 
-  .styled-input.invalid {
-    border-color: var(--error-color);
-  }
-  .styled-input.invalid:focus {
-    box-shadow: 0 0 0 2px rgba(var(--error-color-rgb, 220, 53, 69), 0.3);
+  input[aria-invalid="true"] {
+    border-color: var(--error-color, #dc3545);
   }
 
-  .error-text {
-    font-size: 14px;
-    color: var(--error-color);
-    margin-top: 2px; /* Smaller gap */
+  input[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 2px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
+  }
+
+  .error-message {
+    font-size: 12px;
+    color: var(--error-color, #dc3545);
+    margin-top: 4px; /* Space above the error message */
   }
 </style>

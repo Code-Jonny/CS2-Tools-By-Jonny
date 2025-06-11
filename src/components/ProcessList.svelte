@@ -184,35 +184,37 @@
 
 <div class="process-list-container">
   <div class="controls-header">
-    <div class="filter-controls">
-      <Button
-        variant={filter === "all" ? "primary" : "secondary"}
-        onclick={() => (filter = "all")}
-        icon="solar:list-linear"
-      >
-        All
-      </Button>
-      <Button
-        variant={filter === "app" ? "primary" : "secondary"}
-        onclick={() => (filter = "app")}
-        icon="solar:application-linear"
-      >
-        Apps
-      </Button>
-      <Button
-        variant={filter === "service" ? "primary" : "secondary"}
-        onclick={() => (filter = "service")}
-        icon="solar:server-linear"
-      >
-        Services
-      </Button>
-    </div>
-    <div class="search-refresh-controls">
+    <div class="search-controls">
       <TextInput
         bind:value={searchTerm}
         placeholder="Search by name..."
         icon="solar:magnifer-linear"
       />
+    </div>
+    <div class="filter-refresh-controls">
+      <div class="filter-controls">
+        <Button
+          variant={filter === "all" ? "primary" : "secondary"}
+          onclick={() => (filter = "all")}
+          icon="solar:list-linear"
+        >
+          All
+        </Button>
+        <Button
+          variant={filter === "app" ? "primary" : "secondary"}
+          onclick={() => (filter = "app")}
+          icon="solar:application-linear"
+        >
+          Apps
+        </Button>
+        <Button
+          variant={filter === "service" ? "primary" : "secondary"}
+          onclick={() => (filter = "service")}
+          icon="solar:server-linear"
+        >
+          Services
+        </Button>
+      </div>
       <Button
         onclick={getProcessList}
         variant="secondary"
@@ -325,27 +327,47 @@
 
   .controls-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
+    flex-direction: column; /* Stack search and filter/refresh rows */
+    gap: 10px;
     padding: 10px;
-    background-color: var(
-      --background-primary
-    ); /* Slightly different from card to stand out or match */
+    background-color: var(--background-primary);
     border-radius: var(--window-corner-radius);
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
   }
 
-  .filter-controls,
-  .search-refresh-controls {
+  .search-controls {
+    display: flex;
+    width: 100%; /* Make search take full width in its row */
+  }
+
+  .search-controls :global(.text-input-wrapper) {
+    flex-grow: 1;
+  }
+
+  .filter-refresh-controls {
+    display: flex;
+    flex-direction: column; /* Stack filters and refresh button on small screens */
+    gap: 10px;
+  }
+
+  .filter-controls {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow filter buttons to wrap */
   }
 
-  /* Assuming TextInput has its own styling, adjust if needed */
-  /* :global(input[type="text"]) for TextInput might be needed if not styled internally */
+  /* Medium screens and up: display filter and refresh side-by-side */
+  @media (min-width: 768px) {
+    .filter-refresh-controls {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-controls {
+      flex-wrap: nowrap; /* Prevent wrapping of filter buttons */
+    }
+  }
 
   .error-message {
     color: var(--error-color);
@@ -372,14 +394,14 @@
 
   .process-table th,
   .process-table td {
-    padding: 12px 15px;
+    padding: 10px 12px; /* Reduced padding */
     text-align: left;
     border-bottom: 1px solid var(--background-primary);
     color: var(--text-primary);
   }
 
   .process-table th {
-    font-size: 14px; /* Labels & Captions */
+    font-size: 13px; /* Reduced font size */
     font-weight: 600; /* Inter Semi-Bold */
     color: var(--text-secondary);
     cursor: pointer;
@@ -389,9 +411,6 @@
   .process-table th:hover {
     color: var(--primary-accent);
   }
-  /* .process-table th Icon {
-    margin-left: 5px;
-  } */
 
   .process-table tbody tr:nth-child(even) {
     background-color: var(--background-primary); /* Zebra striping */
@@ -405,26 +424,22 @@
   }
 
   .process-table td {
-    font-size: 16px; /* Body Text */
+    font-size: 14px; /* Reduced font size */
   }
 
   .action-buttons {
     display: flex;
-    gap: 8px;
+    gap: 6px; /* Reduced gap */
   }
   .action-buttons :global(button) {
-    padding: 6px 10px; /* Smaller buttons for table actions */
-    font-size: 14px;
+    padding: 5px 8px; /* Smaller buttons for table actions */
+    font-size: 13px; /* Reduced font size */
   }
 
   .no-data-message {
     text-align: center;
-    padding: 20px;
+    padding: 15px; /* Reduced padding */
     color: var(--text-secondary);
     font-style: italic;
   }
-
-  /* Add this to your :root in app.css if you want to use rgba with CSS variables easily */
-  /* :root { --error-color-rgb: 220, 53, 69; --primary-accent-rgb: 0, 191, 255; } */
-  /* Then use like: background-color: rgba(var(--primary-accent-rgb), 0.1); */
 </style>
