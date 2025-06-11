@@ -24,7 +24,7 @@
   "modes": {
     "window": {
       "title": "CS2 Tools by Jonny",
-      "icon": "/app/logo.png",
+      "icon": "/app/icon.png",
       "width": 1100,
       "height": 800,
       "minWidth": 1100,

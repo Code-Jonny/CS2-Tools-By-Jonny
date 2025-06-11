@@ -6,16 +6,72 @@
   import Toggle from "@elements/Toggle.svelte"; // Import the Toggle component
   import TextInput from "@elements/TextInput.svelte"; // Import the TextInput component
   import Card from "@elements/Card.svelte"; // Import the Card component
+  import { setAutostart, checkAutostartStatus } from "@lib/startupUtils.ts";
+  import { devLog, devError } from "@lib/logger.ts"; // Import the logger
 
   // Local state for polling interval in seconds for the input field
   let pollingIntervalSeconds: number = $state(
     settings.pollingIntervalMs / 1000
   );
   let pollingIntervalError: string | null = $state(null);
+  let autostartError: string | null = $state(null);
+  let isInitialized = false; // Flag to prevent effect from running during onMount sync
+
+  onMount(async () => {
+    if (window.NL_OS === "Windows") {
+      try {
+        const registryAutostartStatus = await checkAutostartStatus();
+        if (settings.autostartWithWindows !== registryAutostartStatus) {
+          devLog(
+            `Autostart mismatch onMount: Store is ${settings.autostartWithWindows}, Registry is ${registryAutostartStatus}. Syncing store to registry.`
+          );
+          settings.autostartWithWindows = registryAutostartStatus;
+        }
+      } catch (error) {
+        devError("Error checking autostart status on mount:", error);
+        autostartError = "Could not verify autostart status.";
+      }
+    }
+    isInitialized = true; // Signal that onMount synchronization is complete
+  });
+
+  $effect(() => {
+    const currentAutostartSetting = settings.autostartWithWindows;
+
+    if (!isInitialized || window.NL_OS !== "Windows") {
+      // Don't run if not initialized yet, or not on Windows.
+      // This prevents the effect from acting on store changes made by onMount.
+      return;
+    }
+
+    // At this point, isInitialized is true, so any change to settings.autostartWithWindows
+    // is considered a user action or a deliberate programmatic change post-initialization.
+    (async () => {
+      try {
+        // We no longer need to double-check the registry here.
+        // Trust the currentAutostartSetting from the store, which reflects the user's intent or post-init state.
+        devLog(
+          `Autostart setting changed to: ${currentAutostartSetting} (post-init). Updating registry.`
+        );
+        await setAutostart(currentAutostartSetting);
+        autostartError = null; // Clear any previous error
+      } catch (error) {
+        devError("Error updating autostart setting (post-init):", error);
+        if (error instanceof Error) {
+          autostartError = `Failed to update autostart: ${error.message}`;
+        } else {
+          autostartError = "Failed to update autostart: Unknown error";
+        }
+        // Optionally, revert the setting in the store if the registry update fails,
+        // though this might cause a confusing UX if the toggle flips back.
+        // settings.autostartWithWindows = !currentAutostartSetting;
+      }
+    })();
+  });
 
   function handlePollingIntervalChange(event: Event) {
     if (!event || !(event.target instanceof HTMLInputElement)) {
-      console.error(
+      devError(
         "Polling interval input event: event.target is not an HTMLInputElement or is null.",
         event ? event.target : "event is null"
       );
@@ -66,7 +122,7 @@
         // pollingIntervalSeconds will be updated by the $effect above
         alert("Settings have been reset to defaults.");
       } catch (error) {
-        console.error("Error resetting settings:", error);
+        devError("Error resetting settings:", error);
         alert("Failed to reset settings.");
       }
     }
@@ -82,7 +138,14 @@
         id="autostartWithWindows"
         name="autostartWithWindows"
         bind:checked={settings.autostartWithWindows}
+        disabled={window.NL_OS !== "Windows"}
       />
+      {#if window.NL_OS !== "Windows"}
+        <p class="secondary-text">Autostart is only available on Windows.</p>
+      {/if}
+      {#if autostartError}
+        <p class="error-text">{autostartError}</p>
+      {/if}
 
       <Toggle
         label="Start Minimized"
@@ -135,5 +198,16 @@
     display: flex;
     flex-direction: column;
     gap: 20px; /* Spacing between toggle items */
+  }
+  .error-text {
+    color: var(--color-error); /* Use CSS variable for error color */
+    font-size: 0.9em;
+  }
+  .secondary-text {
+    color: var(
+      --color-text-secondary
+    ); /* Use CSS variable for secondary text color */
+    font-size: 0.9em;
+    margin-top: -10px; /* Adjust spacing if needed */
   }
 </style>

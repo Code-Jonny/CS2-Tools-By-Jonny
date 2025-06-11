@@ -20,7 +20,7 @@
       <li class="sidebar-title">CS2Tools by Jonny</li>
     {/if} -->
     <li>
-      <img src="/app/logo.png" alt="CS2Tools Logo" class="logo" />
+      <img src="/app/icon.png" alt="CS2Tools Logo" class="logo" />
     </li>
     <li>
       <a href="#/" class:active={$currentView === "dashboard"}>
@@ -62,7 +62,7 @@
     left: 0;
     height: 100vh;
     width: 60px; /* Collapsed width */
-    background-color: var(--background-secondary);
+    background-color: black;
     padding-top: 20px;
     border-right: 1px solid var(--background-primary);
     transition: width 0.15s ease-in-out;
@@ -149,6 +149,7 @@
     width: 60px;
     height: auto;
     display: block;
+    padding-inline: 8px;
     /* position: absolute;
     bottom: 20px; */
     transition: 0.15s ease-in-out;
