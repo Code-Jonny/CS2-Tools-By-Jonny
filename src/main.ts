@@ -5,7 +5,6 @@ import "./app.css";
 import App from "./App.svelte";
 import { loadAndInitializeSettings } from "./lib/settingsStore.svelte.js";
 import { applyStartMinimizedSetting } from "./lib/startupUtils";
-// import "@picocss/pico/css/pico.yellow.min.css";
 
 const app = mount(App, {
   target: document.getElementById("app")!,
