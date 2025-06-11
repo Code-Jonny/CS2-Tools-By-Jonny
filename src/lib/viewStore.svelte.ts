@@ -1,0 +1,23 @@
+import { writable } from "svelte/store";
+
+export type View =
+  | "dashboard"
+  | "process-management"
+  | "power-plan-management"
+  | "settings";
+
+export const currentView = writable<View>("dashboard");
+
+export function updateView() {
+  const hash = window.location.hash.substring(1); // Remove #
+  if (hash === "/process-management") {
+    currentView.set("process-management");
+  } else if (hash === "/power-plan-management") {
+    currentView.set("power-plan-management");
+  } else if (hash === "/settings") {
+    currentView.set("settings");
+  } else {
+    // Default to dashboard for '/' or other/empty hashes
+    currentView.set("dashboard");
+  }
+}
