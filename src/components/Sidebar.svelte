@@ -16,9 +16,12 @@
   on:mouseleave={collapseSidebar}
 >
   <ul>
-    {#if $isSidebarExpanded}
+    <!-- {#if $isSidebarExpanded}
       <li class="sidebar-title">CS2Tools by Jonny</li>
-    {/if}
+    {/if} -->
+    <li>
+      <img src="/app/logo.png" alt="CS2Tools Logo" class="logo" />
+    </li>
     <li>
       <a href="#/" class:active={$currentView === "dashboard"}>
         <Icon icon="solar:home-smile-linear" width="24" height="24" />
@@ -74,11 +77,11 @@
       list-style: none;
       padding: 0;
       margin: 0;
-      margin-top: 80px;
-
+      margin-top: 40px;
+      /* 
       nav.expanded & {
         margin-top: 0px;
-      }
+      } */
     }
 
     .sidebar-title {
@@ -141,5 +144,19 @@
   nav.expanded li a span {
     opacity: 1;
     margin-left: 0; /* Reset margin if any specific was added for collapsed */
+  }
+
+  .logo {
+    width: 60px;
+    height: auto;
+    display: block;
+    /* position: absolute;
+    bottom: 20px; */
+    transition: 0.15s ease-in-out;
+    margin-bottom: 40px;
+
+    nav.expanded & {
+      translate: 100px 0; /* Move logo to the right when expanded */
+    }
   }
 </style>
