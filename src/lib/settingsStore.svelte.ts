@@ -73,7 +73,7 @@ export const settings: AppSettings = new Proxy(
 /**
  * Loads settings from storage or initializes them with defaults.
  */
-async function loadAndInitializeSettings() {
+export async function loadAndInitializeSettings() {
   isProgrammaticChange = true;
   try {
     for (const key of Object.keys(defaultAppSettings) as Array<

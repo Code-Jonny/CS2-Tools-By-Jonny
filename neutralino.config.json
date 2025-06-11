@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json",
   "applicationId": "cs2tools.app",
+  "applicationName": "CS2 Tools by Jonny",
+  "author": "Jonny",
+  "description": "A set of tools for a better Counter-Strike 2 experience by Jonny",
   "version": "1.0.0",
   "defaultMode": "window",
   "port": 0,
@@ -19,7 +22,8 @@
     "os.*",
     "debug.log",
     "storage.*",
-    "filesystem.*"
+    "filesystem.*",
+    "window.*"
   ],
   "modes": {
     "window": {

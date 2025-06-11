@@ -20,7 +20,7 @@
       <li class="sidebar-title">CS2Tools by Jonny</li>
     {/if} -->
     <li>
-      <img src="/app/icon.png" alt="CS2Tools Logo" class="logo" />
+      <img src="/icon.png" alt="CS2Tools Logo" class="logo" />
     </li>
     <li>
       <a href="#/" class:active={$currentView === "dashboard"}>

@@ -29,30 +29,69 @@ async function getAppRegistryKeyName(): Promise<string> {
 
 /**
  * Gets the full path to the application executable.
- * Prefers window.NL_PATH if available.
- * Falls back to constructing path from NL_CWD, /bin/, and binaryName from config.
+ * Prefers window.NL_PATH if available (typically for bundled apps).
+ * Falls back to constructing path from NL_CWD, /bin/, and binaryName from config (typically for dev mode).
+ * Ensures paths use backslashes on Windows.
  */
 async function getApplicationExecutablePath(): Promise<string> {
-  // Check if NL_PATH is a string, not empty, and not just "."
-  if (typeof NL_PATH === "string" && NL_PATH && NL_PATH !== ".") {
-    // Basic check: Does it end with .exe on Windows?
-    if (NL_OS === "Windows" && !NL_PATH.toLowerCase().endsWith(".exe")) {
-      devWarn(
-        `[startupUtils.ts] getApplicationExecutablePath: NL_PATH ("${NL_PATH}") on Windows does not end with .exe. This might be incorrect for autostart, but using it as provided by the environment.`
-      );
+  const normalizePathForWindows = (pathStr: string): string => {
+    if (NL_OS === "Windows") {
+      return pathStr.replace(/\//g, "\\");
     }
-    return NL_PATH;
+    return pathStr;
+  };
+
+  // Scenario 1: NL_PATH is defined, not empty, not "." (typically bundled app)
+  if (typeof NL_PATH === "string" && NL_PATH && NL_PATH !== ".") {
+    const originalNLPath = NL_PATH; // Keep original for logging if needed
+
+    if (NL_OS === "Windows") {
+      const normalizedBasePath = normalizePathForWindows(originalNLPath);
+      if (normalizedBasePath.toLowerCase().endsWith(".exe")) {
+        return normalizedBasePath;
+      } else {
+        devWarn(
+          `[startupUtils.ts] getApplicationExecutablePath: NL_PATH ("${originalNLPath}") on Windows does not end with .exe. Appending platform suffix and extension.`
+        );
+        const archSuffix =
+          typeof NL_ARCH === "string" && NL_ARCH ? `_${NL_ARCH}` : "_x64"; // Default to x64 if NL_ARCH is not set, common for Windows
+        return `${normalizedBasePath}-win${archSuffix}.exe`;
+      }
+    } else if (NL_OS === "Linux" || NL_OS === "Darwin") {
+      // Non-Windows: NL_PATH is used as is or with suffixes. Forward slashes are standard.
+      const platformSuffixPattern = new RegExp(
+        `-(linux|mac)_(${NL_ARCH || "\\\\w+"})$`
+      );
+      if (
+        !platformSuffixPattern.test(originalNLPath) &&
+        originalNLPath.lastIndexOf("/") > originalNLPath.lastIndexOf(".")
+      ) {
+        devWarn(
+          `[startupUtils.ts] getApplicationExecutablePath: NL_PATH ("${originalNLPath}") on ${NL_OS} does not appear to be a full executable name. Appending platform suffix.`
+        );
+        const archSuffix =
+          typeof NL_ARCH === "string" && NL_ARCH ? `_${NL_ARCH}` : "";
+        const osSuffix = NL_OS === "Linux" ? "linux" : "mac";
+        return `${originalNLPath}-${osSuffix}${archSuffix}`;
+      }
+      // Otherwise, assume NL_PATH is correct for non-Windows bundled apps.
+      return originalNLPath;
+    }
+    // For other OSes or if logic above doesn't apply, return NL_PATH.
+    // Normalize if Windows, otherwise return as is.
+    return normalizePathForWindows(originalNLPath);
   }
 
-  // If NL_PATH was undefined, empty, or exactly ".", then use fallback.
+  // Scenario 2: Fallback (NL_PATH is undefined, empty, or ".", typically "neu run" or dev mode)
   const nlPathValueForLog =
     typeof NL_PATH === "undefined" ? "undefined" : `"${NL_PATH}"`;
   devWarn(
-    `[startupUtils.ts] getApplicationExecutablePath: NL_PATH is ${nlPathValueForLog}. This is not a suitable executable path (e.g. if ".", or if app is run via "neu run") or it's not defined. Attempting fallback strategy...`
+    `[startupUtils.ts] getApplicationExecutablePath: NL_PATH is ${nlPathValueForLog}. Attempting fallback strategy (likely dev mode).`
   );
+
   try {
-    const cwd = await os.getEnv("NL_CWD");
-    let binaryName = "neutralino-win_x64"; // Default based on common patterns
+    const cwd = NL_CWD; // NL_CWD might contain / or \\
+    let baseBinaryName = "";
 
     try {
       const configFileContent = await filesystem.readFile(
@@ -60,33 +99,89 @@ async function getApplicationExecutablePath(): Promise<string> {
       );
       const config = JSON.parse(configFileContent);
       if (config && config.cli && config.cli.binaryName) {
-        binaryName = config.cli.binaryName;
+        baseBinaryName = config.cli.binaryName;
       } else {
         devWarn(
-          `cli.binaryName not found in neutralino.config.json, using default: ${binaryName}`
+          "[startupUtils.ts] cli.binaryName not found in neutralino.config.json. Attempting to use applicationId as fallback for base binary name."
         );
+        if (config && config.applicationId) {
+          const parts = config.applicationId.split(".");
+          baseBinaryName = parts[parts.length - 1];
+          if (!baseBinaryName) {
+            throw new Error(
+              "applicationId is empty or invalid for deriving a base binary name."
+            );
+          }
+          devWarn(
+            `[startupUtils.ts] Using derived base binary name from applicationId: "${baseBinaryName}"`
+          );
+        } else {
+          throw new Error(
+            "cli.binaryName and applicationId are missing in neutralino.config.json. Cannot determine binary name."
+          );
+        }
       }
-    } catch (e) {
-      devWarn(
-        `Could not read binaryName from neutralino.config.json, using default: ${binaryName}. Error: ${e}`
+    } catch (e: any) {
+      devError(
+        `[startupUtils.ts] Could not read baseBinaryName from neutralino.config.json. Error: ${
+          e.message || e
+        }`
       );
+      throw new Error(
+        `Failed to read/parse neutralino.config.json for binary name: ${
+          e.message || e
+        }`
+      );
+    }
+
+    if (!baseBinaryName) {
+      throw new Error("Base binary name could not be determined.");
+    }
+
+    let fullBinaryNameWithSuffix: string;
+    const archSuffix =
+      typeof NL_ARCH === "string" && NL_ARCH
+        ? `_${NL_ARCH}`
+        : NL_OS === "Windows"
+        ? "_x64"
+        : ""; // Default arch for Windows if not set
+
+    if (NL_OS === "Windows") {
+      fullBinaryNameWithSuffix = `${baseBinaryName}-win${archSuffix}.exe`;
+    } else if (NL_OS === "Linux") {
+      fullBinaryNameWithSuffix = `${baseBinaryName}-linux${archSuffix}`;
+    } else if (NL_OS === "Darwin") {
+      fullBinaryNameWithSuffix = `${baseBinaryName}-mac${archSuffix}`;
+    } else {
+      devError(
+        `[startupUtils.ts] Unsupported OS for fallback path construction: ${NL_OS}`
+      );
+      throw new Error(`Unsupported OS for fallback path: ${NL_OS}`);
     }
 
     let constructedPath: string;
     if (NL_OS === "Windows") {
-      // Corrected fallback: NL_CWD is project root, binary is in /bin/
-      constructedPath = `${NL_CWD}\\\\bin\\\\${binaryName}.exe`;
+      const normalizedCwd = normalizePathForWindows(cwd);
+      constructedPath = `${normalizedCwd}\\bin\\${fullBinaryNameWithSuffix}`;
     } else {
-      // For Linux/macOS, adjust as needed if binaries are in /bin/
-      constructedPath = `${NL_CWD}/bin/${binaryName}`;
+      // For Linux/Darwin, use original cwd (which uses /) and / as separator
+      constructedPath = `${cwd}/bin/${fullBinaryNameWithSuffix}`;
     }
-    return constructedPath;
-  } catch (error) {
-    devError(
-      "[startupUtils.ts] getApplicationExecutablePath: Error constructing app executable path using fallback:",
-      error
+    devWarn(
+      `[startupUtils.ts] Constructed fallback executable path: ${constructedPath}`
     );
-    throw new Error("Could not determine application executable path.");
+    return constructedPath;
+  } catch (error: any) {
+    devError(
+      `[startupUtils.ts] getApplicationExecutablePath: Error constructing app executable path using fallback: ${
+        error.message || error
+      }`
+    );
+    throw new Error(
+      `Could not determine application executable path via fallback: ${
+        error.message || error
+      }`
+    );
   }
 }
 
