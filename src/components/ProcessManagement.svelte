@@ -6,7 +6,7 @@
 </script>
 
 <div class="process-management-container">
-  <h2>Process Management</h2>
+  <h1>Process Management</h1>
 
   <div class="setting-item toggle-setting">
     <Toggle

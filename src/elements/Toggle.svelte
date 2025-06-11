@@ -79,7 +79,6 @@
   .toggle-component {
     display: flex;
     align-items: center;
-    margin-bottom: var(--spacing-medium); /* Consistent spacing */
     gap: var(--spacing-small);
   }
 

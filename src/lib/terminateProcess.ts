@@ -1,6 +1,14 @@
 import { os } from "@neutralinojs/lib";
+import { isProcessProtected } from "@lib/processUtils"; // Added import
 
 export async function terminateProcess(processName: string): Promise<void> {
+  if (isProcessProtected(processName)) {
+    console.warn(
+      `Process "${processName}" is protected and cannot be terminated.`
+    );
+    return;
+  }
+
   const command = `taskkill /F /IM ${processName}`;
   try {
     await os.execCommand(command);

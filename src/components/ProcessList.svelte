@@ -11,6 +11,7 @@
   } from "@lib/runningProcesses.svelte.ts";
   import { onMount } from "svelte";
   import Icon from "@iconify/svelte";
+  import { isProcessProtected } from "@lib/processUtils"; // Added import
 
   let filter: FilterType = $state("all"); // Default filter to show all processes
   let sortKey: SortKey = $state("name");
@@ -162,6 +163,23 @@
   onMount(async () => {
     await getProcessList();
   });
+
+  function addProcessToKillList(processName: string) {
+    if (isProcessProtected(processName)) {
+      // Optionally, show a notification to the user that this process is protected.
+      // For example, by dispatching a custom event or calling a notification service.
+      console.warn(
+        `Process "${processName}" is protected and cannot be added to the kill list.`
+      );
+      alert(
+        `Process "${processName}" is protected and cannot be added to the kill list.`
+      );
+      return;
+    }
+    if (!settings.processesToKill.includes(processName)) {
+      settings.processesToKill = [...settings.processesToKill, processName];
+    }
+  }
 </script>
 
 <div class="process-list-container">
@@ -278,15 +296,13 @@
                 >
                   Remove from Kill List
                 </Button>
+              {:else if isProcessProtected(process.nameForActionAndSort)}
+                Protected
               {:else}
                 <Button
                   variant="success"
-                  onclick={() => {
-                    settings.processesToKill = [
-                      ...settings.processesToKill,
-                      process.nameForActionAndSort,
-                    ];
-                  }}
+                  onclick={() =>
+                    addProcessToKillList(process.nameForActionAndSort)}
                   icon="solar:add-circle-linear"
                 >
                   Add to Kill List

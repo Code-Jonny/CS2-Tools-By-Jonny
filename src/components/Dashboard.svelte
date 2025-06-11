@@ -64,7 +64,7 @@
           loading power plan: {powerPlans.error}
         </p>
       {:else if activePowerPlan}
-        <p class="power-plan-name">{activePowerPlan.name}</p>
+        <p class="status-indicator">{activePowerPlan.name}</p>
       {:else}
         <p class="info-text">No active power plan found or not loaded yet.</p>
       {/if}
