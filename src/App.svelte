@@ -228,7 +228,7 @@
       align-items: center;
       gap: 12px; /* Increased gap */
       padding: 15px 20px; /* Adjusted padding */
-      font-size: 16px; /* Body Text for nav items */
+      font-size: 14px; /* Body Text for nav items */
       font-weight: 400; /* Inter Regular */
       transition:
         background-color 0.2s ease-in-out,

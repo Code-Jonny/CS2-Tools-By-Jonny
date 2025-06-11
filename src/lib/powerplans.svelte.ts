@@ -124,6 +124,15 @@ export const powerPlans = {
 
     const guid = typeof planOrGuid === "string" ? planOrGuid : planOrGuid.guid;
 
+    // If GUID is empty, it means "Not yet chosen" or no specific plan should be active.
+    // In this case, we don't attempt to set a power plan via powercfg.
+    // We just refresh the list to ensure the UI reflects the actual current state.
+    if (guid === "") {
+      console.log("setActive called with empty GUID, nothing to do.");
+      // await _fetchAndUpdatePowerPlansInternal();
+      return;
+    }
+
     try {
       const command = `powercfg /setactive ${guid}`;
       const result = await os.execCommand(command);

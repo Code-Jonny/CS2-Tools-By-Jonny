@@ -5,6 +5,7 @@
   import Button from "@elements/Button.svelte";
   import Toggle from "@elements/Toggle.svelte"; // Import the Toggle component
   import TextInput from "@elements/TextInput.svelte"; // Import the TextInput component
+  import Card from "@elements/Card.svelte"; // Import the Card component
 
   // Local state for polling interval in seconds for the input field
   let pollingIntervalSeconds: number = $state(
@@ -73,23 +74,27 @@
   }
 </script>
 
-<div class="container">
-  <h1>General Settings</h1>
-  <form onsubmit={(e) => e.preventDefault()}>
-    <Toggle
-      label="Autostart with Windows"
-      id="autostartWithWindows"
-      name="autostartWithWindows"
-      bind:checked={settings.autostartWithWindows}
-    />
+<div class="settings-container">
+  <h1>Settings</h1>
+  <Card title="Application Start Behavior" icon="solar:rocket-bold">
+    <div class="togglelist">
+      <Toggle
+        label="Autostart with Windows"
+        id="autostartWithWindows"
+        name="autostartWithWindows"
+        bind:checked={settings.autostartWithWindows}
+      />
 
-    <Toggle
-      label="Start Minimized"
-      id="startMinimized"
-      name="startMinimized"
-      bind:checked={settings.startMinimized}
-    />
+      <Toggle
+        label="Start Minimized"
+        id="startMinimized"
+        name="startMinimized"
+        bind:checked={settings.startMinimized}
+      />
+    </div>
+  </Card>
 
+  <Card title="Performance" icon="solar:cpu-bolt-bold">
     <TextInput
       label="Polling Interval (seconds)"
       id="pollingInterval"
@@ -100,7 +105,9 @@
       error={pollingIntervalError}
       placeholder="e.g., 1.5"
     />
+  </Card>
 
+  <Card title="Reset to Defaults" icon="solar:refresh-circle-bold">
     <Button
       type="button"
       onclick={handleResetToDefaults}
@@ -108,7 +115,7 @@
     >
       Reset to Defaults
     </Button>
-  </form>
+  </Card>
 
   <hr />
   <h3>Current General Settings (Live View from Store)</h3>
@@ -120,12 +127,14 @@
 </div>
 
 <style scoped>
-  hr {
-    margin-top: 20px;
-    margin-bottom: 20px;
+  .settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Spacing between cards */
   }
-  .container {
-    /* Add any specific styles for this component if needed */
+  .togglelist {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Spacing between toggle items */
   }
-  /* Removed label and input[type="text"] styles as TextInput handles them */
 </style>

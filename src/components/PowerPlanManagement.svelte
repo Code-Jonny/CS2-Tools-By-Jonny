@@ -16,16 +16,23 @@
     targetSetting: "powerPlanCS2" | "powerPlanDefault"
   ) {
     const selectedGuid = event.currentTarget.value;
-    // Accessing $state variable directly
-    const selectedPlan = localAvailablePowerPlans.find(
-      (plan) => plan.guid === selectedGuid
-    );
-    if (selectedPlan) {
-      // Update the settings store directly
+    if (selectedGuid === "") {
+      // Handle "Not yet chosen"
       settings[targetSetting] = {
-        guid: selectedPlan.guid,
-        name: selectedPlan.name,
+        guid: "",
+        name: "", // Ensure name is also cleared
       };
+    } else {
+      const selectedPlan = localAvailablePowerPlans.find(
+        (plan) => plan.guid === selectedGuid
+      );
+      if (selectedPlan) {
+        // Update the settings store directly
+        settings[targetSetting] = {
+          guid: selectedPlan.guid,
+          name: selectedPlan.name,
+        };
+      }
     }
   }
 
@@ -63,25 +70,15 @@
             class="styled-select"
           >
             {#if powerPlans.error}
-              <option value="" disabled selected
-                >Error: {powerPlans.error}</option
+              <option value="" disabled>Error: {powerPlans.error}</option>
+            {:else if localAvailablePowerPlans.length === 0 && !powerPlans.isLoading}
+              <option value="" disabled
+                >No power plans found. (Try Refresh)</option
               >
-            {:else if localAvailablePowerPlans.length === 0}
-              {#if powerPlans.isLoading}
-                <option value="" disabled selected
-                  >Loading power plans...</option
-                >
-              {:else}
-                <option value="" disabled selected
-                  >No power plans found. (Try Refresh)</option
-                >
-              {/if}
+            {:else if powerPlans.isLoading && localAvailablePowerPlans.length === 0}
+              <option value="" disabled>Loading power plans...</option>
             {:else}
-              <option value="" disabled selected>
-                {settings.powerPlanCS2?.name
-                  ? `Current: ${settings.powerPlanCS2.name}`
-                  : "Select a power plan for CS2"}
-              </option>
+              <option value="">Not yet chosen</option>
               {#each localAvailablePowerPlans as plan (plan.guid)}
                 <option value={plan.guid}>{plan.name}</option>
               {/each}
@@ -102,25 +99,15 @@
             class="styled-select"
           >
             {#if powerPlans.error}
-              <option value="" disabled selected
-                >Error: {powerPlans.error}</option
+              <option value="" disabled>Error: {powerPlans.error}</option>
+            {:else if localAvailablePowerPlans.length === 0 && !powerPlans.isLoading}
+              <option value="" disabled
+                >No power plans found. (Try Refresh)</option
               >
-            {:else if localAvailablePowerPlans.length === 0}
-              {#if powerPlans.isLoading}
-                <option value="" disabled selected
-                  >Loading power plans...</option
-                >
-              {:else}
-                <option value="" disabled selected
-                  >No power plans found. (Try Refresh)</option
-                >
-              {/if}
+            {:else if powerPlans.isLoading && localAvailablePowerPlans.length === 0}
+              <option value="" disabled>Loading power plans...</option>
             {:else}
-              <option value="" disabled selected>
-                {settings.powerPlanDefault?.name
-                  ? `Current: ${settings.powerPlanDefault.name}`
-                  : "Select a default power plan"}
-              </option>
+              <option value="">Not yet chosen</option>
               {#each localAvailablePowerPlans as plan (plan.guid)}
                 <option value={plan.guid}>{plan.name}</option>
               {/each}

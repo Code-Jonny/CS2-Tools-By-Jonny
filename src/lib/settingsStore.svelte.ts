@@ -7,15 +7,13 @@ export const defaultAppSettings = {
   pollingIntervalMs: 5000, // Default polling interval in milliseconds
   processesToKill: [] as string[], // Explicitly type as string[]
   powerPlanCS2: {
-    name: "Khorvie's PowerPlan",
-    guid: "2745DBB2-2B26-4F90-BDA4-4B8F050EB15C",
+    name: "",
+    guid: "",
   },
   powerPlanDefault: {
-    name: "Ausbalanciert",
-    guid: "381B4222-F694-41F0-9685-FF5BB260DF2E",
+    name: "",
+    guid: "",
   },
-  runCS2OnHighPriority: true,
-  closeLaucherOnGameStart: true,
   powerPlanManagementActive: false, // Default value for the new setting
   processManagementActive: false, // Default value for the new setting
 };
