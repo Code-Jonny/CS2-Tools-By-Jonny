@@ -157,6 +157,7 @@
 
     nav.expanded & {
       translate: 100px 0; /* Move logo to the right when expanded */
+      scale: 2.4;
     }
   }
 </style>
