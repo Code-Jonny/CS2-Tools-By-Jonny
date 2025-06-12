@@ -38,7 +38,7 @@ async function main() {
     if (event.detail.id === "quit") {
       Neutralino.app.exit();
     }
-    console.log("Tray menu item clicked:", event);
+    // console.log("Tray menu item clicked:", event);
   }
 
   // Workaround to hide window on minimize
