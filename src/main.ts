@@ -24,11 +24,11 @@ async function main() {
 
   await Neutralino.os.setTray(tray);
 
-  // Wait for settings to be loaded
-  await loadAndInitializeSettings();
+  const startMinimized = await Neutralino.storage.getData("startMinimized");
 
-  // Apply the start minimized setting
-  await applyStartMinimizedSetting();
+  if (startMinimized === "true") {
+    await Neutralino.window.hide();
+  }
 
   async function handleTrayEvent(event: any) {
     if (event.detail.id === "open") {

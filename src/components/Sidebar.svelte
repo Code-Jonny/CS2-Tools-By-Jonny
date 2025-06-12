@@ -105,14 +105,14 @@
       font-size: 13px;
       font-weight: 400;
       transition:
-        background-color 0.2s ease-in-out,
-        color 0.2s ease-in-out;
+        background-color 0.15s ease-in-out,
+        color 0.15s ease-in-out;
       white-space: nowrap; /* Prevent text from wrapping */
       justify-content: center; /* Center icons when collapsed */
 
       span {
         opacity: 0;
-        transition: opacity 0.2s ease-in-out;
+        transition: opacity 0.15s ease-in-out;
         margin-left: 0; /* Ensure no extra margin when hidden */
       }
 
@@ -130,7 +130,7 @@
       :global(svg) {
         min-width: 24px; /* Ensure icons have a minimum width */
         color: currentColor;
-        transition: color 0.2s ease-in-out;
+        transition: color 0.15s ease-in-out;
       }
     }
   }
