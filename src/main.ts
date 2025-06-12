@@ -13,10 +13,12 @@ const app = mount(App, {
 async function main() {
   Neutralino.init();
 
-  // Prevent right-click context menu
-  document.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-  });
+  // Prevent right-click context menu in production builds
+  if (NL_MODE !== "window") {
+    document.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+    });
+  }
 
   let tray = {
     icon: "/app/icon.png",

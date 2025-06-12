@@ -236,35 +236,35 @@
     <table class="process-table">
       <thead>
         <tr>
-          <th onclick={() => handleSort("name")}
+          <th onclick={() => handleSort("name")} class="sortable"
             >Name <Icon
               icon={sortKey === "name"
                 ? sortOrder === "asc"
-                  ? "solar:arrow-down-linear"
-                  : "solar:arrow-up-linear"
-                : "solar:sort-vertical-linear"}
+                  ? "solar:arrow-up-bold"
+                  : "solar:arrow-down-bold"
+                : "solar:sort-vertical-bold"}
               width="16"
               height="16"
             />
           </th>
-          <th onclick={() => handleSort("service")}
+          <th onclick={() => handleSort("service")} class="sortable"
             >Type <Icon
               icon={sortKey === "service"
                 ? sortOrder === "asc"
-                  ? "solar:arrow-down-linear"
-                  : "solar:arrow-up-linear"
-                : "solar:sort-vertical-linear"}
+                  ? "solar:arrow-up-bold"
+                  : "solar:arrow-down-bold"
+                : "solar:sort-vertical-bold"}
               width="16"
               height="16"
             />
           </th>
-          <th onclick={() => handleSort("ramUsage")}
+          <th onclick={() => handleSort("ramUsage")} class="sortable"
             >RAM <Icon
               icon={sortKey === "ramUsage"
                 ? sortOrder === "asc"
-                  ? "solar:arrow-down-linear"
-                  : "solar:arrow-up-linear"
-                : "solar:sort-vertical-linear"}
+                  ? "solar:arrow-up-bold"
+                  : "solar:arrow-down-bold"
+                : "solar:sort-vertical-bold"}
               width="16"
               height="16"
             />
@@ -404,11 +404,14 @@
     font-size: 13px; /* Reduced font size */
     font-weight: 600; /* Inter Semi-Bold */
     color: var(--text-secondary);
-    cursor: pointer;
     user-select: none;
     background-color: var(--background-primary); /* Header background */
+
+    &.sortable {
+      cursor: pointer; /* Indicate sortable columns */
+    }
   }
-  .process-table th:hover {
+  .process-table th.sortable:hover {
     color: var(--primary-accent);
   }
 
