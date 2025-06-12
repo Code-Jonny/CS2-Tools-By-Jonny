@@ -53,6 +53,10 @@ body {
   background-color: var(--background-primary);
   color: var(--text-primary);
   line-height: 1.6;
+  user-select: none;
+  -webkit-user-select: none; /* For Safari */
+  -moz-user-select: none; /* For Firefox */
+  -ms-user-select: none; /* For Internet Explorer/Edge */
 }
 
 h1 {
@@ -85,6 +89,21 @@ div {
   font-size: 16px; /* Body Text */
   font-weight: 400; /* Inter Regular */
   color: var(--text-primary);
+}
+
+/* Prevent text selection except in input fields */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea {
+  user-select: auto;
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
 }
 
 /* Styling for scrollbars to fit the dark theme */
