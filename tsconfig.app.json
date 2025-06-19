@@ -13,7 +13,8 @@
       "@components/*": ["src/components/*"],
       "@lib/*": ["src/lib/*"],
       "@elements/*": ["src/elements/*"], // Add this line
-      "@src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      "@icons/*": ["src/icons/*"]
     },
     /**
      * Typecheck JS in `.svelte` and `.js` files by default.

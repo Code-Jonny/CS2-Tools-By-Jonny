@@ -99,11 +99,12 @@ export default defineConfig({
   plugins: [svelte(), neutralino()],
   resolve: {
     alias: {
-      "@assets": path.resolve(__dirname, "./src/assets"),
-      "@components": path.resolve(__dirname, "./src/components"),
-      "@lib": path.resolve(__dirname, "./src/lib"),
-      "@src": path.resolve(__dirname, "./src"),
-      "@elements": path.resolve(__dirname, "./src/elements"),
+      "@assets": path.resolve(__dirname, "src/assets"),
+      "@components": path.resolve(__dirname, "src/components"),
+      "@lib": path.resolve(__dirname, "src/lib"),
+      "@elements": path.resolve(__dirname, "src/elements"),
+      "@src": path.resolve(__dirname, "src"),
+      "@icons": path.resolve(__dirname, "src/icons"),
     },
   },
   server: {

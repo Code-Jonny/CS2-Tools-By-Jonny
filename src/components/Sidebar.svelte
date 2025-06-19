@@ -1,11 +1,12 @@
 <script lang="ts">
-  import Icon from "@iconify/svelte";
+  // import Icon from "@iconify/svelte";
   import { currentView } from "@lib/viewStore.svelte.ts";
   import {
     isSidebarExpanded,
     expandSidebar,
     collapseSidebar,
   } from "@lib/sidebarStore.svelte.ts";
+  import Icon from "@icons/Icon.svelte";
 
   // Local state for isExpanded is removed, now using store
 </script>
@@ -24,7 +25,8 @@
     </li>
     <li>
       <a href="#/" class:active={$currentView === "dashboard"}>
-        <Icon icon="solar:home-smile-linear" width="24" height="24" />
+        <!-- <Icon icon="solar:home-smile-linear" width="24" height="24" /> -->
+        <Icon iconName="home" />
         {#if $isSidebarExpanded}<span>Dashboard</span>{/if}
       </a>
     </li>
@@ -33,7 +35,7 @@
         href="#/process-management"
         class:active={$currentView === "process-management"}
       >
-        <Icon icon="solar:cpu-linear" width="24" height="24" />
+        <Icon iconName="tasks" />
         {#if $isSidebarExpanded}<span>Process Management</span>{/if}
       </a>
     </li>
@@ -42,13 +44,13 @@
         href="#/power-plan-management"
         class:active={$currentView === "power-plan-management"}
       >
-        <Icon icon="solar:power-linear" width="24" height="24" />
+        <Icon iconName="power" />
         {#if $isSidebarExpanded}<span>Power Plan Management</span>{/if}
       </a>
     </li>
     <li>
       <a href="#/settings" class:active={$currentView === "settings"}>
-        <Icon icon="solar:settings-linear" width="24" height="24" />
+        <Icon iconName="settings" />
         {#if $isSidebarExpanded}<span>Settings</span>{/if}
       </a>
     </li>
