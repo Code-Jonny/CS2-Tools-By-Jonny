@@ -97,7 +97,7 @@
       white-space: nowrap;
     } */
 
-    li a {
+    a {
       text-decoration: none;
       color: var(--text-primary);
       display: flex;
@@ -127,6 +127,13 @@
         background-color: var(--primary-accent);
         color: var(--background-primary);
         font-weight: 600;
+
+        /* Add this to change icon color when active */
+        :global(svg) {
+          color: var(
+            --background-primary
+          ); /* Or directly use #1A1A1A or black */
+        }
       }
 
       :global(svg) {
