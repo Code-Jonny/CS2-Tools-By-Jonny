@@ -18,19 +18,17 @@
   let isInitialized = false; // Flag to prevent effect from running during onMount sync
 
   onMount(async () => {
-    if (window.NL_OS === "Windows") {
-      try {
-        const registryAutostartStatus = await checkAutostartStatus();
-        if (settings.autostartWithWindows !== registryAutostartStatus) {
-          devLog(
-            `Autostart mismatch onMount: Store is ${settings.autostartWithWindows}, Registry is ${registryAutostartStatus}. Syncing store to registry.`
-          );
-          settings.autostartWithWindows = registryAutostartStatus;
-        }
-      } catch (error) {
-        devError("Error checking autostart status on mount:", error);
-        autostartError = "Could not verify autostart status.";
+    try {
+      const registryAutostartStatus = await checkAutostartStatus();
+      if (settings.autostartWithWindows !== registryAutostartStatus) {
+        devLog(
+          `Autostart mismatch onMount: Store is ${settings.autostartWithWindows}, Registry is ${registryAutostartStatus}. Syncing store to registry.`
+        );
+        settings.autostartWithWindows = registryAutostartStatus;
       }
+    } catch (error) {
+      devError("Error checking autostart status on mount:", error);
+      autostartError = "Could not verify autostart status.";
     }
     isInitialized = true; // Signal that onMount synchronization is complete
   });
@@ -38,9 +36,8 @@
   $effect(() => {
     const currentAutostartSetting = settings.autostartWithWindows;
 
-    if (!isInitialized || window.NL_OS !== "Windows") {
-      // Don't run if not initialized yet, or not on Windows.
-      // This prevents the effect from acting on store changes made by onMount.
+    if (!isInitialized) {
+      // Don't run if not initialized yet
       return;
     }
 
@@ -48,8 +45,6 @@
     // is considered a user action or a deliberate programmatic change post-initialization.
     (async () => {
       try {
-        // We no longer need to double-check the registry here.
-        // Trust the currentAutostartSetting from the store, which reflects the user's intent or post-init state.
         devLog(
           `Autostart setting changed to: ${currentAutostartSetting} (post-init). Updating registry.`
         );
@@ -62,9 +57,6 @@
         } else {
           autostartError = "Failed to update autostart: Unknown error";
         }
-        // Optionally, revert the setting in the store if the registry update fails,
-        // though this might cause a confusing UX if the toggle flips back.
-        // settings.autostartWithWindows = !currentAutostartSetting;
       }
     })();
   });
@@ -86,15 +78,6 @@
     if (isNaN(value) || value < 1) {
       pollingIntervalError =
         "Polling interval must be a valid number (e.g., 3.5) and at least 1 second. Use a dot as the decimal separator.";
-      // Do not update state if input is invalid
-      // Ensure the input field reflects the last valid 'pollingIntervalSeconds' or the store value if it's the first invalid entry.
-      // This assignment is crucial to revert the visual input if the user types something invalid.
-      // For example, if it was '5' and user types 'abc', it should revert to '5'.
-      // The `value` prop of TextInput will be bound to `pollingIntervalSeconds`
-      // To ensure the input field visually reverts, we might need to re-assign pollingIntervalSeconds
-      // to itself if the component doesn't automatically re-render with the old value.
-      // However, since `value` is bound to `pollingIntervalSeconds.toString()`, and `pollingIntervalSeconds`
-      // is not changed here, the input should retain its previous valid state or the store's initial state.
       return;
     }
 
@@ -138,11 +121,7 @@
         id="autostartWithWindows"
         name="autostartWithWindows"
         bind:checked={settings.autostartWithWindows}
-        disabled={window.NL_OS !== "Windows"}
       />
-      {#if window.NL_OS !== "Windows"}
-        <p class="secondary-text">Autostart is only available on Windows.</p>
-      {/if}
       {#if autostartError}
         <p class="error-text">{autostartError}</p>
       {/if}
@@ -202,12 +181,5 @@
   .error-text {
     color: var(--color-error); /* Use CSS variable for error color */
     font-size: 0.9em;
-  }
-  .secondary-text {
-    color: var(
-      --color-text-secondary
-    ); /* Use CSS variable for secondary text color */
-    font-size: 0.9em;
-    margin-top: -10px; /* Adjust spacing if needed */
   }
 </style>

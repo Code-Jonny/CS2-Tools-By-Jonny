@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Button from "@elements/Button.svelte"; // Add this import
-  import TextInput from "@elements/TextInput.svelte"; // Importing TextInput component
+  import Button from "@elements/Button.svelte";
+  import TextInput from "@elements/TextInput.svelte";
   import { settings } from "@lib/settingsStore.svelte.ts";
   import {
     runningProcesses,
@@ -11,12 +11,12 @@
   } from "@lib/runningProcesses.svelte.ts";
   import { onMount } from "svelte";
   import Icon from "@iconify/svelte";
-  import { isProcessProtected } from "@lib/processUtils"; // Added import
+  import { isProcessProtected } from "@lib/processUtils";
 
-  let filter: FilterType = $state("all"); // Default filter to show all processes
+  let filter: FilterType = $state("all");
   let sortKey: SortKey = $state("name");
   let sortOrder: SortOrder = $state("asc");
-  let searchTerm: string = $state(""); // Added for search functionality
+  let searchTerm: string = $state("");
 
   async function getProcessList() {
     await runningProcesses.refresh();
@@ -34,15 +34,10 @@
   // Reactive statement for displayed processes
   const displayedProcesses = $derived(
     (() => {
-      const allProcesses = $runningProcesses.processes.slice(); // React to store changes, work with a copy
+      const allProcesses = $runningProcesses.processes.slice();
 
-      // Apply filter
+      // Apply filter (only search now)
       let processesToGroup = allProcesses;
-      if (filter !== "all") {
-        processesToGroup = processesToGroup.filter((p: ProcessInfo) =>
-          filter === "service" ? p.service : !p.service
-        );
-      }
 
       // Apply search term
       if (searchTerm && searchTerm.trim() !== "") {
@@ -60,8 +55,7 @@
             {
               name: string;
               count: number;
-              ramUsage: number;
-              types: Set<boolean>;
+              memory: number;
             }
           >,
           process: ProcessInfo
@@ -70,57 +64,30 @@
             acc[process.name] = {
               name: process.name,
               count: 0,
-              ramUsage: 0,
-              types: new Set<boolean>(), // true for service, false for app
+              memory: 0,
             };
           }
           acc[process.name].count++;
-          acc[process.name].ramUsage += process.ramUsage;
-          acc[process.name].types.add(process.service);
+          acc[process.name].memory += process.memory;
           return acc;
         },
-        {} as Record<
-          string,
-          { name: string; count: number; ramUsage: number; types: Set<boolean> }
-        >
+        {} as Record<string, { name: string; count: number; memory: number }>
       );
 
       // Transform grouped data for display
       let result = Object.values(grouped).map(
-        (group: {
-          name: string;
-          count: number;
-          ramUsage: number;
-          types: Set<boolean>;
-        }) => {
-          let typeDisplay = "";
-          const hasService = group.types.has(true);
-          const hasApp = group.types.has(false);
-
-          if (hasService && hasApp) {
-            typeDisplay = "App & Service";
-          } else if (hasService) {
-            typeDisplay = "Service";
-          } else if (hasApp) {
-            typeDisplay = "App";
-          } else {
-            typeDisplay = "Unknown"; // Should not happen if processes always have a defined type
-          }
+        (group: { name: string; count: number; memory: number }) => {
           return {
-            nameForActionAndSort: group.name, // For unique key, sorting by name, and actions
+            nameForActionAndSort: group.name,
             displayName:
               group.count > 1 ? `${group.name} (${group.count}x)` : group.name,
             count: group.count,
-            ramUsage: group.ramUsage,
-            typeDisplay: typeDisplay,
+            memory: group.memory,
           };
         }
       );
 
-      // Apply current sort (sortKey, sortOrder) to the grouped results
-      // PID sorting is removed from UI.
-      // Assert the type of sortKey for current context, as it's controlled by UI to be one of these.
-      const currentSortKey = sortKey as "name" | "ramUsage" | "service";
+      const currentSortKey = sortKey as "name" | "memory";
 
       result.sort((a, b) => {
         let valA, valB;
@@ -129,13 +96,9 @@
             valA = a.nameForActionAndSort.toLowerCase();
             valB = b.nameForActionAndSort.toLowerCase();
             break;
-          case "ramUsage":
-            valA = a.ramUsage;
-            valB = b.ramUsage;
-            break;
-          case "service": // Sorting by the displayed type string
-            valA = a.typeDisplay.toLowerCase();
-            valB = b.typeDisplay.toLowerCase();
+          case "memory":
+            valA = a.memory;
+            valB = b.memory;
             break;
           default:
             return 0;
@@ -166,8 +129,6 @@
 
   function addProcessToKillList(processName: string) {
     if (isProcessProtected(processName)) {
-      // Optionally, show a notification to the user that this process is protected.
-      // For example, by dispatching a custom event or calling a notification service.
       console.warn(
         `Process "${processName}" is protected and cannot be added to the kill list.`
       );
@@ -192,29 +153,6 @@
       />
     </div>
     <div class="filter-refresh-controls">
-      <div class="filter-controls">
-        <Button
-          variant={filter === "all" ? "primary" : "secondary"}
-          onclick={() => (filter = "all")}
-          icon="solar:list-linear"
-        >
-          All
-        </Button>
-        <Button
-          variant={filter === "app" ? "primary" : "secondary"}
-          onclick={() => (filter = "app")}
-          icon="solar:application-linear"
-        >
-          Apps
-        </Button>
-        <Button
-          variant={filter === "service" ? "primary" : "secondary"}
-          onclick={() => (filter = "service")}
-          icon="solar:server-linear"
-        >
-          Services
-        </Button>
-      </div>
       <Button
         onclick={getProcessList}
         variant="secondary"
@@ -247,20 +185,9 @@
               height="16"
             />
           </th>
-          <th onclick={() => handleSort("service")} class="sortable"
-            >Type <Icon
-              icon={sortKey === "service"
-                ? sortOrder === "asc"
-                  ? "solar:arrow-up-bold"
-                  : "solar:arrow-down-bold"
-                : "solar:sort-vertical-bold"}
-              width="16"
-              height="16"
-            />
-          </th>
-          <th onclick={() => handleSort("ramUsage")} class="sortable"
-            >RAM <Icon
-              icon={sortKey === "ramUsage"
+          <th onclick={() => handleSort("memory")} class="sortable"
+            >Memory <Icon
+              icon={sortKey === "memory"
                 ? sortOrder === "asc"
                   ? "solar:arrow-up-bold"
                   : "solar:arrow-down-bold"
@@ -275,7 +202,7 @@
       <tbody>
         {#if displayedProcesses.length === 0 && !errorMessage}
           <tr>
-            <td colspan="4" class="no-data-message"
+            <td colspan="3" class="no-data-message"
               >No processes found matching your criteria.</td
             >
           </tr>
@@ -283,8 +210,7 @@
         {#each displayedProcesses as process (process.nameForActionAndSort)}
           <tr>
             <td>{process.displayName}</td>
-            <td>{process.typeDisplay}</td>
-            <td>{convertBytesToHumanReadable(process.ramUsage)}</td>
+            <td>{convertBytesToHumanReadable(process.memory)}</td>
             <td class="action-buttons">
               {#if settings.processesToKill.includes(process.nameForActionAndSort)}
                 <Button
@@ -327,7 +253,7 @@
 
   .controls-header {
     display: flex;
-    flex-direction: column; /* Stack search and filter/refresh rows */
+    flex-direction: column;
     gap: 10px;
     padding: 10px;
     background-color: var(--background-primary);
@@ -336,7 +262,7 @@
 
   .search-controls {
     display: flex;
-    width: 100%; /* Make search take full width in its row */
+    width: 100%;
   }
 
   .search-controls :global(.text-input-wrapper) {
@@ -345,28 +271,7 @@
 
   .filter-refresh-controls {
     display: flex;
-    flex-direction: column; /* Stack filters and refresh button on small screens */
-    gap: 10px;
-  }
-
-  .filter-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap; /* Allow filter buttons to wrap */
-  }
-
-  /* Medium screens and up: display filter and refresh side-by-side */
-  @media (min-width: 768px) {
-    .filter-refresh-controls {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .filter-controls {
-      flex-wrap: nowrap; /* Prevent wrapping of filter buttons */
-    }
+    justify-content: flex-end;
   }
 
   .error-message {
@@ -381,7 +286,7 @@
   }
 
   .table-container {
-    overflow-x: auto; /* Allow horizontal scrolling for table if needed */
+    overflow-x: auto;
   }
 
   .process-table {
@@ -389,26 +294,26 @@
     border-collapse: collapse;
     background-color: var(--background-secondary);
     border-radius: var(--window-corner-radius);
-    overflow: hidden; /* Ensures border-radius is respected by table contents */
+    overflow: hidden;
   }
 
   .process-table th,
   .process-table td {
-    padding: 10px 12px; /* Reduced padding */
+    padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--background-primary);
     color: var(--text-primary);
   }
 
   .process-table th {
-    font-size: 13px; /* Reduced font size */
-    font-weight: 600; /* Inter Semi-Bold */
+    font-size: 13px;
+    font-weight: 600;
     color: var(--text-secondary);
     user-select: none;
-    background-color: var(--background-primary); /* Header background */
+    background-color: var(--background-primary);
 
     &.sortable {
-      cursor: pointer; /* Indicate sortable columns */
+      cursor: pointer;
     }
   }
   .process-table th.sortable:hover {
@@ -416,32 +321,29 @@
   }
 
   .process-table tbody tr:nth-child(even) {
-    background-color: var(--background-primary); /* Zebra striping */
+    background-color: var(--background-primary);
   }
 
   .process-table tbody tr:hover {
-    background-color: var(
-      --primary-accent-translucent,
-      rgba(0, 191, 255, 0.1)
-    ); /* Use a translucent accent for hover */
+    background-color: var(--primary-accent-translucent, rgba(0, 191, 255, 0.1));
   }
 
   .process-table td {
-    font-size: 14px; /* Reduced font size */
+    font-size: 14px;
   }
 
   .action-buttons {
     display: flex;
-    gap: 6px; /* Reduced gap */
+    gap: 6px;
   }
   .action-buttons :global(button) {
-    padding: 5px 8px; /* Smaller buttons for table actions */
-    font-size: 13px; /* Reduced font size */
+    padding: 5px 8px;
+    font-size: 13px;
   }
 
   .no-data-message {
     text-align: center;
-    padding: 15px; /* Reduced padding */
+    padding: 15px;
     color: var(--text-secondary);
     font-style: italic;
   }

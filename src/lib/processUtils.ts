@@ -16,10 +16,8 @@ export const PROTECTED_PROCESS_NAMES: string[] = [
   "winlogon.exe", // Windows Logon Application
   "lsass.exe", // Local Security Authority Process
   "services.exe", // Services Control Manager
-  "neutralino-win_x64.exe", // Neutralino framework process
   "cs2tools.exe", // The CS2 Tools application itself
   "msedgewebview2.exe", // Microsoft Edge WebView2 (if used)
-  "power_plans.exe", // Power plans management tool
   // Add any other critical process names here, e.g., specific anti-cheat software
 ];
 

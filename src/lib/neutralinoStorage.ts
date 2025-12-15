@@ -1,73 +1,62 @@
 /**
  * @file neutralinoStorage.ts
- * @description Wrapper functions for NeutralinoJS storage API.
+ * @description Wrapper functions for Tauri Store API.
  * Provides simplified async methods to save, retrieve, and check for data existence.
  */
 
-import { storage } from "@neutralinojs/lib";
+import { Store } from "@tauri-apps/plugin-store";
 
-/**
- * Saves data to NeutralinoJS storage.
- * @param key The key under which to store the data.
- * @param value The data to store. Can be any serializable value.
- */
+const store = new Store("settings.json");
+let isLoaded = false;
+
+async function ensureLoaded() {
+  if (!isLoaded) {
+    try {
+      await store.load();
+      isLoaded = true;
+    } catch (error) {
+      console.error("Failed to load settings store:", error);
+      // If load fails (e.g. file doesn't exist yet), we might still want to proceed
+      // so we can save new settings.
+      isLoaded = true;
+    }
+  }
+}
+
 export async function saveData(key: string, value: any): Promise<void> {
   try {
-    await storage.setData(key, JSON.stringify(value));
+    await ensureLoaded();
+    await store.set(key, value);
+    await store.save();
   } catch (error) {
     console.error(`Error saving data for key "${key}":`, error);
-    // Potentially throw the error or handle it as per application needs
     throw error;
   }
 }
 
-/**
- * Retrieves data from NeutralinoJS storage.
- * @param key The key of the data to retrieve.
- * @param defaultValue Optional default value to return if the key is not found.
- * @returns The retrieved data, or the defaultValue if not found, or undefined if no defaultValue is provided.
- */
 export async function getData<T>(
   key: string,
   defaultValue?: T
 ): Promise<T | undefined> {
   try {
-    const rawValue = await storage.getData(key);
-    return JSON.parse(rawValue) as T;
-  } catch (error: any) {
-    if (error.code === "NE_ST_NOSTKEX") {
-      // Key not found
-      if (defaultValue !== undefined) {
-        // console.warn(`No data found for key "${key}", returning default value.`);
-        return defaultValue;
-      }
-      // console.warn(`No data found for key "${key}" and no default value provided.`);
-      return undefined;
-    } else {
-      console.error(`Error retrieving data for key "${key}":`, error);
-      // Potentially throw the error or return a specific error state
-      throw error;
+    await ensureLoaded();
+    const value = await store.get<T>(key);
+    if (value === null || value === undefined) {
+      return defaultValue;
     }
+    return value;
+  } catch (error) {
+    console.error(`Error retrieving data for key "${key}":`, error);
+    return defaultValue;
   }
 }
 
-/**
- * Checks if a key exists in NeutralinoJS storage.
- * @param key The key to check.
- * @returns True if the key exists, false otherwise.
- */
 export async function exists(key: string): Promise<boolean> {
   try {
-    await storage.getData(key);
-    return true;
-  } catch (error: any) {
-    if (error.code === "NE_ST_NOSTKEX") {
-      // Key not found
-      return false;
-    }
-    // For other errors, it's uncertain if the key exists or not.
-    // Depending on requirements, you might want to re-throw or log.
+    await ensureLoaded();
+    return await store.has(key);
+  } catch (error) {
     console.error(`Error checking existence for key "${key}":`, error);
-    return false; // Or throw error
+    return false;
   }
 }

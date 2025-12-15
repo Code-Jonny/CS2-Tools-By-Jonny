@@ -1,17 +1,17 @@
 /**
  * @file settingsStore.svelte.ts
  * @description Manages application settings using Svelte 5's reactive state ($state).
- * It automatically persists changes to NeutralinoJS storage via a Proxy.
+ * Persists changes to Tauri Store via a Proxy.
  */
 
-import { saveData, getData, exists } from "./neutralinoStorage";
+import { getItem, setItem, hasItem } from "./storage";
 
 // Define the default structure and values for your application settings
 export const defaultAppSettings = {
-  autostartWithWindows: false, // Added autostart setting
-  startMinimized: false, // Added start minimized setting
-  pollingIntervalMs: 5000, // Default polling interval in milliseconds
-  processesToKill: [] as string[], // Explicitly type as string[]
+  autostartWithWindows: false,
+  startMinimized: false,
+  pollingIntervalMs: 5000,
+  processesToKill: [] as string[],
   powerPlanCS2: {
     name: "",
     guid: "",
@@ -20,121 +20,101 @@ export const defaultAppSettings = {
     name: "",
     guid: "",
   },
-  powerPlanManagementActive: false, // Default value for the new setting
-  processManagementActive: false, // Default value for the new setting
+  powerPlanManagementActive: false,
+  processManagementActive: false,
 };
 
 export type AppSettings = typeof defaultAppSettings;
 
-// Helper function to satisfy TypeScript's indexed assignment rules with $state
-function setTypedStateValue<K extends keyof AppSettings>(
-  stateObject: AppSettings, // The $state proxy itself
-  key: K,
-  value: AppSettings[K]
-) {
-  stateObject[key] = value;
-}
-
 // Internal reactive state using Svelte 5's $state
-// Initialize with a deep copy of defaults.
 const _internalSettings = $state<AppSettings>(
   JSON.parse(JSON.stringify(defaultAppSettings))
 );
 
-// Flag to prevent proxy from saving during initial load or reset phases
-let isProgrammaticChange = false;
+// Flag to prevent proxy from saving during initial load
+let isLoading = false;
 
-// Proxy handler to intercept assignments to settings properties
+// Helper to update state without triggering type errors
+function updateState<K extends keyof AppSettings>(
+  key: K,
+  value: AppSettings[K]
+) {
+  _internalSettings[key] = value;
+}
+
+// Proxy handler to intercept assignments
 const settingsProxyHandler: ProxyHandler<AppSettings> = {
   set: (target, propertyKey: keyof AppSettings, value) => {
-    // Update the underlying $state object. This will trigger Svelte's reactivity.
-    setTypedStateValue(_internalSettings, propertyKey, value);
+    // Update the reactive state
+    updateState(propertyKey, value);
 
-    if (!isProgrammaticChange) {
-      // console.log(`Proxy: Auto-saving setting ${String(propertyKey)}:`, value);
-      saveData(propertyKey, value).catch((err) => {
-        console.error(
-          `Error auto-saving setting ${String(propertyKey)} via proxy:`,
-          err
-        );
+    // Auto-save if not currently loading
+    if (!isLoading) {
+      setItem(propertyKey as string, value).catch((err) => {
+        console.error(`Failed to save setting ${String(propertyKey)}:`, err);
       });
     }
-    return true; // Indicate success for the set operation
+    return true;
   },
   get: (target, propertyKey: keyof AppSettings) => {
-    return _internalSettings[propertyKey]; // Get value from the underlying $state object
+    return _internalSettings[propertyKey];
   },
-  // If you need to support `delete settings.someProperty` or `for...in` loops / Object.keys()
-  // directly on the `settings` proxy, you might need to implement
-  // `deleteProperty`, `ownKeys`, `getOwnPropertyDescriptor` handlers.
-  // For typical bind:value and direct property access, get/set are sufficient.
 };
 
-// Export the proxy. Components will interact with this.
+// Export the proxy
 export const settings: AppSettings = new Proxy(
-  _internalSettings, // Pass the $state object itself, not a copy
+  _internalSettings,
   settingsProxyHandler
 );
 
 /**
- * Loads settings from storage or initializes them with defaults.
+ * Loads settings from storage.
  */
 export async function loadAndInitializeSettings() {
-  isProgrammaticChange = true;
+  isLoading = true;
   try {
     for (const key of Object.keys(defaultAppSettings) as Array<
       keyof AppSettings
     >) {
-      if (await exists(key)) {
-        const storedValue = await getData<AppSettings[typeof key]>(key);
-        if (storedValue !== undefined) {
-          // Assign via proxy; isProgrammaticChange prevents auto-save here
-          setTypedStateValue(settings, key, storedValue);
+      if (await hasItem(key)) {
+        const storedValue = await getItem<AppSettings[typeof key]>(key);
+        if (storedValue !== null && storedValue !== undefined) {
+          updateState(key, storedValue);
         } else {
-          // Key exists but value is undefined (e.g., corrupt data), use default and save it
-          setTypedStateValue(settings, key, defaultAppSettings[key]);
-          await saveData(key, defaultAppSettings[key]); // Explicit save for this case
+          // If key exists but is null/undefined, revert to default
+          updateState(key, defaultAppSettings[key]);
         }
       } else {
-        // Key does not exist, use default and save it
-        setTypedStateValue(settings, key, defaultAppSettings[key]);
-        await saveData(key, defaultAppSettings[key]); // Explicit save for this case
+        // Initialize missing keys with defaults
+        await setItem(key, defaultAppSettings[key]);
+        updateState(key, defaultAppSettings[key]);
       }
     }
-    // console.log("Settings loaded and initialized:", JSON.parse(JSON.stringify(_internalSettings)));
+    console.log("Settings loaded successfully");
   } catch (error) {
-    console.error("Error loading and initializing settings:", error);
+    console.error("Error loading settings:", error);
   } finally {
-    isProgrammaticChange = false;
+    isLoading = false;
   }
 }
 
 /**
- * Resets all application settings to their default values.
- * It updates the reactive state via the proxy and saves the defaults to storage.
+ * Resets all settings to their default values.
  */
 export async function resetToDefaults() {
-  console.log("Resetting settings to defaults...");
-  isProgrammaticChange = true;
+  isLoading = true; // Prevent auto-save during reset loop
   try {
     for (const key of Object.keys(defaultAppSettings) as Array<
       keyof AppSettings
     >) {
       const defaultValue = defaultAppSettings[key];
-      setTypedStateValue(settings, key, defaultValue); // Set via proxy
-      // Explicitly save each default during reset, as proxy won't auto-save due to isProgrammaticChange
-      await saveData(key, defaultValue);
+      updateState(key, defaultValue);
+      await setItem(key, defaultValue);
     }
-    console.log(
-      "Settings have been reset to defaults and saved:",
-      JSON.parse(JSON.stringify(_internalSettings)) // Log a snapshot of the internal state
-    );
+    console.log("Settings reset to defaults");
   } catch (error) {
-    console.error("Error resetting settings to defaults:", error);
+    console.error("Error resetting settings:", error);
   } finally {
-    isProgrammaticChange = false;
+    isLoading = false;
   }
 }
-
-// Automatically load and initialize settings when this module is imported.
-loadAndInitializeSettings();

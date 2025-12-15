@@ -1,22 +1,20 @@
 /**
  * @file runningProcesses.svelte.ts
  * @description Manages the list of running processes on the system.
- * Uses the `tasklist` command to fetch process information and exposes it via a Svelte store.
+ * Uses Tauri backend to fetch process information and exposes it via a Svelte store.
  * Provides filtering and searching capabilities.
  */
 
-// filepath: c:\Programmieren\projects\cs2-tools\neutralino\src\lib\runningProcesses.svelte.ts
-import { os } from "@neutralinojs/lib";
+import { invoke } from "@tauri-apps/api/core";
 import { writable, get as svelteGet } from "svelte/store";
 
 export interface ProcessInfo {
   name: string;
   pid: number;
-  ramUsage: number; // RAM usage in bytes
-  service: boolean;
+  memory: number;
 }
 
-export type FilterType = "service" | "app" | "all";
+export type FilterType = "all";
 export type SortKey = keyof ProcessInfo | null;
 export type SortOrder = "asc" | "desc";
 
@@ -37,37 +35,7 @@ export const runningProcesses = {
 
   refresh: async () => {
     try {
-      const command = "tasklist /FO CSV /NH";
-      const output = await os.execCommand(command);
-      const lines = output.stdOut.trim().split("\r\n");
-      const processes = lines
-        .map((line) => {
-          const parts = line
-            .split('","')
-            .map((part) => part.replace(/^"|"$/g, ""));
-          if (parts.length >= 5) {
-            const sessionName = parts[2];
-            const sessionNumber = parts[3];
-            const isService =
-              sessionNumber === "0" && sessionName === "Services";
-
-            return {
-              name: parts[0],
-              pid: parseInt(parts[1], 10),
-              ramUsage:
-                parseInt(
-                  parts[4]
-                    .replace(/\./g, "") // Remove thousand separators (dots)
-                    .replace(/\s*K$/i, ""), // Remove " K" suffix, case-insensitive
-                  10
-                ) * 1024, // Convert Kilobytes to Bytes
-              service: isService,
-            };
-          }
-
-          return null;
-        })
-        .filter((p) => p !== null) as ProcessInfo[];
+      const processes = await invoke<ProcessInfo[]>("get_processes");
       store.set({ processes, errorMessage: "" });
     } catch (err: any) {
       console.error("[runningProcesses] Error fetching process list:", err);
@@ -79,8 +47,7 @@ export const runningProcesses = {
   },
 
   get: (): ProcessInfo[] => {
-    const processes = svelteGet(store).processes;
-    return processes;
+    return svelteGet(store).processes;
   },
 
   getFiltered: (
@@ -90,14 +57,7 @@ export const runningProcesses = {
   ): ProcessInfo[] => {
     let tempProcesses = [...svelteGet(store).processes];
 
-    // 1. Filter by type
-    if (filter === "service") {
-      tempProcesses = tempProcesses.filter((p) => p.service);
-    } else if (filter === "app") {
-      tempProcesses = tempProcesses.filter((p) => !p.service);
-    }
-
-    // 2. Sort
+    // Sort
     if (sortKey) {
       tempProcesses.sort((a, b) => {
         const valA = a[sortKey!];
@@ -108,8 +68,6 @@ export const runningProcesses = {
           comparison = valA.localeCompare(valB);
         } else if (typeof valA === "number" && typeof valB === "number") {
           comparison = valA - valB;
-        } else if (typeof valA === "boolean" && typeof valB === "boolean") {
-          comparison = valA === valB ? 0 : valA ? -1 : 1;
         }
         return sortOrder === "asc" ? comparison : -comparison;
       });
@@ -144,5 +102,12 @@ export const runningProcesses = {
     return processes.some(
       (p) => p.name.toLowerCase() === processName.toLowerCase()
     );
+  },
+
+  getPidsForName: (processName: string): number[] => {
+    const processes = svelteGet(store).processes;
+    return processes
+      .filter((p) => p.name.toLowerCase() === processName.toLowerCase())
+      .map((p) => p.pid);
   },
 };

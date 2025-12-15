@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { terminateProcess } from "@lib/terminateProcess";
-  import { settings } from "@lib/settingsStore.svelte.ts";
+  import {
+    settings,
+    loadAndInitializeSettings,
+  } from "@lib/settingsStore.svelte.ts";
   import { powerPlans } from "@lib/powerplans.svelte.ts";
   import Icon from "@iconify/svelte";
   import { applyStartMinimizedSetting } from "@lib/startupUtils.ts";
-  import { events, os as neutralinoOs } from "@neutralinojs/lib"; // Import events and os
 
   import {
     runningProcesses,
@@ -42,9 +44,6 @@
     }
     isMainLoopLogicRunning = true;
     try {
-      // Ensure Neutralino OS API is available (though `ready` event should guarantee this for subsequent calls)
-      // This check is more of a safeguard if mainLoop was somehow called before `ready` or if `neutralinoOs` was not yet available.
-      // However, with the `ready` event gate, direct usage of imported `neutralinoOs` should be fine.
       const date = new Date();
       const time = date.toLocaleTimeString();
       // console.log("Main loop tick:", time); // Keep console logs for debugging if needed
@@ -59,12 +58,12 @@
 
       // Handle Power Plan Switching
       if (cs2RunningStateChanged && settings.powerPlanManagementActive) {
-        if (cs2Running && settings.powerPlanCS2) {
+        if (cs2Running && settings.powerPlanCS2.guid) {
           // Switch to high performance plan when CS2 starts
-          await powerPlans.setActive(settings.powerPlanCS2);
-        } else if (!cs2Running && settings.powerPlanDefault) {
+          await powerPlans.setActive(settings.powerPlanCS2.guid);
+        } else if (!cs2Running && settings.powerPlanDefault.guid) {
           // Revert to default plan when CS2 stops
-          await powerPlans.setActive(settings.powerPlanDefault);
+          await powerPlans.setActive(settings.powerPlanDefault.guid);
         }
       }
 
@@ -76,8 +75,14 @@
           settings.processesToKill.length > 0
         ) {
           for (const processName of settings.processesToKill) {
-            if (runningProcesses.isProcessRunning(processName)) {
-              await terminateProcess(processName);
+            // In Tauri version, we might need to find PIDs first if terminateProcess takes PID
+            // But terminateProcess in App.svelte was taking name.
+            // Let's check terminateProcess signature.
+            // It was updated to take PID.
+            // So we need to find PIDs for the process name.
+            const pids = runningProcesses.getPidsForName(processName);
+            for (const pid of pids) {
+              await terminateProcess(pid);
             }
           }
         }
@@ -112,43 +117,22 @@
     isMainLoopLogicRunning = false;
   }
 
-  onMount(() => {
+  onMount(async () => {
     // Initialize non-Neutralino specific things or things that can run before NL is ready
     currentPollingInterval = settings.pollingIntervalMs;
     window.addEventListener("hashchange", updateView);
     updateView(); // Initial view setup
 
-    /**
-     * Callback for when Neutralino is ready.
-     * Initializes backend-dependent features.
-     */
-    async function onNeutralinoReady() {
-      console.log(
-        "Neutralino is ready. Performing Neutralino-dependent initializations."
-      );
-      try {
-        await applyStartMinimizedSetting();
-        await powerPlans.refresh();
-        await runningProcesses.refresh();
-        startMainLoop(); // Start the loop that uses Neutralino APIs
-      } catch (error) {
-        console.error(
-          "Error during Neutralino-dependent initializations:",
-          error
-        );
-      }
+    console.log("App mounted. Performing initializations.");
+    try {
+      await loadAndInitializeSettings();
+      await applyStartMinimizedSetting();
+      await powerPlans.refresh();
+      await runningProcesses.refresh();
+      startMainLoop();
+    } catch (error) {
+      console.error("Error during initializations:", error);
     }
-
-    // Use the imported `events` module to listen for the 'ready' event
-    events.on("ready", onNeutralinoReady).catch((err) => {
-      // This catch is for potential errors during the `events.on` registration itself,
-      // though typically it's more about handling errors within the `onNeutralinoReady` callback.
-      console.error("Error registering Neutralino ready event listener:", err);
-      // Fallback or error display if Neutralino can't even initialize its event system.
-      console.warn(
-        "Neutralino environment might not be fully functional. Skipping Neutralino-specific initializations."
-      );
-    });
   });
 
   // Reactively restart the main loop if the polling interval setting changes
