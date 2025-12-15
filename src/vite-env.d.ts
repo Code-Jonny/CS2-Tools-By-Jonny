@@ -1,5 +1,6 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
+/// <reference types="@testing-library/jest-dom" />
 
 declare global {
   const NL_APPID: string;
