@@ -1,3 +1,9 @@
+/**
+ * @file settingsStore.svelte.ts
+ * @description Manages application settings using Svelte 5's reactive state ($state).
+ * It automatically persists changes to NeutralinoJS storage via a Proxy.
+ */
+
 import { saveData, getData, exists } from "./neutralinoStorage";
 
 // Define the default structure and values for your application settings

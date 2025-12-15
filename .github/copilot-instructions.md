@@ -14,6 +14,7 @@ When you write code, please follow these guidelines:
 8. **Performance Optimization**: Optimize performance by minimizing reactivity where possible. Use Svelte's `onMount` and `beforeUpdate` lifecycle methods effectively.
 9. **Svelte 5**: Ensure to only use modern Svelte 5 features and syntax. It is important to only use the latest features available in Svelte 5. Refrain from using deprecated features or syntax from previous versions, e.g. "on:", reactive let / var statements, slots, svelte fragments, export let, reactive $ statements and so on.
 10. **Typescript**: Use TypeScript for type safety. Define interfaces for props and state where applicable.
+11. **Comments**: Use comments to explain code logic or decisions in the code. Explain alternative approaches and why the chosen approach is favored. Avoid redundant comments that do not add value. use jsdoc style for every js / ts file and function. Use the syntax of the VS Code extension "Better Comments" to highlight sections of code (e.g. TODO, FIXME, etc.)
 
 # Design Guidelines
 

@@ -23,13 +23,20 @@
   import { currentView, updateView } from "@lib/viewStore.svelte.ts";
   import { isSidebarExpanded } from "@lib/sidebarStore.svelte.ts"; // Import the sidebar state
 
+  // --- State Variables ---
   let mainLoopIntervalId: NodeJS.Timeout | undefined = undefined;
   let isMainLoopLogicRunning: boolean = false;
   let currentPollingInterval = settings.pollingIntervalMs; // Can be initialized from store
   let previousCs2RunningState: boolean = false;
   let cs2RunningStateChanged: boolean = false;
 
+  /**
+   * The main application loop.
+   * This function runs periodically to check for running processes and manage power plans.
+   * It is the core logic for the automation features of the app.
+   */
   async function mainLoop() {
+    // Prevent overlapping executions if the loop takes longer than the interval
     if (isMainLoopLogicRunning) {
       return;
     }
@@ -40,22 +47,28 @@
       // However, with the `ready` event gate, direct usage of imported `neutralinoOs` should be fine.
       const date = new Date();
       const time = date.toLocaleTimeString();
-      console.log("Main loop tick:", time); // Keep console logs for debugging if needed
+      // console.log("Main loop tick:", time); // Keep console logs for debugging if needed
 
+      // Refresh the list of running processes
       await runningProcesses.refresh();
       const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
 
+      // Detect if the running state of CS2 has changed
       cs2RunningStateChanged = cs2Running !== previousCs2RunningState;
       previousCs2RunningState = cs2Running;
 
+      // Handle Power Plan Switching
       if (cs2RunningStateChanged && settings.powerPlanManagementActive) {
         if (cs2Running && settings.powerPlanCS2) {
+          // Switch to high performance plan when CS2 starts
           await powerPlans.setActive(settings.powerPlanCS2);
         } else if (!cs2Running && settings.powerPlanDefault) {
+          // Revert to default plan when CS2 stops
           await powerPlans.setActive(settings.powerPlanDefault);
         }
       }
 
+      // Handle Process Management (Killing unwanted processes)
       if (cs2Running) {
         if (
           settings.processManagementActive &&
@@ -76,6 +89,10 @@
     }
   }
 
+  /**
+   * Starts the main application loop with the configured polling interval.
+   * Clears any existing loop before starting a new one.
+   */
   function startMainLoop() {
     if (mainLoopIntervalId !== undefined) {
       clearInterval(mainLoopIntervalId);
@@ -84,6 +101,9 @@
     mainLoopIntervalId = setInterval(mainLoop, interval);
   }
 
+  /**
+   * Stops the main application loop.
+   */
   function stopMainLoop() {
     if (mainLoopIntervalId !== undefined) {
       clearInterval(mainLoopIntervalId);
@@ -98,6 +118,10 @@
     window.addEventListener("hashchange", updateView);
     updateView(); // Initial view setup
 
+    /**
+     * Callback for when Neutralino is ready.
+     * Initializes backend-dependent features.
+     */
     async function onNeutralinoReady() {
       console.log(
         "Neutralino is ready. Performing Neutralino-dependent initializations."
@@ -115,7 +139,7 @@
       }
     }
 
-    // Use the imported `events` module
+    // Use the imported `events` module to listen for the 'ready' event
     events.on("ready", onNeutralinoReady).catch((err) => {
       // This catch is for potential errors during the `events.on` registration itself,
       // though typically it's more about handling errors within the `onNeutralinoReady` callback.
@@ -127,6 +151,7 @@
     });
   });
 
+  // Reactively restart the main loop if the polling interval setting changes
   $effect(() => {
     if (
       settings.pollingIntervalMs !== undefined &&

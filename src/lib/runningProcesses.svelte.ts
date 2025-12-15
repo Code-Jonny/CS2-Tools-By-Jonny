@@ -1,3 +1,10 @@
+/**
+ * @file runningProcesses.svelte.ts
+ * @description Manages the list of running processes on the system.
+ * Uses the `tasklist` command to fetch process information and exposes it via a Svelte store.
+ * Provides filtering and searching capabilities.
+ */
+
 // filepath: c:\Programmieren\projects\cs2-tools\neutralino\src\lib\runningProcesses.svelte.ts
 import { os } from "@neutralinojs/lib";
 import { writable, get as svelteGet } from "svelte/store";

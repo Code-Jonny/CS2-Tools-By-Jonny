@@ -1,3 +1,9 @@
+/**
+ * @file startupUtils.ts
+ * @description Utilities for managing application startup behavior, including
+ * autostart on Windows registry and handling the "start minimized" preference.
+ */
+
 import { settings } from "@lib/settingsStore.svelte.ts";
 import { filesystem, os, window as neuWindow } from "@neutralinojs/lib";
 import { devWarn, devError } from "@lib/logger.ts"; // Import the logger

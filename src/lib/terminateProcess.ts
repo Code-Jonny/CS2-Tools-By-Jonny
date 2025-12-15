@@ -1,3 +1,9 @@
+/**
+ * @file terminateProcess.ts
+ * @description Utility function to forcefully terminate a process by name.
+ * It checks if the process is protected before attempting to kill it.
+ */
+
 import { os } from "@neutralinojs/lib";
 import { isProcessProtected } from "@lib/processUtils"; // Added import
 

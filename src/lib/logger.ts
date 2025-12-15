@@ -1,5 +1,6 @@
 /**
- * A simple logger utility that only logs messages in development mode.
+ * @file logger.ts
+ * @description A simple logger utility that only logs messages in development mode.
  * NeutralinoJS sets NL_MODE to "window" during `neu run` (development)
  * and to "chrome" during `neu run --frontend-lib-dev`.
  * In production builds (e.g., bundled apps), NL_MODE is typically "browser" or "cloud".

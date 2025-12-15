@@ -1,3 +1,9 @@
+/**
+ * @file viewStore.svelte.ts
+ * @description Manages the current view (route) of the application.
+ * Uses a simple Svelte writable store and listens to hash changes for routing.
+ */
+
 import { writable } from "svelte/store";
 
 export type View =

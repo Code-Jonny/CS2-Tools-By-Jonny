@@ -1,3 +1,9 @@
+/**
+ * @file neutralinoStorage.ts
+ * @description Wrapper functions for NeutralinoJS storage API.
+ * Provides simplified async methods to save, retrieve, and check for data existence.
+ */
+
 import { storage } from "@neutralinojs/lib";
 
 /**

@@ -1,3 +1,10 @@
+/**
+ * @file powerplans.svelte.ts
+ * @description Manages Windows Power Plans.
+ * Fetches available power plans using an external binary and allows switching the active plan.
+ * Uses Svelte 5's reactive state to expose the list of plans and current status.
+ */
+
 import { os, filesystem, events } from "@neutralinojs/lib";
 
 // Declare Neutralinojs global variables to satisfy TypeScript
