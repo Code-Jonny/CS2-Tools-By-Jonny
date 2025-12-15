@@ -45,6 +45,13 @@ type NvAPIDispSetDVCLevelEx = unsafe extern "C" fn(
 // Magic IDs for the functions
 const NVAPI_DISP_GET_DVC_INFO_EX_ID: u32 = 0x0e45002d;
 const NVAPI_DISP_SET_DVC_LEVEL_EX_ID: u32 = 0x4a82c2b1;
+const NVAPI_GET_ASSOCIATED_NVIDIA_DISPLAY_HANDLE_ID: u32 = 0x35c29134;
+
+#[allow(improper_ctypes_definitions)]
+type NvAPIGetAssociatedNvidiaDisplayHandle = unsafe extern "C" fn(
+    sz_display_name: *const i8,
+    p_nv_display_handle: *mut sys::handles::NvDisplayHandle,
+) -> sys::status::NvAPI_Status;
 
 /// Controller for NVIDIA GPU operations.
 pub struct NvidiaController;
@@ -75,6 +82,46 @@ impl NvidiaController {
             },
             Err(_) => false,
         }
+    }
+
+    /// Sets the digital vibrance level for a specific display.
+    ///
+    /// # Arguments
+    ///
+    /// * `display_name` - The name of the display (e.g., "\\.\DISPLAY1").
+    /// * `level` - The vibrance level to set (0-100).
+    pub fn set_vibrance_for_display(&mut self, display_name: &str, level: u32) -> Result<()> {
+        if level > 100 {
+            return Err(anyhow!("Vibrance level must be between 0 and 100"));
+        }
+
+        unsafe {
+            // Load NvAPI_GetAssociatedNvidiaDisplayHandle
+            let get_handle_res =
+                sys::nvapi::nvapi_QueryInterface(NVAPI_GET_ASSOCIATED_NVIDIA_DISPLAY_HANDLE_ID);
+            if get_handle_res.is_err() {
+                return Err(anyhow!("NvAPI_GetAssociatedNvidiaDisplayHandle not found"));
+            }
+            let get_handle_addr = get_handle_res.unwrap();
+            let get_handle: NvAPIGetAssociatedNvidiaDisplayHandle = mem::transmute(get_handle_addr);
+
+            let c_name = std::ffi::CString::new(display_name)?;
+            let mut handle: sys::handles::NvDisplayHandle = mem::zeroed();
+
+            let status = get_handle(c_name.as_ptr(), &mut handle);
+
+            if status != sys::status::NVAPI_OK {
+                return Err(anyhow!(
+                    "Failed to get handle for display {}: {:?}",
+                    display_name,
+                    status
+                ));
+            }
+
+            self.set_dvc_for_handle(handle, level)?;
+        }
+
+        Ok(())
     }
 
     /// Sets the digital vibrance level for all connected NVIDIA displays.

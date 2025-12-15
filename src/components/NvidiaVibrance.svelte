@@ -19,15 +19,6 @@
       checkingGpu = false;
     }
   });
-
-  $effect(() => {
-    // Sync settings to backend whenever they change
-    invoke("set_vibrance_settings", {
-      enabled: settings.vibranceSettings.enabled,
-      defaultVibrance: settings.vibranceSettings.defaultVibrance,
-      cs2Vibrance: settings.vibranceSettings.cs2Vibrance,
-    }).catch((e) => console.error("Failed to sync vibrance settings:", e));
-  });
 </script>
 
 <Card title="Nvidia Digital Vibrance" icon="solar:monitor-camera-linear">

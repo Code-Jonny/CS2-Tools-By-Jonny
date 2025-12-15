@@ -38,6 +38,7 @@ const _internalSettings = $state<AppSettings>(
 
 // Flag to prevent proxy from saving during initial load
 let isLoading = false;
+export const isSettingsLoaded = $state({ value: false });
 
 // Helper to update state without triggering type errors
 function updateState<K extends keyof AppSettings>(
@@ -99,6 +100,7 @@ export async function loadAndInitializeSettings() {
   } catch (error) {
     console.error("Error loading settings:", error);
   } finally {
+    isSettingsLoaded.value = true;
     isLoading = false;
   }
 }

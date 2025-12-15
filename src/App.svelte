@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
+  import { invoke } from "@tauri-apps/api/core";
+  import { setItem } from "@lib/storage";
   import { terminateProcess } from "@lib/terminateProcess";
   import {
     settings,
     loadAndInitializeSettings,
+    isSettingsLoaded,
   } from "@lib/settingsStore.svelte.ts";
   import { powerPlans } from "@lib/powerplans.svelte.ts";
   import Icon from "@iconify/svelte";
@@ -150,6 +153,58 @@
   onDestroy(() => {
     stopMainLoop();
     window.removeEventListener("hashchange", updateView);
+  });
+
+  $effect(() => {
+    // Persist and Sync Vibrance Settings
+    // This ensures that changes to the nested vibranceSettings object are saved and synced,
+    // as the top-level proxy in settingsStore only catches top-level assignments.
+
+    // Only run if settings are fully loaded to avoid overwriting with defaults
+    if (!isSettingsLoaded.value) return;
+
+    const vSettings = settings.vibranceSettings;
+
+    // Save to disk
+    setItem("vibranceSettings", vSettings).catch((e) =>
+      console.error("Failed to save vibrance settings", e)
+    );
+
+    // Sync to Rust backend
+    invoke("set_vibrance_settings", {
+      enabled: vSettings.enabled,
+      defaultVibrance: vSettings.defaultVibrance,
+      cs2Vibrance: vSettings.cs2Vibrance,
+    }).catch((e) => console.error("Failed to sync vibrance settings:", e));
+  });
+
+  $effect(() => {
+    // Auto-correct power plan names if they differ from the fetched plans (e.g. encoding fix)
+    // This runs whenever powerPlans.plans or settings change.
+    if (powerPlans.plans.length > 0) {
+      if (settings.powerPlanCS2?.guid) {
+        const match = powerPlans.plans.find(
+          (p) => p.guid === settings.powerPlanCS2.guid
+        );
+        if (match && match.name !== settings.powerPlanCS2.name) {
+          console.log(
+            `Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`
+          );
+          settings.powerPlanCS2.name = match.name;
+        }
+      }
+      if (settings.powerPlanDefault?.guid) {
+        const match = powerPlans.plans.find(
+          (p) => p.guid === settings.powerPlanDefault.guid
+        );
+        if (match && match.name !== settings.powerPlanDefault.name) {
+          console.log(
+            `Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`
+          );
+          settings.powerPlanDefault.name = match.name;
+        }
+      }
+    }
   });
 
   // Derive sidebar width for main content margin
