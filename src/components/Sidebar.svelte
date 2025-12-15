@@ -50,18 +50,18 @@
       </a>
     </li>
     <li>
-      <a href="#/settings" class:active={$currentView === "settings"}>
-        <Icon iconName="settings" />
-        {#if $isSidebarExpanded}<span>Settings</span>{/if}
-      </a>
-    </li>
-    <li>
       <a
         href="#/nvidia-vibrance"
         class:active={$currentView === "nvidia-vibrance"}
       >
         <Iconify icon="solar:monitor-camera-linear" width="24" height="24" />
         {#if $isSidebarExpanded}<span>Nvidia Vibrance</span>{/if}
+      </a>
+    </li>
+    <li>
+      <a href="#/settings" class:active={$currentView === "settings"}>
+        <Icon iconName="settings" />
+        {#if $isSidebarExpanded}<span>Settings</span>{/if}
       </a>
     </li>
   </ul>
