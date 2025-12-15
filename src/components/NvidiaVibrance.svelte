@@ -13,6 +13,7 @@
   onMount(async () => {
     try {
       hasNvidiaGpu = await invoke("check_nvidia_gpu");
+      // hasNvidiaGpu = false;
     } catch (e) {
       console.error("Failed to check Nvidia GPU:", e);
     } finally {
@@ -59,7 +60,10 @@
           <!-- Default Vibrance -->
           <div class="control-group">
             <div class="control-header">
-              <label for="default-vibrance">Default Vibrance (Desktop)</label>
+              <div class="label-group">
+                <label for="default-vibrance">Default Vibrance (Desktop)</label>
+                <span class="default-hint">Nvidia default: 50</span>
+              </div>
               <input
                 type="number"
                 min="0"
@@ -146,6 +150,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .label-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .default-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 400;
   }
 
   label {

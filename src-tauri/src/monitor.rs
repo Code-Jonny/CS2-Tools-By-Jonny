@@ -42,6 +42,12 @@ impl VibranceState {
 
 pub fn start_monitor_thread(state: Arc<VibranceState>) {
     thread::spawn(move || {
+        // Check if Nvidia GPU is present before starting the loop
+        if !NvidiaController::has_nvidia_gpu() {
+            println!("No Nvidia GPU detected. Vibrance monitor thread will not start.");
+            return;
+        }
+
         let mut sys = System::new();
         let mut controller = match NvidiaController::new() {
             Ok(c) => c,
