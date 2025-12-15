@@ -7,6 +7,7 @@
     collapseSidebar,
   } from "@lib/sidebarStore.svelte.ts";
   import Icon from "@icons/Icon.svelte";
+  import Iconify from "@iconify/svelte";
 
   // Local state for isExpanded is removed, now using store
 </script>
@@ -52,6 +53,15 @@
       <a href="#/settings" class:active={$currentView === "settings"}>
         <Icon iconName="settings" />
         {#if $isSidebarExpanded}<span>Settings</span>{/if}
+      </a>
+    </li>
+    <li>
+      <a
+        href="#/nvidia-vibrance"
+        class:active={$currentView === "nvidia-vibrance"}
+      >
+        <Iconify icon="solar:monitor-camera-linear" width="24" height="24" />
+        {#if $isSidebarExpanded}<span>Nvidia Vibrance</span>{/if}
       </a>
     </li>
   </ul>

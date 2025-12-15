@@ -22,6 +22,11 @@ export const defaultAppSettings = {
   },
   powerPlanManagementActive: false,
   processManagementActive: false,
+  vibranceSettings: {
+    enabled: false,
+    defaultVibrance: 50,
+    cs2Vibrance: 100,
+  },
 };
 
 export type AppSettings = typeof defaultAppSettings;

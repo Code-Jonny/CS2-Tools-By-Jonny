@@ -19,6 +19,7 @@
 
   import ProcessManagement from "@components/ProcessManagement.svelte";
   import PowerPlanManagement from "@components/PowerPlanManagement.svelte";
+  import NvidiaVibrance from "@components/NvidiaVibrance.svelte";
   import SettingsComponent from "@components/Settings.svelte"; // Renamed to avoid conflict with settings store
   import Dashboard from "@components/Dashboard.svelte";
   import Sidebar from "@components/Sidebar.svelte";
@@ -164,6 +165,8 @@
     <ProcessManagement />
   {:else if $currentView === "power-plan-management"}
     <PowerPlanManagement />
+  {:else if $currentView === "nvidia-vibrance"}
+    <NvidiaVibrance />
   {:else if $currentView === "settings"}
     <SettingsComponent />
   {/if}
