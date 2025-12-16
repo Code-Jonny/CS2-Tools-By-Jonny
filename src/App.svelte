@@ -215,8 +215,24 @@
     // Persist CPU Affinity Settings
     if (!isSettingsLoaded.value) return;
 
+    // Track deep changes by serializing
+    // This ensures that changes to enabled or selectedCores (including array mutations) trigger the effect
     const cpuSettings = settings.cpuAffinity;
-    setItem("cpuAffinity", cpuSettings).catch((e) =>
+    // Access properties to register dependencies if JSON.stringify isn't enough (though it usually is for state proxies)
+    // But to be safe and explicit:
+    const _dep1 = cpuSettings.enabled;
+    const _dep2 = cpuSettings.selectedCores.length; // Track array length changes
+    const _dep3 = cpuSettings.selectedCores; // Track array reference
+
+    // Using JSON.stringify on the proxy object is the most reliable way to catch deep changes
+    // and also prepares the value for storage.
+    // Note: setItem expects the object, not the string, but we can pass the object.
+    // However, to TRIGGER the effect, we need to touch the data.
+    // JSON.stringify(settings.cpuAffinity) touches all data.
+
+    const serialized = JSON.stringify(settings.cpuAffinity);
+
+    setItem("cpuAffinity", JSON.parse(serialized)).catch((e) =>
       console.error("Failed to save cpu affinity settings", e)
     );
   });
