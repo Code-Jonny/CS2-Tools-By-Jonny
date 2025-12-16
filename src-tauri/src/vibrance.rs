@@ -4,6 +4,15 @@ use nvapi::{sys, ConnectedIdsFlags, PhysicalGpu};
 use std::mem;
 
 // Define the DVC struct as it is missing in nvapi-sys 0.1.3
+/// Struktur für Digital Vibrance Control (DVC) Informationen.
+///
+/// Diese Struktur ist in der verwendeten Version von `nvapi-sys` nicht enthalten,
+/// daher definieren wir sie manuell, um mit der C-API von Nvidia zu kommunizieren.
+///
+/// # Rust-Konzepte
+/// * `#[repr(C)]`: Zwingt den Compiler, das Speicherlayout von C zu verwenden.
+///   Das ist essenziell, wenn man Daten an C-Funktionen übergibt, da Rust sonst
+///   Felder im Speicher umordnen könnte (für Padding/Alignment).
 #[repr(C)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
@@ -18,6 +27,11 @@ struct NV_DISPLAY_DVC_INFO_EX {
 impl NV_DISPLAY_DVC_INFO_EX {
     fn new() -> Self {
         Self {
+            // * HINWEIS: Versionierung in C-APIs
+            // Viele Windows/Treiber-APIs nutzen das `version`-Feld, um die Größe des Structs
+            // und die API-Version zu kodieren.
+            // `mem::size_of::<Self>()`: Größe des Structs in Bytes.
+            // `(1 << 16)`: Ein Versions-Bitflag (spezifisch für NvAPI).
             version: mem::size_of::<Self>() as u32 | (1 << 16),
             current_level: 0,
             min_level: 0,
@@ -28,6 +42,11 @@ impl NV_DISPLAY_DVC_INFO_EX {
 }
 
 // Function pointer types for the raw NvAPI calls
+// * HINWEIS: Funktionszeiger
+// Wir definieren Typen für C-Funktionen, die wir dynamisch zur Laufzeit laden.
+// `unsafe extern "C"`:
+// - `unsafe`: Der Aufruf kann Speicherfehler verursachen (Rust prüft hier nichts).
+// - `extern "C"`: Verwendet die C-Aufrufkonvention (ABI).
 #[allow(improper_ctypes_definitions)]
 type NvAPIDispGetDVCInfoEx = unsafe extern "C" fn(
     h_nv_display: sys::handles::NvDisplayHandle,
@@ -43,6 +62,7 @@ type NvAPIDispSetDVCLevelEx = unsafe extern "C" fn(
 ) -> sys::status::NvAPI_Status;
 
 // Magic IDs for the functions
+// Diese IDs identifizieren die Funktionen in der NvAPI DLL.
 const NVAPI_DISP_GET_DVC_INFO_EX_ID: u32 = 0x0e45002d;
 const NVAPI_DISP_SET_DVC_LEVEL_EX_ID: u32 = 0x4a82c2b1;
 const NVAPI_GET_ASSOCIATED_NVIDIA_DISPLAY_HANDLE_ID: u32 = 0x35c29134;
@@ -54,6 +74,8 @@ type NvAPIGetAssociatedNvidiaDisplayHandle = unsafe extern "C" fn(
 ) -> sys::status::NvAPI_Status;
 
 /// Controller for NVIDIA GPU operations.
+///
+/// Kapselt die Low-Level NvAPI Aufrufe in einer sicheren Rust-Schnittstelle.
 pub struct NvidiaController;
 
 impl NvidiaController {
@@ -62,6 +84,8 @@ impl NvidiaController {
         debug!("Initializing NvAPI...");
 
         // Initialize the NvAPI library.
+        // `map_err`: Wandelt den NvAPI-Fehler in einen `anyhow::Error` um,
+        // damit wir eine verständliche Fehlermeldung zurückgeben können.
         nvapi::initialize().map_err(|e| {
             anyhow!(
                 "Failed to initialize NvAPI: {}. Is the NVIDIA driver installed?",
@@ -75,6 +99,10 @@ impl NvidiaController {
 
     /// Checks if an NVIDIA GPU is present.
     pub fn has_nvidia_gpu() -> bool {
+        // * HINWEIS: Pattern Matching
+        // Wir prüfen verschachtelt:
+        // 1. Konnte NvAPI initialisiert werden?
+        // 2. Wenn ja, gibt es physische GPUs?
         match nvapi::initialize() {
             Ok(_) => match PhysicalGpu::enumerate() {
                 Ok(gpus) => !gpus.is_empty(),
@@ -95,19 +123,32 @@ impl NvidiaController {
             return Err(anyhow!("Vibrance level must be between 0 and 100"));
         }
 
+        // * HINWEIS: Unsafe Block
+        // Hier interagieren wir direkt mit C-Pointern und rohem Speicher.
+        // Wir müssen manuell sicherstellen, dass Pointer gültig sind und Speicher korrekt initialisiert ist.
         unsafe {
             // Load NvAPI_GetAssociatedNvidiaDisplayHandle
+            // Wir fragen die NvAPI nach der Adresse der Funktion anhand ihrer ID.
             let get_handle_res =
                 sys::nvapi::nvapi_QueryInterface(NVAPI_GET_ASSOCIATED_NVIDIA_DISPLAY_HANDLE_ID);
             if get_handle_res.is_err() {
                 return Err(anyhow!("NvAPI_GetAssociatedNvidiaDisplayHandle not found"));
             }
             let get_handle_addr = get_handle_res.unwrap();
+
+            // `mem::transmute`: Der gefährlichste Cast in Rust.
+            // Er interpretiert die Bits einer Speicheradresse einfach als einen anderen Typ (hier Funktionszeiger).
+            // Wenn die Signatur nicht stimmt -> Undefined Behavior (Absturz).
             let get_handle: NvAPIGetAssociatedNvidiaDisplayHandle = mem::transmute(get_handle_addr);
 
+            // Konvertierung von Rust String (`&str`) zu C-String (`CString`).
+            // Rust Strings sind nicht null-terminiert, C Strings schon.
             let c_name = std::ffi::CString::new(display_name)?;
+
+            // `mem::zeroed()`: Erstellt ein leeres Handle-Objekt, das von der C-Funktion gefüllt wird.
             let mut handle: sys::handles::NvDisplayHandle = mem::zeroed();
 
+            // Aufruf der C-Funktion
             let status = get_handle(c_name.as_ptr(), &mut handle);
 
             if status != sys::status::NVAPI_OK {
@@ -135,6 +176,7 @@ impl NvidiaController {
         }
 
         // 1. Enumerate Physical GPUs (as requested by user, and for logging)
+        // `context`: Fügt dem Fehler zusätzliche Informationen hinzu ("Failed to enumerate GPUs").
         let gpus = PhysicalGpu::enumerate().context("Failed to enumerate GPUs")?;
         if gpus.is_empty() {
             return Err(anyhow!("No NVIDIA GPUs found."));
@@ -157,6 +199,7 @@ impl NvidiaController {
         let mut i = 0;
         loop {
             let mut handle: sys::handles::NvDisplayHandle = unsafe { mem::zeroed() };
+            // Wir iterieren über alle Display-Handles (0, 1, 2...), bis die API "End Enumeration" meldet.
             let status = unsafe { sys::dispcontrol::NvAPI_EnumNvidiaDisplayHandle(i, &mut handle) };
 
             if status == sys::status::NVAPI_END_ENUMERATION {
@@ -198,6 +241,7 @@ impl NvidiaController {
         Ok(())
     }
 
+    /// Interne Hilfsfunktion zum Setzen der Vibrance für ein spezifisches Handle.
     fn set_dvc_for_handle(
         &self,
         handle: sys::handles::NvDisplayHandle,
@@ -240,6 +284,9 @@ impl NvidiaController {
 
             // Calculate new level
             // Map 0-100 to min-max
+            // * HINWEIS: Lineare Interpolation
+            // Die API verwendet interne Werte (z.B. 0-63), wir wollen Prozent (0-100).
+            // Formel: min + (prozent * (max - min) / 100)
             let range = dvc_info.max_level - dvc_info.min_level;
             let new_val = dvc_info.min_level + (level_percent * range / 100);
 

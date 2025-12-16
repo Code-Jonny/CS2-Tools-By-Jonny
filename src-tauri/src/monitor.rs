@@ -9,6 +9,11 @@ use winapi::um::winuser::{
     MONITORINFOEXA, MONITOR_DEFAULTTONEAREST,
 };
 
+/// Konfiguration für die digitale Vibrance (Farbsättigung).
+///
+/// # Rust-Konzepte
+/// * `derive(Clone, Debug)`: Generiert automatisch Code, um das Struct zu kopieren (`Clone`)
+///   und für Debug-Ausgaben zu formatieren (`Debug`).
 #[derive(Clone, Debug)]
 pub struct VibranceSettings {
     pub enabled: bool,
@@ -26,8 +31,19 @@ impl Default for VibranceSettings {
     }
 }
 
+/// Der globale Zustand für das Vibrance-Monitoring.
+///
+/// # Architektur
+/// Dieser State wird zwischen dem Haupt-Thread (Tauri Commands) und dem
+/// Hintergrund-Monitor-Thread geteilt.
+///
+/// # Thread-Sicherheit
+/// * `Mutex<T>`: "Mutual Exclusion". Um die Daten zu ändern oder zu lesen, muss ein Thread
+///   zuerst den "Lock" erhalten. Das garantiert, dass nie zwei Threads gleichzeitig schreiben.
 pub struct VibranceState {
     pub settings: Mutex<VibranceSettings>,
+    /// Speichert den aktuell gesetzten Vibrance-Wert, um unnötige API-Aufrufe zu vermeiden.
+    /// `Option<u32>`: Kann `Some(wert)` oder `None` (noch nicht gesetzt) sein.
     pub current_vibrance: Mutex<Option<u32>>, // To avoid setting it repeatedly
 }
 
@@ -40,7 +56,20 @@ impl VibranceState {
     }
 }
 
+/// Startet den Hintergrund-Thread, der überwacht, ob CS2 im Vordergrund läuft.
+///
+/// # Arguments
+/// * `state` - Ein `Arc` (Atomic Reference Counted) Pointer auf den gemeinsamen Zustand.
+///
+/// # Funktionsweise
+/// 1. Prüft auf Nvidia GPU.
+/// 2. Startet eine Endlosschleife (`loop`).
+/// 3. Prüft jede Sekunde das aktive Fenster.
+/// 4. Passt die Vibrance an, wenn CS2 fokussiert ist.
 pub fn start_monitor_thread(state: Arc<VibranceState>) {
+    // * HINWEIS: `thread::spawn(move || ...)`
+    // `move` überträgt den Besitz (Ownership) von `state` an den neuen Thread.
+    // Da `state` ein `Arc` ist, wird nur der Referenzzähler erhöht, nicht die Daten kopiert.
     thread::spawn(move || {
         // Check if Nvidia GPU is present before starting the loop
         if !NvidiaController::has_nvidia_gpu() {
@@ -49,6 +78,9 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
         }
 
         let mut sys = System::new();
+        // * HINWEIS: Fehlerbehandlung mit `match`
+        // Wir versuchen, den Controller zu initialisieren. Wenn es fehlschlägt (`Err`),
+        // beenden wir den Thread, um Abstürze zu vermeiden.
         let mut controller = match NvidiaController::new() {
             Ok(c) => c,
             Err(e) => {
@@ -58,9 +90,18 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
         };
 
         loop {
+            // ? STRATEGIE: Polling
+            // Wir prüfen jede Sekunde. Das ist einfach zu implementieren, verbraucht aber
+            // unnötig CPU-Zyklen, wenn nichts passiert.
+            // Eine Alternative wäre "Event-Driven" (Hooks), was in Rust/Windows aber deutlich komplexer ist.
             thread::sleep(Duration::from_secs(1));
 
+            // * HINWEIS: Scope für den Lock
+            // Wir holen uns die Settings in einem eigenen Block.
+            // Sobald `lock` "out of scope" geht (am Ende der Zuweisung), wird der Mutex wieder freigegeben.
+            // Das ist wichtig, damit wir den Lock nicht während der langen Operationen unten halten.
             let settings = {
+                // `unwrap()`: Wir gehen davon aus, dass kein anderer Thread panict, während er den Lock hält.
                 let lock = state.settings.lock().unwrap();
                 lock.clone()
             };
@@ -71,18 +112,24 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
                 continue;
             }
 
-            // Check foreground window
+            // * HINWEIS: Unsafe Code
+            // Der Aufruf von Windows-APIs (`GetForegroundWindow`) ist "unsafe", da der Rust-Compiler
+            // nicht garantieren kann, dass die C-Bibliothek speichersicher arbeitet.
+            // Wir als Entwickler müssen sicherstellen, dass wir die API korrekt nutzen.
             let hwnd = unsafe { GetForegroundWindow() };
             if hwnd.is_null() {
                 continue;
             }
 
             let mut pid_u32 = 0;
+            // Wir übergeben einen Pointer (`&mut`) auf `pid_u32` an Windows, damit Windows dort die ID reinschreibt.
             unsafe { GetWindowThreadProcessId(hwnd, &mut pid_u32) };
 
             let pid = sysinfo::Pid::from_u32(pid_u32);
 
             // Refresh processes to ensure we have the latest state
+            // * PERFORMANCE: Wir aktualisieren nur die Prozessliste, wenn nötig.
+            // `ProcessesToUpdate::All` könnte teuer sein, evtl. optimierbar.
             sys.refresh_processes(ProcessesToUpdate::All, true);
 
             let process_name = sys
@@ -96,17 +143,23 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
                 // CS2 is running in foreground.
                 // 1. Find which monitor it is on.
                 let hmonitor = unsafe { MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) };
+
+                // * HINWEIS: Initialisierung von C-Structs
+                // `std::mem::zeroed()` erstellt ein mit Nullen gefülltes Struct.
+                // Das ist notwendig, weil Windows-APIs oft initialisierten Speicher erwarten.
                 let mut monitor_info: MONITORINFOEXA = unsafe { std::mem::zeroed() };
                 monitor_info.cbSize = std::mem::size_of::<MONITORINFOEXA>() as u32;
 
                 let success = unsafe {
                     GetMonitorInfoA(
                         hmonitor,
+                        // Cast auf den generischen MONITORINFO Typ, den die API erwartet
                         &mut monitor_info as *mut _ as *mut winapi::um::winuser::MONITORINFO,
                     )
                 };
 
                 if success != 0 {
+                    // Konvertierung von C-String (null-terminiert) zu Rust String
                     let device_name_c =
                         unsafe { std::ffi::CStr::from_ptr(monitor_info.szDevice.as_ptr()) };
                     let device_name = device_name_c.to_string_lossy().into_owned();
@@ -234,6 +287,8 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
                 // CS2 is NOT foreground.
                 // Set ALL to default.
                 let mut current_vibrance_lock = state.current_vibrance.lock().unwrap();
+                // * OPTIMIERUNG: Caching
+                // Wir rufen die Nvidia-API nur auf, wenn sich der Wert tatsächlich ändern muss.
                 if *current_vibrance_lock != Some(settings.default_vibrance) {
                     match controller.set_vibrance(settings.default_vibrance) {
                         Ok(_) => {
@@ -247,6 +302,9 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
     });
 }
 
+/// Tauri Command: Aktualisiert die Vibrance-Einstellungen.
+///
+/// Wird vom Frontend aufgerufen.
 #[tauri::command]
 pub fn set_vibrance_settings(
     state: State<Arc<VibranceState>>,
@@ -254,12 +312,16 @@ pub fn set_vibrance_settings(
     default_vibrance: u32,
     cs2_vibrance: u32,
 ) {
+    // * HINWEIS: Locking
+    // Wir blockieren den Mutex kurzzeitig, um die Werte zu schreiben.
     let mut settings = state.settings.lock().unwrap();
     settings.enabled = enabled;
     settings.default_vibrance = default_vibrance;
     settings.cs2_vibrance = cs2_vibrance;
 
     // Reset current vibrance so it gets reapplied immediately
+    // ! WICHTIG: Wir setzen den Cache zurück (`None`), damit der Monitor-Thread
+    // beim nächsten Durchlauf die neuen Werte erzwingt.
     let mut current = state.current_vibrance.lock().unwrap();
     *current = None;
 }
