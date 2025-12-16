@@ -98,11 +98,7 @@
                 <Icon icon="solar:check-circle-bold" width="20" height="20" />
               {:else}
                 <span class="unchecked-icon">
-                  <Icon
-                    icon="solar:circle-linear"
-                    width="20"
-                    height="20"
-                  />
+                  <Icon icon="solar:circle-linear" width="20" height="20" />
                 </span>
               {/if}
             </button>

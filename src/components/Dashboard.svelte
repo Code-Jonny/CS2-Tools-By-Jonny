@@ -27,7 +27,9 @@
   );
 
   // Get the active power plan reactively
-  let activePowerPlan = $derived(powerPlans.plans.find(p => p.isActive) ?? null);
+  let activePowerPlan = $derived(
+    powerPlans.plans.find((p) => p.isActive) ?? null
+  );
 </script>
 
 <div class="dashboard-container">
