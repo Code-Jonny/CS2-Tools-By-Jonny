@@ -4,7 +4,7 @@
 
 1.  **Download:** Grab the latest release from the [GitHub Releases](https://github.com/your-username/cs2-tools/releases) page.
 2.  **Extract:** Unzip the downloaded file to your desired location.
-3.  **Run:** Execute `cs2-tools.exe` (or the equivalent for your OS).
+3.  **Run:** Execute `cs2toolsByJonny.exe`.
 
 ## Usage
 
@@ -39,16 +39,13 @@ When `cs2.exe` closes, it will:
 A: CS2Tools by Jonny operates by managing system-level processes and power plans. It does not interact with or modify Counter-Strike 2 game files or memory in any way. Therefore, it is highly unlikely to trigger a VAC ban. However, always use third-party tools at your own discretion.
 
 **Q: What operating systems are supported?**
-A: Currently, CS2Tools is primarily developed and tested for Windows 11 x64. Windows 10 should be supported as well. If you encounter any issues, feel free to contact me.
+A: Currently, CS2Tools is primarily developed and tested for Windows 11 x64. Windows 10 x64 should be supported as well. If you encounter any issues, feel free to contact me.
 
 **Q: How do I add a process to the kill list?**
 A: Navigate to the "Process Management" section. You can either manually type the process name (e.g., `chrome.exe`) or select it from the list of running processes and click "Add to Kill List".
 
 **Q: Can I suggest features or report bugs?**
 A: Yes! Please open an issue on the [GitHub Issues](https://github.com/your-username/cs2-tools/issues) page.
-
-**Q: How does the power plan switching work?**
-A: The application uses a small helper executable (`power_plans.exe` - written in C++) to list and switch Windows power plans. This is done to ensure proper permissions and execution. When CS2 starts, it switches to your selected gaming power plan. When CS2 closes, it reverts to the plan that was active before CS2 launched.
 
 **Q: Will this tool significantly boost my FPS?**
 A: The impact on FPS can vary depending on your system specifications and what background processes are typically running. By terminating unnecessary processes and ensuring your PC is using an optimal power plan, CS2Tools aims to free up system resources, which can lead to smoother gameplay and potentially higher FPS.

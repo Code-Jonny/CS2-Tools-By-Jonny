@@ -28,6 +28,8 @@ pub fn run() {
             power::set_active_power_plan,
             processes::get_processes,
             processes::terminate_process,
+            processes::get_cpu_count,
+            processes::set_process_affinity,
             monitor::set_vibrance_settings,
             monitor::check_nvidia_gpu
         ])

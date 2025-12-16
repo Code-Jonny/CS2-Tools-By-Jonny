@@ -27,6 +27,10 @@ export const defaultAppSettings = {
     defaultVibrance: 50,
     cs2Vibrance: 100,
   },
+  cpuAffinity: {
+    enabled: false,
+    selectedCores: [] as number[],
+  },
 };
 
 export type AppSettings = typeof defaultAppSettings;

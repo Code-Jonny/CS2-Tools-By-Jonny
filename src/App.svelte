@@ -22,6 +22,7 @@
 
   import ProcessManagement from "@components/ProcessManagement.svelte";
   import PowerPlanManagement from "@components/PowerPlanManagement.svelte";
+  import CpuAffinity from "@components/CpuAffinity.svelte";
   import NvidiaVibrance from "@components/NvidiaVibrance.svelte";
   import SettingsComponent from "@components/Settings.svelte"; // Renamed to avoid conflict with settings store
   import Dashboard from "@components/Dashboard.svelte";
@@ -68,6 +69,38 @@
         } else if (!cs2Running && settings.powerPlanDefault.guid) {
           // Revert to default plan when CS2 stops
           await powerPlans.setActive(settings.powerPlanDefault.guid);
+        }
+      }
+
+      // Handle CPU Affinity
+      if (
+        cs2RunningStateChanged &&
+        cs2Running &&
+        settings.cpuAffinity?.enabled &&
+        settings.cpuAffinity?.selectedCores?.length > 0
+      ) {
+        // We need to get PIDs. runningProcesses has getPidsForName.
+        // But wait, runningProcesses.getPidsForName might not be exposed on the store object directly if I didn't see it.
+        // Let's check runningProcesses.svelte.ts again to be absolutely sure.
+        // If it's not there, I can filter the list.
+        // But App.svelte used it later: const pids = runningProcesses.getPidsForName(processName);
+        // So it must be there.
+        const pids = runningProcesses.getPidsForName("cs2.exe");
+
+        // Calculate mask
+        let mask = 0n;
+        for (const core of settings.cpuAffinity.selectedCores) {
+          mask |= 1n << BigInt(core);
+        }
+        const maskStr = mask.toString();
+
+        for (const pid of pids) {
+          try {
+            await invoke("set_process_affinity", { pid, mask: maskStr });
+            console.log(`Set affinity for CS2 (PID ${pid}) to ${maskStr}`);
+          } catch (e) {
+            console.error(`Failed to set affinity for CS2 (PID ${pid}):`, e);
+          }
         }
       }
 
@@ -179,6 +212,16 @@
   });
 
   $effect(() => {
+    // Persist CPU Affinity Settings
+    if (!isSettingsLoaded.value) return;
+
+    const cpuSettings = settings.cpuAffinity;
+    setItem("cpuAffinity", cpuSettings).catch((e) =>
+      console.error("Failed to save cpu affinity settings", e)
+    );
+  });
+
+  $effect(() => {
     // Auto-correct power plan names if they differ from the fetched plans (e.g. encoding fix)
     // This runs whenever powerPlans.plans or settings change.
     if (powerPlans.plans.length > 0) {
@@ -220,6 +263,8 @@
     <ProcessManagement />
   {:else if $currentView === "power-plan-management"}
     <PowerPlanManagement />
+  {:else if $currentView === "cpu-affinity"}
+    <CpuAffinity />
   {:else if $currentView === "nvidia-vibrance"}
     <NvidiaVibrance />
   {:else if $currentView === "settings"}

@@ -10,6 +10,7 @@ export type View =
   | "dashboard"
   | "process-management"
   | "power-plan-management"
+  | "cpu-affinity"
   | "nvidia-vibrance"
   | "settings";
 
@@ -21,6 +22,8 @@ export function updateView() {
     currentView.set("process-management");
   } else if (hash === "/power-plan-management") {
     currentView.set("power-plan-management");
+  } else if (hash === "/cpu-affinity") {
+    currentView.set("cpu-affinity");
   } else if (hash === "/nvidia-vibrance") {
     currentView.set("nvidia-vibrance");
   } else if (hash === "/settings") {

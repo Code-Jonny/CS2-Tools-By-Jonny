@@ -50,6 +50,12 @@
       </a>
     </li>
     <li>
+      <a href="#/cpu-affinity" class:active={$currentView === "cpu-affinity"}>
+        <Iconify icon="solar:cpu-linear" width="24" height="24" />
+        {#if $isSidebarExpanded}<span>CPU Core Affinity</span>{/if}
+      </a>
+    </li>
+    <li>
       <a
         href="#/nvidia-vibrance"
         class:active={$currentView === "nvidia-vibrance"}
