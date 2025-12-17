@@ -80,11 +80,6 @@
         settings.cpuAffinity?.selectedCores?.length > 0
       ) {
         // We need to get PIDs. runningProcesses has getPidsForName.
-        // But wait, runningProcesses.getPidsForName might not be exposed on the store object directly if I didn't see it.
-        // Let's check runningProcesses.svelte.ts again to be absolutely sure.
-        // If it's not there, I can filter the list.
-        // But App.svelte used it later: const pids = runningProcesses.getPidsForName(processName);
-        // So it must be there.
         const pids = runningProcesses.getPidsForName("cs2.exe");
 
         // Calculate mask
