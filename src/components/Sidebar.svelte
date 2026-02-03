@@ -126,7 +126,8 @@
         background-color 0.15s ease-in-out,
         color 0.15s ease-in-out;
       white-space: nowrap; /* Prevent text from wrapping */
-      justify-content: center; /* Center icons when collapsed */
+      justify-content: flex-start; /* Center icons when collapsed */
+      height: 54px;
 
       span {
         opacity: 0;
@@ -158,11 +159,6 @@
         transition: color 0.15s ease-in-out;
       }
     }
-  }
-
-  nav.expanded li a {
-    justify-content: flex-start; /* Align items to start when expanded */
-    padding: 15px 20px; /* Restore original padding */
   }
 
   nav.expanded li a span {

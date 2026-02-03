@@ -184,6 +184,15 @@
   });
 
   $effect(() => {
+    // Sync minimize to tray setting
+    if (!isSettingsLoaded.value) return;
+
+    invoke("set_minimize_to_tray", { enable: settings.minimizeToTray }).catch(
+      (e) => console.error("Failed to sync minimize to tray setting:", e),
+    );
+  });
+
+  $effect(() => {
     // Persist and Sync Vibrance Settings
     // This ensures that changes to the nested vibranceSettings object are saved and synced,
     // as the top-level proxy in settingsStore only catches top-level assignments.
@@ -195,7 +204,7 @@
 
     // Save to disk
     setItem("vibranceSettings", vSettings).catch((e) =>
-      console.error("Failed to save vibrance settings", e)
+      console.error("Failed to save vibrance settings", e),
     );
 
     // Sync to Rust backend
@@ -228,7 +237,7 @@
     const serialized = JSON.stringify(settings.cpuAffinity);
 
     setItem("cpuAffinity", JSON.parse(serialized)).catch((e) =>
-      console.error("Failed to save cpu affinity settings", e)
+      console.error("Failed to save cpu affinity settings", e),
     );
   });
 
@@ -238,22 +247,22 @@
     if (powerPlans.plans.length > 0) {
       if (settings.powerPlanCS2?.guid) {
         const match = powerPlans.plans.find(
-          (p) => p.guid === settings.powerPlanCS2.guid
+          (p) => p.guid === settings.powerPlanCS2.guid,
         );
         if (match && match.name !== settings.powerPlanCS2.name) {
           console.log(
-            `Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`
+            `Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`,
           );
           settings.powerPlanCS2.name = match.name;
         }
       }
       if (settings.powerPlanDefault?.guid) {
         const match = powerPlans.plans.find(
-          (p) => p.guid === settings.powerPlanDefault.guid
+          (p) => p.guid === settings.powerPlanDefault.guid,
         );
         if (match && match.name !== settings.powerPlanDefault.name) {
           console.log(
-            `Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`
+            `Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`,
           );
           settings.powerPlanDefault.name = match.name;
         }

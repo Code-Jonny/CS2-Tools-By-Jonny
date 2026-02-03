@@ -10,6 +10,7 @@ import { getItem, setItem, hasItem } from "./storage";
 export const defaultAppSettings = {
   autostartWithWindows: false,
   startMinimized: false,
+  minimizeToTray: true,
   pollingIntervalMs: 5000,
   processesToKill: [] as string[],
   powerPlanCS2: {
@@ -37,7 +38,7 @@ export type AppSettings = typeof defaultAppSettings;
 
 // Internal reactive state using Svelte 5's $state
 const _internalSettings = $state<AppSettings>(
-  JSON.parse(JSON.stringify(defaultAppSettings))
+  JSON.parse(JSON.stringify(defaultAppSettings)),
 );
 
 // Flag to prevent proxy from saving during initial load
@@ -47,7 +48,7 @@ export const isSettingsLoaded = $state({ value: false });
 // Helper to update state without triggering type errors
 function updateState<K extends keyof AppSettings>(
   key: K,
-  value: AppSettings[K]
+  value: AppSettings[K],
 ) {
   _internalSettings[key] = value;
 }
@@ -74,7 +75,7 @@ const settingsProxyHandler: ProxyHandler<AppSettings> = {
 // Export the proxy
 export const settings: AppSettings = new Proxy(
   _internalSettings,
-  settingsProxyHandler
+  settingsProxyHandler,
 );
 
 /**

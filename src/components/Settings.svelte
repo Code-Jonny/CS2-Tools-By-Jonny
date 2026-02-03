@@ -11,7 +11,7 @@
 
   // Local state for polling interval in seconds for the input field
   let pollingIntervalSeconds: number = $state(
-    settings.pollingIntervalMs / 1000
+    settings.pollingIntervalMs / 1000,
   );
   let pollingIntervalError: string | null = $state(null);
   let autostartError: string | null = $state(null);
@@ -22,7 +22,7 @@
       const registryAutostartStatus = await checkAutostartStatus();
       if (settings.autostartWithWindows !== registryAutostartStatus) {
         devLog(
-          `Autostart mismatch onMount: Store is ${settings.autostartWithWindows}, Registry is ${registryAutostartStatus}. Syncing store to registry.`
+          `Autostart mismatch onMount: Store is ${settings.autostartWithWindows}, Registry is ${registryAutostartStatus}. Syncing store to registry.`,
         );
         settings.autostartWithWindows = registryAutostartStatus;
       }
@@ -46,7 +46,7 @@
     (async () => {
       try {
         devLog(
-          `Autostart setting changed to: ${currentAutostartSetting} (post-init). Updating registry.`
+          `Autostart setting changed to: ${currentAutostartSetting} (post-init). Updating registry.`,
         );
         await setAutostart(currentAutostartSetting);
         autostartError = null; // Clear any previous error
@@ -65,7 +65,7 @@
     if (!event || !(event.target instanceof HTMLInputElement)) {
       devError(
         "Polling interval input event: event.target is not an HTMLInputElement or is null.",
-        event ? event.target : "event is null"
+        event ? event.target : "event is null",
       );
       return;
     }
@@ -132,6 +132,13 @@
         name="startMinimized"
         bind:checked={settings.startMinimized}
       />
+
+      <Toggle
+        label="Minimize into Tray"
+        id="minimizeToTray"
+        name="minimizeToTray"
+        bind:checked={settings.minimizeToTray}
+      />
     </div>
   </Card>
 
@@ -162,6 +169,7 @@
   <h3>Current General Settings (Live View from Store)</h3>
   <p>Autostart with Windows: {settings.autostartWithWindows}</p>
   <p>Start Minimized: {settings.startMinimized}</p>
+  <p>Minimize to Tray: {settings.minimizeToTray}</p>
   <p>
     Polling Interval: {settings.pollingIntervalMs / 1000} seconds ({settings.pollingIntervalMs}ms)
   </p>

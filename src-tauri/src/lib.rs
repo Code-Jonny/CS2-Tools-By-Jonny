@@ -4,7 +4,19 @@ mod processes;
 mod vibrance;
 
 use std::sync::Arc;
-use tauri::Manager;
+use std::sync::Mutex;
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{Manager, WindowEvent};
+
+struct AppSettingsState {
+    minimize_to_tray: Mutex<bool>,
+}
+
+#[tauri::command]
+fn set_minimize_to_tray(state: tauri::State<AppSettingsState>, enable: bool) {
+    *state.minimize_to_tray.lock().unwrap() = enable;
+}
 
 /// Der Einstiegspunkt für die Tauri-Anwendung.
 ///
@@ -68,6 +80,64 @@ pub fn run() {
             // Funktion nicht mehr verwendet werden. Das ist okay, da wir es nur hier brauchen.
             monitor::start_monitor_thread(vibrance_state_clone);
 
+            app.manage(AppSettingsState {
+                minimize_to_tray: Mutex::new(true),
+            });
+
+            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
+
+            let _tray = TrayIconBuilder::with_id("tray")
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id().as_ref() {
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.unminimize();
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.unminimize();
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                })
+                .build(app)?;
+
+            let app_handle = app.handle().clone();
+            let window = app.get_webview_window("main").unwrap();
+
+            window.on_window_event(move |event| {
+                if let WindowEvent::Resized(_) = event {
+                    let window = app_handle.get_webview_window("main").unwrap();
+                    if let Ok(true) = window.is_minimized() {
+                        let state = app_handle.state::<AppSettingsState>();
+                        let minimize_to_tray = *state.minimize_to_tray.lock().unwrap();
+                        if minimize_to_tray {
+                            let _ = window.hide();
+                        }
+                    }
+                }
+            });
+
             Ok(())
         })
         // * HINWEIS: Command Handler
@@ -82,7 +152,8 @@ pub fn run() {
             processes::get_cpu_count,
             processes::set_process_affinity,
             monitor::set_vibrance_settings,
-            monitor::check_nvidia_gpu
+            monitor::check_nvidia_gpu,
+            set_minimize_to_tray
         ])
         // * HINWEIS: Start der Anwendung
         // `run` startet die Event-Loop. Diese Funktion kehrt normalerweise nicht zurück,
