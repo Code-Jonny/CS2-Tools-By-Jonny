@@ -18,6 +18,12 @@ fn set_minimize_to_tray(state: tauri::State<AppSettingsState>, enable: bool) {
     *state.minimize_to_tray.lock().unwrap() = enable;
 }
 
+#[tauri::command]
+fn show_minimized(window: tauri::WebviewWindow) {
+    let _ = window.show();
+    let _ = window.minimize();
+}
+
 /// Der Einstiegspunkt für die Tauri-Anwendung.
 ///
 /// Diese Funktion konfiguriert und startet die Anwendung. Sie registriert Plugins,
@@ -153,7 +159,8 @@ pub fn run() {
             processes::set_process_affinity,
             monitor::set_vibrance_settings,
             monitor::check_nvidia_gpu,
-            set_minimize_to_tray
+            set_minimize_to_tray,
+            show_minimized
         ])
         // * HINWEIS: Start der Anwendung
         // `run` startet die Event-Loop. Diese Funktion kehrt normalerweise nicht zurück,

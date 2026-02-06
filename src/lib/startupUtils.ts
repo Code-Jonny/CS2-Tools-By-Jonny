@@ -6,6 +6,7 @@
 
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 import { settings } from "@lib/settingsStore.svelte.ts";
 
 export async function setAutostart(enableAutoStart: boolean): Promise<void> {
@@ -40,9 +41,9 @@ export async function applyStartMinimizedSetting(): Promise<void> {
         console.log("Starting minimized to tray (hidden).");
       } else {
         // Start minimized in taskbar
-        // To ensure it appears in taskbar, we might need to show it first or just minimize
-        // Trying minimize() directly on hidden window
-        await appWindow.minimize();
+        // To ensure it appears in taskbar, we need to show it first then minimize
+        // We use a custom Rust command to do this as fast as possible to avoid flicker
+        await invoke("show_minimized");
       }
     } catch (error) {
       console.error("Failed to minimize window:", error);
