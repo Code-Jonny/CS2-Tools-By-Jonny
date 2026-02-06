@@ -1,18 +1,18 @@
 # Svelte 5 and Neutralino Guidelines
 
-This is a Windows App using Neutralino and Svelte 5. It will improve the gaming experience with Counter-Strike 2.
+This is a Windows App using Tauri v2 and Vue 3.5. It will improve the gaming experience with Counter-Strike 2.
 
 When you write code, please follow these guidelines:
 
-1. **Use Svelte for UI**: All UI components should be written in Svelte. Use Svelte's reactive features to manage state and props effectively.
-2. **Use Neutralino for Backend**: Use Neutralino's API to handle file operations, system commands, and other backend functionalities.
+1. **Use Vue 3.5 for UI**: All UI components should be written in Vue 3.5. Use Vue's reactive features to manage state and props effectively.
+2. **Use Tauri v2 for Backend**: Use Tauri's API to handle file operations, system commands, and other backend functionalities.
 3. **File Structure**: Organize your code into components, services, and utilities. Keep the main application logic separate from UI components.
-4. **State Management**: Use Svelte's built-in stores for managing application state. Avoid using global variables.
+4. **State Management**: Use Vue's built-in reactive and ref features for managing application state. Avoid using global variables.
 5. **Error Handling**: Implement error handling for file operations and system commands. Use try-catch blocks where necessary.
 6. **Code Comments**: Write clear comments explaining the purpose of complex code blocks. Use JSDoc style comments for functions and components.
-7. **Testing**: Write unit tests for critical components and services. Use Svelte's testing utilities where applicable.
-8. **Performance Optimization**: Optimize performance by minimizing reactivity where possible. Use Svelte's `onMount` and `beforeUpdate` lifecycle methods effectively.
-9. **Svelte 5**: Ensure to only use modern Svelte 5 features and syntax. It is important to only use the latest features available in Svelte 5. Refrain from using deprecated features or syntax from previous versions, e.g. "on:", reactive let / var statements, slots, svelte fragments, export let, reactive $ statements and so on.
+7. **Testing**: Write unit tests for critical components and services. Use Vue's testing utilities where applicable.
+8. **Performance Optimization**: Optimize performance by minimizing reactivity where possible. Use Vue's lifecycle methods effectively.
+9. **Vue 3.5**: Ensure to only use modern Vue 3.5 features and syntax. It is important to only use the latest features available in Vue 3.5. Refrain from using deprecated features or syntax from previous versions.
 10. **Typescript**: Use TypeScript for type safety. Define interfaces for props and state where applicable.
 11. **Comments**: Use comments to explain code logic or decisions in the code. Explain alternative approaches and why the chosen approach is favored. Avoid redundant comments that do not add value. use jsdoc style for every js / ts file and function. Use the syntax of the VS Code extension "Better Comments" to highlight sections of code (e.g. TODO, FIXME, etc.)
 
@@ -101,11 +101,5 @@ The UI elements are designed to be modern and intuitive, with soft corners and c
 5. Iconography
 
    Icon Library: Iconify
-   Icon Style: Solar Icons (Linear)
-   Description: Use the solar- icon set with the linear (outline) style. Icons should be monochrome, using the Off-White (#E0E0E0) color by default. For interactive icons, they can change to the Primary Accent (Cyan) on hover or when active.
-   Example Icons:
-   Settings: solar:settings-linear
-   Play/Start: solar:play-bold
-   Power: solar:bolt-linear
-   Processes/Task: solar:checklist-minimalistic-linear
-   Info: solar:info-circle-line
+   Icon Style: Solar Icons (Bold)
+   Description: Use the solar- icon set with the bold style. Icons should be monochrome, using the Off-White (#E0E0E0) color by default. For interactive icons, they can change to the Primary Accent (Cyan) on hover or when active.
