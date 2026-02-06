@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "CS2ToolsByJonny",
-  "version": "2.1.0",
+  "version": "1.0.0",
   "identifier": "com.jonny.cs2tools",
   "build": {
     "frontendDist": "../dist",
