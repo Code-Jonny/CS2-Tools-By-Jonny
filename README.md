@@ -70,6 +70,7 @@ I'm always looking to improve CS2 Tools! Here's a sneak peek at what I'm plannin
 - **Advanced Game-Specific Optimizations:** Beyond process termination, I plan to allow users to configure specific Windows settings (e.g., disabling certain visual effects, adjusting network adapter priorities) that apply automatically when CS2 is launched and revert when it's closed.
 - **CS2 Configuration Switcher:** A utility to easily backup, restore, and switch between different Counter-Strike 2 configuration files (like `autoexec.cfg`, `video.txt`) directly from the app.
 - **Automatic Application Updates:** Get notified within CS2 Tools when a new version is available and update with a single click.
+- **Advanced color management:** Add the ability to modify the grapic cards LUT for colors. The goal is to modify every RGB channel using curves like known from apps like Photoshop and to export and import that profiles.
 
 **Maybe Coming (Under Consideration):**
 
