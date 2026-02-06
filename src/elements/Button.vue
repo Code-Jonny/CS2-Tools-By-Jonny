@@ -6,6 +6,7 @@
     type?: "button" | "submit" | "reset";
     disabled?: boolean;
     variant?: "primary" | "secondary" | "danger" | "success" | "icon";
+    size?: "small" | "normal" | "big";
     icon?: string;
     iconSize?: string;
   }>();
@@ -23,7 +24,7 @@
 
 <template>
   <button :type="type || 'button'" :disabled="disabled" @click="handleClick"
-          class="button" :class="variant || 'primary'">
+          class="button" :class="[variant || 'primary', size || 'normal']">
     <Icon v-if="icon" :iconName="icon" :size="iconSize || '20'"
           :fillColor="(variant === 'primary' || !variant) ? 'var(--background-primary, #1a1a1a)' : undefined" />
     <slot></slot>
@@ -105,5 +106,21 @@
     color: inherit;
     fill: inherit;
     padding: 4px;
+  }
+
+  /* Sizes */
+  .button.small {
+    padding: 4px 10px;
+    font-size: 14px;
+  }
+
+  .button.normal {
+    padding: 8px 15px;
+    font-size: 16px;
+  }
+
+  .button.big {
+    padding: 12px 24px;
+    font-size: 18px;
   }
 </style>

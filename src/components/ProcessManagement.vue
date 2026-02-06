@@ -67,7 +67,7 @@
               :key="'kill-' + index" class="kill-list-item">
             <span>{{ processName }}</span>
             <Button type="button" variant="danger" @click="removeProcess(index)"
-                    icon="trashbin" />
+                    icon="trashbin" size="small" />
           </li>
         </ul>
         <p v-else class="info-text">No processes configured to be killed.</p>
@@ -117,7 +117,8 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 2px;
+
   }
 
   .kill-list-item {
@@ -125,9 +126,11 @@
     justify-content: space-between;
     align-items: center;
     background-color: var(--background-primary);
-    padding: 10px 15px;
+    padding: 5px;
     border-radius: var(--window-corner-radius);
     border: 1px solid var(--background-secondary);
+    font-size: 13px;
+    line-height: 1;
   }
 
   .info-text {
