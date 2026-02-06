@@ -2,7 +2,7 @@
 
 ## Installation
 
-1.  **Download:** Grab the latest release from the [GitHub Releases](https://github.com/Code-Jonny/cs2tools-by-jonny) page.
+1.  **Download:** Grab the latest release from the [GitHub Releases](https://github.com/Code-Jonny/cs2tools-by-jonny/releases) page.
 2.  **Install:** Install using the downloaded setup file.
 3.  **Run:** Execute `cs2toolsByJonny.exe` (You can use the desktop shortcut).
 
