@@ -31,11 +31,26 @@ export async function checkAutostartStatus(): Promise<boolean> {
 }
 
 export async function applyStartMinimizedSetting(): Promise<void> {
+  const appWindow = getCurrentWindow();
   if (settings.startMinimized) {
     try {
-      await getCurrentWindow().minimize();
+      if (settings.minimizeToTray) {
+        // Start hidden (in tray)
+        // Since window starts hidden (tauri.conf.json visible: false), we don't need to do anything
+        console.log("Starting minimized to tray (hidden).");
+      } else {
+        // Start minimized in taskbar
+        // To ensure it appears in taskbar, we might need to show it first or just minimize
+        // Trying minimize() directly on hidden window
+        await appWindow.minimize();
+      }
     } catch (error) {
       console.error("Failed to minimize window:", error);
+      await appWindow.show(); // Fallback
     }
+  } else {
+    // Normal start
+    await appWindow.show();
+    await appWindow.setFocus();
   }
 }

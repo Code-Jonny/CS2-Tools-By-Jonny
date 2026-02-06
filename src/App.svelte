@@ -158,6 +158,8 @@
     console.log("App mounted. Performing initializations.");
     try {
       await loadAndInitializeSettings();
+      // Sync minimize to tray setting immediately to ensure correct behavior on startup
+      await invoke("set_minimize_to_tray", { enable: settings.minimizeToTray });
       await applyStartMinimizedSetting();
       await powerPlans.refresh();
       await runningProcesses.refresh();
