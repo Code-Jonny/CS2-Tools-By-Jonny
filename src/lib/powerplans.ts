@@ -1,10 +1,4 @@
-/**
- * @file powerplans.svelte.ts
- * @description Manages Windows Power Plans.
- * Fetches available power plans using Tauri backend and allows switching the active plan.
- * Uses Svelte 5's reactive state to expose the list of plans and current status.
- */
-
+import { reactive } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface PowerPlan {
@@ -20,7 +14,7 @@ interface PowerPlanState {
   lastUpdated: number;
 }
 
-let store = $state<PowerPlanState>({
+const state = reactive<PowerPlanState>({
   plans: [],
   isLoading: false,
   error: null,
@@ -28,33 +22,33 @@ let store = $state<PowerPlanState>({
 });
 
 async function _fetchAndUpdatePowerPlansInternal() {
-  store.isLoading = true;
-  store.error = null;
+  state.isLoading = true;
+  state.error = null;
   try {
     const plans = await invoke<PowerPlan[]>("get_power_plans");
-    store.plans = plans;
-    store.lastUpdated = Date.now();
-  } catch (err) {
+    state.plans = plans;
+    state.lastUpdated = Date.now();
+  } catch (err: any) {
     console.error("Failed to fetch power plans:", err);
-    store.error = String(err);
-    store.plans = [];
+    state.error = String(err);
+    state.plans = [];
   } finally {
-    store.isLoading = false;
+    state.isLoading = false;
   }
 }
 
 export const powerPlans = {
   get plans() {
-    return store.plans;
+    return state.plans;
   },
   get isLoading() {
-    return store.isLoading;
+    return state.isLoading;
   },
   get error() {
-    return store.error;
+    return state.error;
   },
   get lastUpdated() {
-    return store.lastUpdated;
+    return state.lastUpdated;
   },
   refresh: _fetchAndUpdatePowerPlansInternal,
   setActive: async (guid: string) => {

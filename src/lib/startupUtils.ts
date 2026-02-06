@@ -7,7 +7,7 @@
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
-import { settings } from "@lib/settingsStore.svelte.ts";
+import { settings } from "@lib/settingsStore";
 
 export async function setAutostart(enableAutoStart: boolean): Promise<void> {
   try {

@@ -1,12 +1,5 @@
-/**
- * @file runningProcesses.svelte.ts
- * @description Manages the list of running processes on the system.
- * Uses Tauri backend to fetch process information and exposes it via a Svelte store.
- * Provides filtering and searching capabilities.
- */
-
+import { reactive } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import { writable, get as svelteGet } from "svelte/store";
 
 export interface ProcessInfo {
   name: string;
@@ -23,39 +16,41 @@ interface ProcessStoreState {
   errorMessage: string;
 }
 
-const initialProcessState: ProcessStoreState = {
+const state = reactive<ProcessStoreState>({
   processes: [],
   errorMessage: "",
-};
-
-const store = writable<ProcessStoreState>(initialProcessState);
+});
 
 export const runningProcesses = {
-  subscribe: store.subscribe,
+  get processes() {
+    return state.processes;
+  },
+  get errorMessage() {
+    return state.errorMessage;
+  },
 
   refresh: async () => {
     try {
       const processes = await invoke<ProcessInfo[]>("get_processes");
-      store.set({ processes, errorMessage: "" });
+      state.processes = processes;
+      state.errorMessage = "";
     } catch (err: any) {
       console.error("[runningProcesses] Error fetching process list:", err);
-      store.set({
-        processes: [],
-        errorMessage: `Failed to fetch process list: ${err.message || err}`,
-      });
+      state.processes = [];
+      state.errorMessage = `Failed to fetch process list: ${err.message || err}`;
     }
   },
 
   get: (): ProcessInfo[] => {
-    return svelteGet(store).processes;
+    return state.processes;
   },
 
   getFiltered: (
     filter: FilterType = "all",
     sortKey: SortKey = "name",
-    sortOrder: SortOrder = "asc"
+    sortOrder: SortOrder = "asc",
   ): ProcessInfo[] => {
-    let tempProcesses = [...svelteGet(store).processes];
+    let tempProcesses = [...state.processes];
 
     // Sort
     if (sortKey) {
@@ -80,33 +75,31 @@ export const runningProcesses = {
     searchTerm: string,
     filter: FilterType = "all",
     sortKey: SortKey = "name",
-    sortOrder: SortOrder = "asc"
+    sortOrder: SortOrder = "asc",
   ): ProcessInfo[] => {
     let tempProcesses = runningProcesses.getFiltered(
       filter,
       sortKey,
-      sortOrder
+      sortOrder,
     );
 
     if (searchTerm.trim() !== "") {
       const lowerSearchTerm = searchTerm.toLowerCase();
       tempProcesses = tempProcesses.filter((p) =>
-        p.name.toLowerCase().includes(lowerSearchTerm)
+        p.name.toLowerCase().includes(lowerSearchTerm),
       );
     }
     return tempProcesses;
   },
 
   isProcessRunning: (processName: string): boolean => {
-    const processes = svelteGet(store).processes;
-    return processes.some(
-      (p) => p.name.toLowerCase() === processName.toLowerCase()
+    return state.processes.some(
+      (p) => p.name.toLowerCase() === processName.toLowerCase(),
     );
   },
 
   getPidsForName: (processName: string): number[] => {
-    const processes = svelteGet(store).processes;
-    return processes
+    return state.processes
       .filter((p) => p.name.toLowerCase() === processName.toLowerCase())
       .map((p) => p.pid);
   },

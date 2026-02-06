@@ -1,13 +1,6 @@
-import { mount } from "svelte";
+import { createApp } from "vue";
 import "./app.css";
-import App from "./App.svelte";
+import App from "./App.vue";
 
-/**
- * Mounts the main Svelte application to the DOM.
- * This is the entry point for the UI rendering.
- */
-const app = mount(App, {
-  target: document.getElementById("app")!,
-});
-
-export default app;
+const app = createApp(App);
+app.mount("#app");

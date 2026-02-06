@@ -1,9 +1,9 @@
 import { defineConfig } from "vitest/config";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
+import vue from "@vitejs/plugin-vue";
 import path from "path";
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [vue()],
   resolve: {
     conditions: ["browser"],
     alias: {
