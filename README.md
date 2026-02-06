@@ -61,6 +61,9 @@ A: Yes! Please open an issue on the [GitHub Issues](https://github.com/Code-Jonn
 **Q: Will this tool significantly boost my FPS?**
 A: The impact on FPS can vary depending on your system specifications and what background processes are typically running. By terminating unnecessary processes and ensuring your PC is using an optimal power plan, CS2 Tools aims to free up system resources, which can lead to smoother gameplay and potentially higher FPS.
 
+**Q: Will this app itself have a performance impact on my system?**
+A: This app is really really lightweight. It is created using Rust and uses only minimal RAM and CPU. You can modify the impact on your CPU cycles by changing the polling rate. A lower polling rate makes the app detect status changes faster. A higher polling rate takes less CPU time. The default value should be the best for 99 % of all CS2 players.
+
 ## Coming Features
 
 I'm always looking to improve CS2 Tools! Here's a sneak peek at what I'm planning or considering for future releases:
