@@ -34,11 +34,12 @@
 
     <Card title="Counter-Strike 2 Status" icon="counterstrike">
       <div v-if="isCS2Running" class="status-indicator running">
-        <Icon iconName="play-circle" size="32" />
+        <Icon iconName="play-circle" size="32"
+              fillColor="var(--success-color)" />
         <span>CS2 is <strong>RUNNING</strong></span>
       </div>
       <div v-else class="status-indicator not-running">
-        <Icon iconName="stop-circle" size="32" />
+        <Icon iconName="stop-circle" size="32" fillColor="var(--error-color)" />
         <span>CS2 is <strong>NOT RUNNING</strong></span>
       </div>
     </Card>
@@ -92,12 +93,12 @@
     font-size: 18px;
   }
 
-  .status-indicator.running {
+  .statu .status-indicator.running {
     color: var(--success-color, #28a745);
   }
 
   .status-indicator.not-running {
-    color: var(--text-secondary);
+    color: var(--error-color, #dc3545);
     /* Greyed out when not running */
   }
 
@@ -120,16 +121,17 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 4px;
   }
 
   .process-status-list li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 3px 9px;
     background-color: var(--background-primary);
     border-radius: 4px;
+    font-size: 13px;
     /* Slightly rounded for list items */
   }
 

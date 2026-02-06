@@ -30,41 +30,41 @@
       <li>
         <a href="#/" :class="{ active: currentView === 'dashboard' }">
           <LocalIcon iconName="home" />
-          <span v-if="isSidebarExpanded">Dashboard</span>
+          <span class="linktext">Dashboard</span>
         </a>
       </li>
       <li>
         <a href="#/process-management"
            :class="{ active: currentView === 'process-management' }">
           <LocalIcon iconName="tasks" />
-          <span v-if="isSidebarExpanded">Process Management</span>
+          <span class="linktext">Process Management</span>
         </a>
       </li>
       <li>
         <a href="#/power-plan-management"
            :class="{ active: currentView === 'power-plan-management' }">
           <LocalIcon iconName="power" />
-          <span v-if="isSidebarExpanded">Power Plan Management</span>
+          <span class="linktext">Power Plan Management</span>
         </a>
       </li>
       <li>
         <a href="#/cpu-affinity"
            :class="{ active: currentView === 'cpu-affinity' }">
           <LocalIcon iconName="cpu" />
-          <span v-if="isSidebarExpanded">CPU Core Affinity</span>
+          <span class="linktext">CPU Core Affinity</span>
         </a>
       </li>
       <li>
         <a href="#/nvidia-vibrance"
            :class="{ active: currentView === 'nvidia-vibrance' }">
           <LocalIcon iconName="monitor" />
-          <span v-if="isSidebarExpanded">Nvidia Vibrance</span>
+          <span class="linktext">Nvidia Vibrance</span>
         </a>
       </li>
       <li>
         <a href="#/settings" :class="{ active: currentView === 'settings' }">
           <LocalIcon iconName="settings" />
-          <span v-if="isSidebarExpanded">Settings</span>
+          <span class="linktext">Settings</span>
         </a>
       </li>
     </ul>
@@ -141,6 +141,7 @@
     align-items: center;
     text-decoration: none;
     color: var(--text-secondary);
+    font-size: 16px;
     width: 100%;
     height: 50px;
     /* Fill li width */
@@ -154,17 +155,11 @@
     /* Prevent text wrapping */
 
     nav:not(.expanded) & {
-      justify-content: center;
-      padding: 12px 0;
+      /* justify-content: center; */
+      /* padding: 12px 0; */
     }
 
-    nav.expanded & {
-      padding: 12px 15px;
-      /* Restore padding */
-      justify-content: flex-start;
-    }
-
-    &:hover {
+    nav.expanded &:hover {
       background-color: var(--background-secondary, #242424);
       color: var(--text-primary);
     }
@@ -183,10 +178,20 @@
     }
   }
 
-  span {
-    font-size: 16px;
-    /* fade in text */
-    animation: fadeIn 0.2s ease-in;
+  .linktext {
+    opacity: 0;
+    display: none;
+    transition: opacity 0.2s ease-in-out, display 0.2s ease-in-out;
+    ransition-behavior: allow-discrete;
+
+    nav.expanded & {
+      opacity: 1;
+      display: initial;
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
   }
 
   @keyframes fadeIn {

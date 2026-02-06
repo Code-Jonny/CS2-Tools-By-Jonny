@@ -3,6 +3,7 @@
   import { powerPlans, type PowerPlan } from "@lib/powerplans";
   import Toggle from "@elements/Toggle.vue";
   import Card from "@elements/Card.vue";
+  import HelpCard from "@elements/HelpCard.vue";
   import ContentBox from "@elements/ContentBox.vue";
   import Button from "@elements/Button.vue";
   import { ref, watch, onMounted } from 'vue';
@@ -135,6 +136,46 @@
         Plans
         when CS2 starts and exits.</p>
     </div>
+
+
+    <HelpCard icon="questionmark">
+      <p>
+        When enabled, the application will automatically switch Windows Power
+        Plans when Counter-Strike 2 starts and exits. This can help optimize
+        system performance based on your preferences.
+      </p>
+      <p>
+        Use the dropdown menus above to select the power plans you want to use
+        for when CS2 is running and when it is not. You can refresh the list
+        of
+        available power plans if needed.
+      </p>
+      <p>
+        <strong>Important:</strong> Be cautious when selecting power plans.
+        Make
+        sure you understand the impact of each plan on your system's
+        performance
+        and power consumption. Avoid selecting plans that may cause
+        instability
+        or other issues.
+      </p>
+
+      <div class="rating">
+        <h3>Placebo Rating: 7 / 10</h3>
+        <div class="ratingcontent">
+          <p>On my old AMD system, I noticed a noticeable improvement in 1% low
+            frames performance. On my recent system I experienced that a problem
+            with USB devices came to a stop when switching to the high
+            performance
+            plan. Probably because USB power management behaves differently. But
+            I
+            did not notice any difference in actual gameplay performance.</p>
+        </div>
+      </div>
+    </HelpCard>
+
+
+
   </div>
 </template>
 

@@ -4,6 +4,7 @@
   import Button from "@elements/Button.vue";
   import Toggle from "@elements/Toggle.vue";
   import Card from "@elements/Card.vue";
+  import HelpCard from "@elements/HelpCard.vue";
   import ContentBox from "@elements/ContentBox.vue";
   import TextInput from "@elements/TextInput.vue";
   import { isProcessProtected } from "@lib/processUtils";
@@ -101,7 +102,44 @@
         when
         CS2 starts.</p>
     </div>
+
+    <HelpCard icon="questionmark">
+      <p>
+        When enabled, the applications you specify in the kill list will be
+        automatically closed when Counter-Strike 2 starts. This can help improve
+        performance by freeing up system resources.
+      </p>
+      <p>
+        Use the "Running Processes" section to find currently running
+        applications
+        and add them to your kill list, or manually enter process names below.
+      </p>
+      <p>
+        <strong>Important:</strong> Be cautious when adding processes to the
+        kill
+        list. Avoid adding critical system processes or applications you need
+        running, as they will be forcibly closed when CS2 starts. That can lead
+        to data loss or system instability. Always double-check the process
+        names you add to ensure they are safe to close. Only a few known
+        processes are already blacklisted and cannot be added to prevent
+        accidental issues.
+      </p>
+
+      <div class="rating">
+        <h3>Placebo Rating: 3 / 10</h3>
+        <div class="ratingcontent">
+          <p>Depending on how much bloatware is installed on your system,
+            terminating background processes can improve performance. Don't
+            think
+            only about CPU and RAM usage; some background processes can also
+            affect
+            disk and network performance.</p>
+        </div>
+      </div>
+    </HelpCard>
   </div>
+
+
 </template>
 
 <style scoped>
@@ -126,7 +164,7 @@
     justify-content: space-between;
     align-items: center;
     background-color: var(--background-primary);
-    padding: 5px;
+    padding: 5px 15px;
     border-radius: var(--window-corner-radius);
     border: 1px solid var(--background-secondary);
     font-size: 13px;

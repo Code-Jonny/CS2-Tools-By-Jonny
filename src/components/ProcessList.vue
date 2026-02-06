@@ -163,7 +163,7 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    height: 400px;
+    max-height: 600px;
     /* Fixed height for scrolling */
   }
 

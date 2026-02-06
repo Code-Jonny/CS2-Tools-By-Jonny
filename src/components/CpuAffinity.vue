@@ -3,6 +3,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { settings } from "@lib/settingsStore";
   import Card from "@elements/Card.vue";
+  import HelpCard from "@elements/HelpCard.vue";
   import Toggle from "@elements/Toggle.vue";
   import ContentBox from "@elements/ContentBox.vue";
   import Button from "@elements/Button.vue";
@@ -96,6 +97,38 @@
       <p>Enable CPU Affinity Management to configure which CPU cores CS2 should
         run on.</p>
     </div>
+
+    <HelpCard icon="questionmark">
+      <p>
+        CPU affinity allows you to specify which CPU cores CS2 should use. By
+        default, Windows may schedule the game on any core, which can lead to
+        suboptimal performance if the system is also using those cores for other
+        tasks. By selecting specific cores (e.g., skipping Core 0 and 1), you
+        can help ensure that CS2 has dedicated resources, potentially improving
+        performance and reducing stuttering.
+      </p>
+      <p>
+        The "Optimize" button will automatically select all cores except Core 0
+        and Core 1, which are often reserved for system processes. The "Use all
+        CPU cores" option will allow CS2 to utilize all available cores, which
+        may be beneficial for systems with fewer cores or specific workloads.
+      </p>
+      <p>
+        <strong>Note:</strong> The effectiveness of CPU affinity settings can
+        vary based on your specific hardware and system configuration. It's
+        recommended to experiment with different settings to see what works best
+        for your setup.
+      </p>
+
+      <div class="rating">
+        <h3>Placebo Rating: 6 / 10</h3>
+        <div class="ratingcontent">
+          <p>I get better performance by skipping Core 0 and 1 on my system
+            showing in higher 1 % low fps and reduced stuttering. On my old
+            system it didn't improve any metric.</p>
+        </div>
+      </div>
+    </HelpCard>
 
   </div>
 </template>

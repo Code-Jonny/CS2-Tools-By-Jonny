@@ -171,10 +171,13 @@
 
 <style scoped>
   main {
-    margin-left: var(--current-sidebar-width);
     padding: 25px;
+    padding-left: 85px;
+    /* padding-left: calc(var(--current-sidebar-width) + 25px); */
     background-color: var(--background-primary);
     min-height: 100vh;
-    transition: margin-left 0.15s ease-in-out;
+    max-width: 800px;
+    margin-inline: auto;
+    transition: padding-left 0.15s ease-in-out;
   }
 </style>

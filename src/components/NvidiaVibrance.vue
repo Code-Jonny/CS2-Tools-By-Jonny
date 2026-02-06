@@ -3,6 +3,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { settings } from "@lib/settingsStore";
   import Card from "@elements/Card.vue";
+  import HelpCard from "@elements/HelpCard.vue";
   import Toggle from "@elements/Toggle.vue";
   import ContentBox from "@elements/ContentBox.vue";
   import Icon from "@icons/Icon.vue";
@@ -37,54 +38,73 @@
         </p>
       </div>
     </ContentBox>
-    <div v-else>
-      <ContentBox>
-        <Toggle v-model:checked="settings.vibranceSettings.enabled"
-                id="vibrance-toggle" label="Enable Vibrance Management" />
-      </ContentBox>
 
-      <Card v-if="settings.vibranceSettings.enabled"
-            title="Configure Vibrance Levels" icon="monitor">
-        <div class="controls-column">
-          <!-- Default Vibrance -->
-          <div class="control-group">
-            <div class="control-header">
-              <div class="label-group">
-                <label for="default-vibrance">Default Vibrance (Desktop)</label>
-                <span class="default-hint">Nvidia default: 50</span>
-              </div>
-              <input type="number" min="0" max="100"
-                     v-model.number="settings.vibranceSettings.defaultVibrance"
-                     class="number-input" />
+    <ContentBox v-else>
+      <Toggle v-model:checked="settings.vibranceSettings.enabled"
+              id="vibrance-toggle" label="Enable Vibrance Management" />
+    </ContentBox>
+
+    <Card v-if="settings.vibranceSettings.enabled"
+          title="Configure Vibrance Levels" icon="monitor">
+      <div class="controls-column">
+        <!-- Default Vibrance -->
+        <div class="control-group">
+          <div class="control-header">
+            <div class="label-group">
+              <label for="default-vibrance">Default Vibrance (Desktop)</label>
+              <span class="default-hint">Nvidia default: 50</span>
             </div>
-            <input id="default-vibrance" type="range" min="0" max="100"
+            <input type="number" min="0" max="100"
                    v-model.number="settings.vibranceSettings.defaultVibrance"
-                   class="slider-input" />
+                   class="number-input" />
           </div>
-
-          <!-- CS2 Vibrance -->
-          <div class="control-group">
-            <div class="control-header">
-              <label for="cs2-vibrance">CS2 Vibrance (In-Game)</label>
-              <input type="number" min="0" max="100"
-                     v-model.number="settings.vibranceSettings.cs2Vibrance"
-                     class="number-input" />
-            </div>
-            <input id="cs2-vibrance" type="range" min="0" max="100"
-                   v-model.number="settings.vibranceSettings.cs2Vibrance"
-                   class="slider-input" />
-          </div>
+          <input id="default-vibrance" type="range" min="0" max="100"
+                 v-model.number="settings.vibranceSettings.defaultVibrance"
+                 class="slider-input" />
         </div>
-      </Card>
 
-      <div v-else class="placeholder-info">
-        <Icon iconName="info-circle" size="48"
-              style="color: var(--text-secondary); opacity: 0.5;" />
-        <p>Enable Vibrance Management to automatically set Digital Vibrance when
-          CS2 starts.</p>
+        <!-- CS2 Vibrance -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="cs2-vibrance">CS2 Vibrance (In-Game)</label>
+            <input type="number" min="0" max="100"
+                   v-model.number="settings.vibranceSettings.cs2Vibrance"
+                   class="number-input" />
+          </div>
+          <input id="cs2-vibrance" type="range" min="0" max="100"
+                 v-model.number="settings.vibranceSettings.cs2Vibrance"
+                 class="slider-input" />
+        </div>
       </div>
+    </Card>
+
+    <div v-else class="placeholder-info">
+      <Icon iconName="info-circle" size="48"
+            style="color: var(--text-secondary); opacity: 0.5;" />
+      <p>Enable Vibrance Management to automatically set Digital Vibrance when
+        CS2 starts.</p>
     </div>
+
+    <HelpCard icon="questionmark">
+      <p>
+        This module allows you to set a custom Nvidia Digital Vibrance level for
+        Counter-Strike 2. When enabled, it will automatically switch to the
+        specified "CS2 Vibrance" level when the game starts, and revert to the
+        "Default Vibrance" level when the game exits. Adjusting vibrance can
+        enhance visual clarity and color saturation in-game.
+      </p>
+
+      <div class="rating">
+        <h3>Placebo Rating: 2 / 10</h3>
+        <div class="ratingcontent">
+          <p>I find the game looks more vibrant and colorful. I believe my
+            gameplay benefits from the enhanced visuals.</p>
+        </div>
+      </div>
+    </HelpCard>
   </div>
+
+
 </template>
 
 <style scoped>
