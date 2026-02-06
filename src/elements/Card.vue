@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
 
   defineProps<{
     title?: string;
@@ -13,7 +13,7 @@
   <div class="card-container" :class="{ 'has-shadow': hasShadow !== false }">
     <div v-if="title || icon || $slots.header_actions" class="card-header">
       <div class="card-header-main">
-        <Icon v-if="icon" :icon="icon" width="24" height="24" />
+        <Icon v-if="icon" :iconName="icon" size="24" />
         <component :is="titleTag || 'h3'" v-if="title" class="card-title">
           {{ title }}
         </component>

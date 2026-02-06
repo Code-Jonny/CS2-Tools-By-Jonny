@@ -3,7 +3,7 @@
   import { runningProcesses, type ProcessInfo } from "@lib/runningProcesses";
   import { settings } from "@lib/settingsStore";
   import { powerPlans } from "@lib/powerplans";
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
   import Card from "@elements/Card.vue";
 
   const isCS2Running = computed(() =>
@@ -32,32 +32,32 @@
   <div class="dashboard-container">
     <h1>Dashboard</h1>
 
-    <Card title="Counter-Strike 2 Status" icon="simple-icons:counterstrike">
+    <Card title="Counter-Strike 2 Status" icon="counterstrike">
       <div v-if="isCS2Running" class="status-indicator running">
-        <Icon icon="solar:play-circle-bold" width="32" height="32" />
+        <Icon iconName="play-circle" size="32" />
         <span>CS2 is <strong>RUNNING</strong></span>
       </div>
       <div v-else class="status-indicator not-running">
-        <Icon icon="solar:stop-circle-bold" width="32" height="32" />
+        <Icon iconName="stop-circle" size="32" />
         <span>CS2 is <strong>NOT RUNNING</strong></span>
       </div>
     </Card>
 
-    <Card title="Active Power Plan" icon="solar:bolt-linear">
+    <Card title="Active Power Plan" icon="power">
       <p v-if="powerPlans.error" class="error-text">
-        <Icon icon="solar:danger-triangle-linear" width="20" height="20" />
+        <Icon iconName="danger-triangle" size="20" />
         Error
         loading power plan: {{ powerPlans.error }}
       </p>
       <p v-else-if="activePowerPlan" class="status-indicator">
-        {{ activePowerPlan.name }}</p>
+        {{ activePowerPlan.name }}
+      </p>
       <p v-else class="info-text">No active power plan found or not loaded yet.
       </p>
     </Card>
 
     <Card v-if="settings.processManagementActive"
-          title="Kill List Process Status"
-          icon="solar:checklist-minimalistic-linear">
+          title="Kill List Process Status" icon="tasks">
       <ul v-if="killListProcessStatuses.length > 0" class="process-status-list">
         <li v-for="process in killListProcessStatuses" :key="process.name">
           <span>{{ process.name }}:</span>

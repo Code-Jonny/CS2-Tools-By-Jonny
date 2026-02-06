@@ -90,7 +90,7 @@
   <div class="settings-container">
     <h1>Settings</h1>
 
-    <Card title="Startup & Behavior" icon="solar:settings-linear">
+    <Card title="Startup & Behavior" icon="settings">
       <div class="setting-item">
         <Toggle label="Start with Windows" id="autostart"
                 v-model:checked="settings.autostartWithWindows" />
@@ -108,7 +108,7 @@
       </div>
     </Card>
 
-    <Card title="Application Performance" icon="solar:graph-up-linear">
+    <Card title="Application Performance" icon="graph-up">
       <div class="setting-item">
         <TextInput label="Polling Interval (seconds)" id="pollingInterval"
                    :modelValue="pollingIntervalSeconds.toString()"

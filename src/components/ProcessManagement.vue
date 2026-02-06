@@ -67,7 +67,7 @@
               :key="'kill-' + index" class="kill-list-item">
             <span>{{ processName }}</span>
             <Button type="button" variant="danger" @click="removeProcess(index)"
-                    icon="solar:trash-bin-minimalistic-linear" />
+                    icon="trashbin" />
           </li>
         </ul>
         <p v-else class="info-text">No processes configured to be killed.</p>
@@ -82,15 +82,13 @@
                      @input="errorMessage = ''" @submit="handleAddManualProcess"
                      :error="errorMessage || undefined" />
           <Button type="button" variant="primary"
-                  @click="handleAddManualProcess"
-                  icon="solar:add-circle-linear">
+                  @click="handleAddManualProcess" icon="add-circle">
             Add
           </Button>
         </div>
       </Card>
 
-      <Card title="Running Processes"
-            icon="solar:checklist-minimalistic-linear">
+      <Card title="Running Processes" icon="tasks">
         <p class="section-description">
           Find running processes and add them to your kill list.
         </p>

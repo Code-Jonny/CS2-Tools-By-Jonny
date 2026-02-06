@@ -49,7 +49,13 @@
   watch(() => props.iconName, loadSvg);
   onMounted(loadSvg);
 
-  const computedSize = computed(() => typeof props.size === "number" ? `${props.size}px` : (props.size || "24px"));
+  const computedSize = computed(() => {
+    if (typeof props.size === "number") return `${props.size}px`;
+    if (!props.size) return "24px";
+    // Check if string contains only digits
+    if (/^\d+$/.test(props.size)) return `${props.size}px`;
+    return props.size;
+  });
   const computedFillColor = computed(() => props.fillColor || "#E0E0E0");
 
 </script>
@@ -75,6 +81,8 @@
     align-items: center;
     justify-content: center;
     vertical-align: middle;
+    fill: inherit;
+    color: inherit;
   }
 
   .svg-content {
@@ -88,7 +96,7 @@
     width: 100%;
     height: 100%;
     display: block;
-    fill: currentColor;
+    fill: inherit;
   }
 
   .svg-content :deep(svg [fill]:not([fill="none"]):not([fill="currentColor"])) {

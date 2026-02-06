@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
   import { computed } from 'vue';
 
   type InputMode = "none" | "text" | "decimal" | "numeric" | "tel" | "search" | "email" | "url";
@@ -51,8 +51,8 @@
   <div class="text-input-wrapper">
     <label v-if="label" :for="uniqueId" class="input-label">{{ label }}</label>
     <div class="input-container" :class="{ 'has-icon': icon }">
-      <Icon v-if="icon" :icon="icon" :width="iconSize || '20'"
-            :height="iconSize || '20'" class="input-icon" />
+      <Icon v-if="icon" :iconName="icon" :size="iconSize || '20'"
+            class="input-icon" />
       <input :value="modelValue"
              :type="inputmode === 'numeric' || inputmode === 'decimal' ? 'number' : 'text'"
              :id="uniqueId" :name="name || uniqueId" @input="handleInput"

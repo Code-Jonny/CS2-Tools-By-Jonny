@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
 
 
   const props = defineProps<{
@@ -22,8 +22,10 @@
 </script>
 
 <template>
-  <button :type="type || 'button'" :disabled="disabled" @click="handleClick" class="button" :class="variant || 'primary'">
-    <Icon v-if="icon" :icon="icon" :width="iconSize || '20'" :height="iconSize || '20'" />
+  <button :type="type || 'button'" :disabled="disabled" @click="handleClick"
+          class="button" :class="variant || 'primary'">
+    <Icon v-if="icon" :iconName="icon" :size="iconSize || '20'"
+          :fillColor="(variant === 'primary' || !variant) ? 'var(--background-primary, #1a1a1a)' : undefined" />
     <slot></slot>
   </button>
 </template>
@@ -100,7 +102,8 @@
 
   .button.icon {
     background: transparent;
-    color: var(--text-primary);
+    color: inherit;
+    fill: inherit;
     padding: 4px;
   }
 </style>

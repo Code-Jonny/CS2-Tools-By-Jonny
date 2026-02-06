@@ -5,7 +5,7 @@
   import Card from "@elements/Card.vue";
   import Toggle from "@elements/Toggle.vue";
   import ContentBox from "@elements/ContentBox.vue";
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
 
   const hasNvidiaGpu = ref(false);
   const checkingGpu = ref(true);
@@ -30,8 +30,7 @@
     </div>
     <ContentBox v-else-if="!hasNvidiaGpu">
       <div class="error-container">
-        <Icon icon="solar:danger-triangle-linear" width="24" height="24"
-              class="text-warning" />
+        <Icon iconName="danger-triangle" size="24" class="text-warning" />
         <p>
           No Nvidia GPU detected. This module requires an Nvidia GPU with
           drivers installed.
@@ -45,8 +44,7 @@
       </ContentBox>
 
       <Card v-if="settings.vibranceSettings.enabled"
-            title="Configure Vibrance Levels"
-            icon="solar:monitor-camera-linear">
+            title="Configure Vibrance Levels" icon="monitor">
         <div class="controls-column">
           <!-- Default Vibrance -->
           <div class="control-group">
@@ -80,7 +78,7 @@
       </Card>
 
       <div v-else class="placeholder-info">
-        <Icon icon="solar:info-circle-line" width="48" height="48"
+        <Icon iconName="info-circle" size="48"
               style="color: var(--text-secondary); opacity: 0.5;" />
         <p>Enable Vibrance Management to automatically set Digital Vibrance when
           CS2 starts.</p>

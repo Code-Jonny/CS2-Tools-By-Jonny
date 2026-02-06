@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
 
 
   const props = defineProps<{
@@ -21,9 +21,9 @@
 
 <template>
   <div class="toggle-component">
-    <Icon v-if="checked" icon="solar:check-circle-bold" width="24" height="24"
+    <Icon v-if="checked" iconName="check-circle" size="24"
           class="icon icon--enabled" style="color: var(--success-color);" />
-    <Icon v-else icon="solar:check-circle-linear" width="24" height="24"
+    <Icon v-else iconName="check-circle-line" size="24"
           class="icon icon--disabled" style="color: var(--icon-color);" />
     <label :for="id" :class="{ disabled: disabled }"
            class="toggle-label">{{ label }}</label>

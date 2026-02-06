@@ -67,7 +67,7 @@
     </ContentBox>
 
     <Card v-if="settings.powerPlanManagementActive"
-          title="Configure Power Plans" icon="solar:bolt-linear">
+          title="Configure Power Plans" icon="power">
       <form @submit.prevent class="power-plan-form">
         <div class="form-group">
           <label for="powerPlanCS2">Power Plan for CS2:</label>
@@ -77,7 +77,8 @@
                   :disabled="powerPlans.isLoading || !!powerPlans.error"
                   class="styled-select">
             <option v-if="powerPlans.error" value="" disabled>Error:
-              {{ powerPlans.error }}</option>
+              {{ powerPlans.error }}
+            </option>
             <option v-else-if="localAvailablePowerPlans.length === 0 && !powerPlans.isLoading"
                     value="" disabled>No power plans found. (Try Refresh)
             </option>
@@ -122,7 +123,7 @@
         <div class="actions">
           <Button variant="secondary"
                   @click="() => { powerPlans.refresh(); refreshAvailablePowerPlans(); }"
-                  icon="solar:refresh-circle-linear">
+                  icon="refresh">
             Refresh Plans
           </Button>
         </div>

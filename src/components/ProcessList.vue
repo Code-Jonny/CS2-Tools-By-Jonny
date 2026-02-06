@@ -5,7 +5,7 @@
   import { runningProcesses, type ProcessInfo, type FilterType, type SortKey, type SortOrder } from "@lib/runningProcesses";
   import { isProcessProtected } from "@lib/processUtils";
   import { ref, computed } from "vue";
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
 
   const filter = ref<FilterType>("all");
   const sortKey = ref<SortKey>("name");
@@ -32,18 +32,19 @@
   }
 
   const displayedProcesses = computed(() => {
-    let processesToGroup = [...runningProcesses.processes];
+    const processesToGroup = runningProcesses.processes.filter(p => !isProcessProtected(p.name));
 
     // Apply search term
+    let filteredProcesses = processesToGroup;
     if (searchTerm.value && searchTerm.value.trim() !== "") {
       const lowerSearchTerm = searchTerm.value.toLowerCase();
-      processesToGroup = processesToGroup.filter((p: ProcessInfo) =>
+      filteredProcesses = filteredProcesses.filter((p: ProcessInfo) =>
         p.name.toLowerCase().includes(lowerSearchTerm)
       );
     }
 
     // Grouping
-    const grouped = processesToGroup.reduce((acc, process) => {
+    const grouped = filteredProcesses.reduce((acc, process) => {
       if (!acc[process.name]) {
         acc[process.name] = {
           name: process.name,
@@ -102,10 +103,9 @@
     <div class="process-list-controls">
       <div class="search-wrapper">
         <TextInput v-model="searchTerm" placeholder="Search processes..."
-                   icon="solar:magnifer-linear" />
+                   icon="magnifer" />
       </div>
-      <Button variant="secondary" @click="getProcessList"
-              icon="solar:refresh-circle-linear">
+      <Button variant="secondary" @click="getProcessList" icon="refresh">
         Refresh
       </Button>
     </div>
@@ -118,14 +118,14 @@
               <div class="th-content">
                 Process Name
                 <Icon v-if="sortKey === 'name'"
-                      :icon="sortOrder === 'asc' ? 'solar:sort-from-bottom-to-top-linear' : 'solar:sort-from-top-to-bottom-linear'" />
+                      :iconName="sortOrder === 'asc' ? 'sort-bottom2top' : 'sort-top2bottom'" />
               </div>
             </th>
             <th @click="handleSort('memory')" class="sortable">
               <div class="th-content">
                 Memory
                 <Icon v-if="sortKey === 'memory'"
-                      :icon="sortOrder === 'asc' ? 'solar:sort-from-bottom-to-top-linear' : 'solar:sort-from-top-to-bottom-linear'" />
+                      :iconName="sortOrder === 'asc' ? 'sort-bottom2top' : 'sort-top2bottom'" />
               </div>
             </th>
             <th>Action</th>
@@ -140,18 +140,16 @@
             <td>{{ process.displayName }}</td>
             <td>{{ formatMemory(process.memory) }}</td>
             <td>
-              <Button v-if="!isProcessProtected(process.nameForActionAndSort) && !settings.processesToKill.includes(process.nameForActionAndSort)"
+              <Button v-if="!settings.processesToKill.includes(process.nameForActionAndSort)"
                       variant="secondary"
                       @click="addToKillList(process.nameForActionAndSort)"
-                      icon="solar:add-circle-linear"
+                      icon="add-circle"
                       style="padding: 4px 8px; font-size: 12px;">
                 Add to Kill List
               </Button>
-              <span v-else-if="settings.processesToKill.includes(process.nameForActionAndSort)"
-                    class="added-badge">
+              <span v-else class="added-badge">
                 Added
               </span>
-              <span v-else class="protected-badge">Protected</span>
             </td>
           </tr>
         </tbody>

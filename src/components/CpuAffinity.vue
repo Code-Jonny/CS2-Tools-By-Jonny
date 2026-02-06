@@ -6,7 +6,7 @@
   import Toggle from "@elements/Toggle.vue";
   import ContentBox from "@elements/ContentBox.vue";
   import Button from "@elements/Button.vue";
-  import { Icon } from "@iconify/vue";
+  import Icon from "@icons/Icon.vue";
 
   const cpuCount = ref(0);
   const loading = ref(true);
@@ -60,17 +60,15 @@
     </ContentBox>
 
     <Card v-if="settings.cpuAffinity.enabled" title="Configure CPU Cores"
-          icon="solar:cpu-linear">
+          icon="cpu">
       <p v-if="loading">Loading CPU info...</p>
       <div v-else>
         <div class="controls">
-          <Button variant="primary" @click="selectOptimized"
-                  icon="solar:magic-stick-3-linear">
+          <Button variant="primary" @click="selectOptimized" icon="magic-stick">
             Optimize (Skip Core 0 & 1)
           </Button>
-          <Button variant="secondary" @click="selectAll"
-                  icon="solar:check-square-linear">
-            Select All
+          <Button variant="secondary" @click="selectAll" icon="check-circle">
+            Use all CPU cores
           </Button>
         </div>
 
@@ -80,7 +78,7 @@
                   @click="toggleCore(i)" :aria-label="`Toggle Core ${i}`">
             <span class="core-label">Core {{ i }}</span>
             <Icon v-if="settings.cpuAffinity.selectedCores.includes(i)"
-                  icon="solar:check-circle-bold" width="20" height="20" />
+                  iconName="check-circle" size="20" />
             <span v-else class="unchecked-icon"></span>
           </button>
         </div>
@@ -93,7 +91,7 @@
     </Card>
 
     <div v-else class="placeholder-info">
-      <Icon icon="solar:info-circle-line" width="48" height="48"
+      <Icon iconName="info-circle" size="48"
             style="color: var(--text-secondary); opacity: 0.5;" />
       <p>Enable CPU Affinity Management to configure which CPU cores CS2 should
         run on.</p>
