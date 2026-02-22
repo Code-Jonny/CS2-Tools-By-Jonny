@@ -145,6 +145,9 @@ impl NvidiaController {
             // Rust Strings sind nicht null-terminiert, C Strings schon.
             let c_name = std::ffi::CString::new(display_name)?;
 
+            // Log output for debugging
+            println!("Attempting to get handle for display: '{}'", display_name);
+
             // `mem::zeroed()`: Erstellt ein leeres Handle-Objekt, das von der C-Funktion gefüllt wird.
             let mut handle: sys::handles::NvDisplayHandle = mem::zeroed();
 
@@ -152,6 +155,10 @@ impl NvidiaController {
             let status = get_handle(c_name.as_ptr(), &mut handle);
 
             if status != sys::status::NVAPI_OK {
+                println!(
+                    "NvAPI Error getting handle for '{}': {:?}",
+                    display_name, status
+                );
                 return Err(anyhow!(
                     "Failed to get handle for display {}: {:?}",
                     display_name,
@@ -159,6 +166,10 @@ impl NvidiaController {
                 ));
             }
 
+            println!(
+                "Successfully got handle for '{}'. Setting DVC now...",
+                display_name
+            );
             self.set_dvc_for_handle(handle, level)?;
         }
 

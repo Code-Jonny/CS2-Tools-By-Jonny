@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import { onMounted, ref } from "vue";
+  import { onMounted, ref, watch } from "vue";
   import { invoke } from "@tauri-apps/api/core";
-  import { settings } from "@lib/settingsStore";
+  import { settings, isSettingsLoaded } from "@lib/settingsStore";
   import Card from "@elements/Card.vue";
   import HelpCard from "@elements/HelpCard.vue";
   import Toggle from "@elements/Toggle.vue";
@@ -10,6 +10,31 @@
 
   const hasNvidiaGpu = ref(false);
   const checkingGpu = ref(true);
+
+  const syncSettings = async () => {
+    if (!isSettingsLoaded.value) return;
+    try {
+      await invoke("set_vibrance_settings", {
+        enabled: settings.vibranceSettings.enabled,
+        defaultVibrance: settings.vibranceSettings.defaultVibrance,
+        cs2Vibrance: settings.vibranceSettings.cs2Vibrance,
+        pollingRate: Math.max(100, settings.pollingIntervalMs || 1000), // Ensure at least 100ms
+      });
+      console.log("Synced vibrance settings to backend");
+    } catch (error) {
+      console.error("Failed to sync vibrance settings", error);
+    }
+  };
+
+  watch(
+    [() => settings.vibranceSettings, () => settings.pollingIntervalMs],
+    syncSettings,
+    { deep: true }
+  );
+
+  watch(isSettingsLoaded, (loaded) => {
+    if (loaded) syncSettings();
+  }, { immediate: true });
 
   onMounted(async () => {
     try {

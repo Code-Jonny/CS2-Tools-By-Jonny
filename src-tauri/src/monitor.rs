@@ -19,6 +19,7 @@ pub struct VibranceSettings {
     pub enabled: bool,
     pub default_vibrance: u32,
     pub cs2_vibrance: u32,
+    pub polling_rate: u64,
 }
 
 impl Default for VibranceSettings {
@@ -27,6 +28,7 @@ impl Default for VibranceSettings {
             enabled: false,
             default_vibrance: 50,
             cs2_vibrance: 100,
+            polling_rate: 1000,
         }
     }
 }
@@ -71,6 +73,7 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
     // `move` überträgt den Besitz (Ownership) von `state` an den neuen Thread.
     // Da `state` ein `Arc` ist, wird nur der Referenzzähler erhöht, nicht die Daten kopiert.
     thread::spawn(move || {
+        println!("Vibrance Monitor Thread started!");
         // Check if Nvidia GPU is present before starting the loop
         if !NvidiaController::has_nvidia_gpu() {
             println!("No Nvidia GPU detected. Vibrance monitor thread will not start.");
@@ -82,7 +85,10 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
         // Wir versuchen, den Controller zu initialisieren. Wenn es fehlschlägt (`Err`),
         // beenden wir den Thread, um Abstürze zu vermeiden.
         let mut controller = match NvidiaController::new() {
-            Ok(c) => c,
+            Ok(c) => {
+                println!("NvidiaController initialized successfully in monitor thread.");
+                c
+            }
             Err(e) => {
                 eprintln!("Failed to initialize NvidiaController: {}", e);
                 return;
@@ -90,12 +96,6 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
         };
 
         loop {
-            // ? STRATEGIE: Polling
-            // Wir prüfen jede Sekunde. Das ist einfach zu implementieren, verbraucht aber
-            // unnötig CPU-Zyklen, wenn nichts passiert.
-            // Eine Alternative wäre "Event-Driven" (Hooks), was in Rust/Windows aber deutlich komplexer ist.
-            thread::sleep(Duration::from_secs(1));
-
             // * HINWEIS: Scope für den Lock
             // Wir holen uns die Settings in einem eigenen Block.
             // Sobald `lock` "out of scope" geht (am Ende der Zuweisung), wird der Mutex wieder freigegeben.
@@ -105,6 +105,15 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
                 let lock = state.settings.lock().unwrap();
                 lock.clone()
             };
+
+            // ? STRATEGIE: Polling
+            // Wir prüfen entsprechend der eingestellten Rate.
+            let polling_rate = if settings.polling_rate > 0 {
+                settings.polling_rate
+            } else {
+                1000
+            };
+            thread::sleep(Duration::from_millis(polling_rate));
 
             if !settings.enabled {
                 // If disabled, maybe we should reset to default?
@@ -125,21 +134,26 @@ pub fn start_monitor_thread(state: Arc<VibranceState>) {
             // Wir übergeben einen Pointer (`&mut`) auf `pid_u32` an Windows, damit Windows dort die ID reinschreibt.
             unsafe { GetWindowThreadProcessId(hwnd, &mut pid_u32) };
 
-            let pid = sysinfo::Pid::from_u32(pid_u32);
+            let pid = (pid_u32 as usize).into();
 
             // Refresh processes to ensure we have the latest state
-            // * PERFORMANCE: Wir aktualisieren nur die Prozessliste, wenn nötig.
-            // `ProcessesToUpdate::All` könnte teuer sein, evtl. optimierbar.
             sys.refresh_processes(ProcessesToUpdate::All, true);
 
             let process_name = sys
                 .process(pid)
                 .map(|p| p.name().to_string_lossy().to_string())
-                .unwrap_or_default();
+                .unwrap_or_else(|| {
+                    // Fallback: If sysinfo fails, try to get module name from handle? Too complex for now.
+                    String::new()
+                });
+
+            // Debugging output
+            println!("Foreground Process: '{}' (PID: {})", process_name, pid);
 
             let is_cs2 = process_name.to_lowercase() == "cs2.exe";
 
             if is_cs2 {
+                println!("CS2 detected! Setting vibrance...");
                 // CS2 is running in foreground.
                 // 1. Find which monitor it is on.
                 let hmonitor = unsafe { MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) };
@@ -311,13 +325,20 @@ pub fn set_vibrance_settings(
     enabled: bool,
     default_vibrance: u32,
     cs2_vibrance: u32,
+    polling_rate: u64,
 ) {
+    println!(
+        "Received set_vibrance_settings: enabled={}, default={}, cs2={}, polling_rate={}",
+        enabled, default_vibrance, cs2_vibrance, polling_rate
+    );
+
     // * HINWEIS: Locking
     // Wir blockieren den Mutex kurzzeitig, um die Werte zu schreiben.
     let mut settings = state.settings.lock().unwrap();
     settings.enabled = enabled;
     settings.default_vibrance = default_vibrance;
     settings.cs2_vibrance = cs2_vibrance;
+    settings.polling_rate = polling_rate;
 
     // Reset current vibrance so it gets reapplied immediately
     // ! WICHTIG: Wir setzen den Cache zurück (`None`), damit der Monitor-Thread
