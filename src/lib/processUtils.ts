@@ -17,7 +17,7 @@ export const PROTECTED_PROCESS_NAMES: string[] = [
   "conhost.exe", // Console Window Host
   "csrss.exe", // Client/Server Runtime Subsystem
   "cs2.exe", // The game itself
-  "cs2toolsbyjonny.exe", // The CS2 Tools application itself
+  "CS2ToolsByJonny.exe", // The CS2 Tools application itself
   "ctfmon.exe", // Keyboard Input Loader
   "dasHost.exe", // Device Association Framework Host
   "DataExchangeHost.exe", // Data Exchange Host
