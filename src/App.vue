@@ -20,6 +20,7 @@
   let mainLoopIntervalId: ReturnType<typeof setInterval> | undefined = undefined;
   let isMainLoopLogicRunning = false;
   let previousCs2RunningState = false;
+  const affinitySetPids = new Set<number>();
 
   // Main Loop Logic
   async function mainLoop() {
@@ -42,19 +43,28 @@
       }
 
       // CPU Affinity
-      if (cs2RunningStateChanged && cs2Running && settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
+      // Force affinity on every loop iteration to prevent CS2 or Windows from resetting it
+      // Also handle PID changes (e.g. launcher -> game process)
+      if (cs2Running && settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
         const pids = runningProcesses.getPidsForName("cs2.exe");
-        let mask = 0n;
-        for (const core of settings.cpuAffinity.selectedCores) {
-          mask |= 1n << BigInt(core);
+        const selectedCores = settings.cpuAffinity.selectedCores;
+
+        // Cleanup old PIDs
+        for (const trackedPid of affinitySetPids) {
+          if (!pids.includes(trackedPid)) {
+            affinitySetPids.delete(trackedPid);
+          }
         }
-        const maskStr = mask.toString();
+
         for (const pid of pids) {
           try {
-            await invoke("set_process_affinity", { pid, mask: maskStr });
-            console.log(`Set affinity for CS2 (PID ${pid}) to ${maskStr}`);
+            await invoke("set_process_affinity", { pid, cores: selectedCores });
+            if (!affinitySetPids.has(pid)) {
+              console.log(`[Affinity] Successfully enforced for CS2 (PID ${pid}) with cores [${selectedCores.join(", ")}]`);
+              affinitySetPids.add(pid);
+            }
           } catch (e) {
-            console.error(`Failed to set affinity for CS2 (PID ${pid}):`, e);
+            console.error(`[Affinity] Failed to set for CS2 (PID ${pid}):`, e);
           }
         }
       }

@@ -104,17 +104,25 @@ pub fn get_cpu_count() -> usize {
 ///
 /// # Arguments
 /// * `pid` - Die Prozess-ID.
-/// * `mask` - Eine Bitmaske als String (z.B. "3" für Kerne 0 und 1).
-///   Wird als String übergeben, da JavaScripts `Number` (Double Precision Float)
-///   bei großen 64-Bit Integers an Genauigkeit verliert.
+/// * `cores` - Eine Liste der CPU-Kerne, die verwendet werden sollen.
 #[tauri::command]
-pub fn set_process_affinity(pid: u32, mask: String) -> Result<(), String> {
-    // mask is passed as String because u64 might have issues with JSON serialization/deserialization precision in JS
-    // although BigInt exists, passing as string is safer for large bitmasks.
+pub fn set_process_affinity(pid: u32, cores: Vec<u32>) -> Result<(), String> {
+    if cores.is_empty() {
+        return Err("No cores specified".to_string());
+    }
 
-    // * HINWEIS: Parsing
-    // Wir parsen den String als `u64` zur Basis 10.
-    let mask_val = u64::from_str_radix(&mask, 10).map_err(|e| e.to_string())?;
+    let mut mask_val: u64 = 0;
+    for core in &cores {
+        if *core >= 64 {
+            return Err(format!("Core index {} is too high (max 63)", core));
+        }
+        mask_val |= 1 << core;
+    }
+
+    println!(
+        "Setting affinity for PID {} to Cores {:?} (Mask: {}, Binary: {:b})",
+        pid, cores, mask_val, mask_val
+    );
 
     #[cfg(target_os = "windows")]
     {
@@ -127,16 +135,10 @@ pub fn set_process_affinity(pid: u32, mask: String) -> Result<(), String> {
                 return Err("Failed to open process".to_string());
             }
 
-            // Compiler claims SetProcessAffinityMask expects u32, even though it should be DWORD_PTR (usize) on x64.
-            // Casting to u32 to satisfy the compiler. This limits affinity to 32 cores.
-
-            // ! WARNUNG: Typ-Casting
-            // `SetProcessAffinityMask` erwartet eigentlich `DWORD_PTR` (was auf 64-Bit Systemen `u64` sein sollte).
-            // Die `winapi` Crate definiert es hier aber anscheinend als `u32` oder es gibt ein Missverständnis beim Casting.
-            // Wenn wir hier auf `u32` casten, verlieren wir die oberen 32 Bits.
-            // Das bedeutet, wir können die Affinität für Kerne > 31 nicht setzen!
-            // TODO: Prüfen, ob `usize` hier korrekt wäre oder ob die `winapi` Definition veraltet ist.
-            let result = SetProcessAffinityMask(handle, mask_val as u32);
+            // * FIX: SetProcessAffinityMask expects a specific integer type (DWORD_PTR).
+            // Usually usize on 64-bit, but sometimes u32 depending on target/winapi version.
+            // Using `as _` lets rustc infer the correct cast target type automatically.
+            let result = SetProcessAffinityMask(handle, mask_val as _);
 
             // WICHTIG: Handle immer schließen, um Resource Leaks zu vermeiden.
             CloseHandle(handle);
