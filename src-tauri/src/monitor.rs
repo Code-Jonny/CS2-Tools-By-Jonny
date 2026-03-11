@@ -73,39 +73,43 @@ pub fn start_monitor_thread(app: AppHandle, state: Arc<VibranceState>) {
     // `move` überträgt den Besitz (Ownership) von `state` an den neuen Thread.
     // Da `state` ein `Arc` ist, wird nur der Referenzzähler erhöht, nicht die Daten kopiert.
     thread::spawn(move || {
-        let _ = app.emit("log-info", "Vibrance Monitor Thread started!");
-        // Check if Nvidia GPU is present before starting the loop
-        if !NvidiaController::has_nvidia_gpu() {
+        let _ = app.emit("log-info", "Monitor Thread started!");
+
+        let has_nvidia = NvidiaController::has_nvidia_gpu();
+        if !has_nvidia {
             let _ = app.emit(
                 "log-warning",
-                "No Nvidia GPU detected. Vibrance monitor thread will not start.",
+                "No Nvidia GPU detected. Vibrance features will be disabled.",
             );
-            return;
         }
 
         let mut sys = System::new();
-        // * HINWEIS: Fehlerbehandlung mit `match`
-        // Wir versuchen, den Controller zu initialisieren. Wenn es fehlschlägt (`Err`),
-        // beenden wir den Thread, um Abstürze zu vermeiden.
-        let mut controller = match NvidiaController::new(&app) {
-            Ok(c) => {
-                let _ = app.emit(
-                    "log-info",
-                    "NvidiaController initialized successfully in monitor thread.",
-                );
-                c
+        // Option to hold the controller if it initializes
+        let mut controller = if has_nvidia {
+            match NvidiaController::new(&app) {
+                Ok(c) => {
+                    let _ = app.emit(
+                        "log-info",
+                        "NvidiaController initialized successfully in monitor thread.",
+                    );
+                    Some(c)
+                }
+                Err(e) => {
+                    let _ = app.emit(
+                        "log-error",
+                        format!("Failed to initialize NvidiaController: {}", e),
+                    );
+                    None
+                }
             }
-            Err(e) => {
-                let _ = app.emit(
-                    "log-error",
-                    format!("Failed to initialize NvidiaController: {}", e),
-                );
-                return;
-            }
+        } else {
+            None
         };
 
         // Track the last set vibrance value to avoid spamming the API
         let mut last_set_vibrance: Option<u32> = None;
+        let mut last_process_running = false;
+        let mut last_window_foreground = false;
 
         loop {
             // * HINWEIS: Scope für den Lock
@@ -127,128 +131,123 @@ pub fn start_monitor_thread(app: AppHandle, state: Arc<VibranceState>) {
             };
             thread::sleep(Duration::from_millis(polling_rate));
 
+            // Refresh processes to ensure we have the latest state
+            sys.refresh_processes(ProcessesToUpdate::All, true);
+
+            // 1. Detect Process State
+            let mut cs2_is_running = false;
+            for (_pid, process) in sys.processes() {
+                let name = process.name().to_string_lossy().to_lowercase();
+                if name == "cs2.exe" || name == "cs2" {
+                    cs2_is_running = true;
+                    break;
+                }
+            }
+
+            if cs2_is_running != last_process_running {
+                let status = if cs2_is_running { "started" } else { "stopped" };
+                let _ = app.emit("cs2process", status);
+                last_process_running = cs2_is_running;
+            }
+
+            // 2. Detect Foreground Window State
+            let hwnd = unsafe { GetForegroundWindow() };
+            let mut is_cs2_foreground = false;
+
+            if !hwnd.is_null() {
+                let mut pid_u32 = 0;
+                unsafe { GetWindowThreadProcessId(hwnd, &mut pid_u32) };
+
+                let fg_pid = (pid_u32 as usize).into();
+                let process_name = sys
+                    .process(fg_pid)
+                    .map(|p| p.name().to_string_lossy().to_string())
+                    .unwrap_or_default();
+
+                let name_lower = process_name.to_lowercase();
+                is_cs2_foreground = name_lower == "cs2.exe" || name_lower == "cs2";
+            }
+
+            if is_cs2_foreground != last_window_foreground {
+                let status = if is_cs2_foreground {
+                    "foreground"
+                } else {
+                    "background"
+                };
+                let _ = app.emit("cs2window", status);
+                last_window_foreground = is_cs2_foreground;
+            }
+
+            // --- Vibrance Logic ---
             if !settings.enabled {
-                // If disabled, reset tracker so when re-enabled we enforce value
                 last_set_vibrance = None;
                 continue;
             }
 
-            // * HINWEIS: Unsafe Code
-            // Der Aufruf von Windows-APIs (`GetForegroundWindow`) ist "unsafe", da der Rust-Compiler
-            // nicht garantieren kann, dass die C-Bibliothek speichersicher arbeitet.
-            // Wir als Entwickler müssen sicherstellen, dass wir die API korrekt nutzen.
-            let hwnd = unsafe { GetForegroundWindow() };
-            if hwnd.is_null() {
-                continue;
-            }
+            if let Some(ref mut c) = controller {
+                let mut current_vibrance_lock = state.current_vibrance.lock().unwrap();
 
-            let mut pid_u32 = 0;
-            // Wir übergeben einen Pointer (`&mut`) auf `pid_u32` an Windows, damit Windows dort die ID reinschreibt.
-            unsafe { GetWindowThreadProcessId(hwnd, &mut pid_u32) };
+                if is_cs2_foreground {
+                    // Only set vibrance if it hasn't been set to this value yet
+                    if last_set_vibrance != Some(settings.cs2_vibrance) {
+                        let _ = app.emit(
+                            "log-info",
+                            format!(
+                                "CS2 detected in foreground! Changing vibrance to {}...",
+                                settings.cs2_vibrance
+                            ),
+                        );
 
-            let pid = (pid_u32 as usize).into();
+                        let hmonitor = unsafe { MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) };
 
-            // Refresh processes to ensure we have the latest state
-            sys.refresh_processes(ProcessesToUpdate::All, true);
+                        // * HINWEIS: Initialisierung von C-Structs
+                        // `std::mem::zeroed()` erstellt ein mit Nullen gefülltes Struct.
+                        // Das ist notwendig, weil Windows-APIs oft initialisierten Speicher erwarten.
+                        let mut monitor_info: MONITORINFOEXA = unsafe { std::mem::zeroed() };
+                        monitor_info.cbSize = std::mem::size_of::<MONITORINFOEXA>() as u32;
 
-            let process_name = sys
-                .process(pid)
-                .map(|p| p.name().to_string_lossy().to_string())
-                .unwrap_or_default(); // Safer default
+                        let success = unsafe {
+                            GetMonitorInfoA(
+                                hmonitor,
+                                &mut monitor_info as *mut _
+                                    as *mut winapi::um::winuser::MONITORINFO,
+                            )
+                        };
 
-            // Debugging output
-            let name_lower = process_name.to_lowercase();
-            let is_cs2 = name_lower == "cs2.exe" || name_lower == "cs2";
+                        if success != 0 {
+                            let device_name_c =
+                                unsafe { std::ffi::CStr::from_ptr(monitor_info.szDevice.as_ptr()) };
+                            let device_name = device_name_c.to_string_lossy().into_owned();
 
-            let _ = app.emit(
-                "log-info",
-                format!(
-                    "Foreground: '{}' (PID: {}) | Match CS2: {} | Enabled: {}",
-                    process_name, pid, is_cs2, settings.enabled
-                ),
-            );
-
-            // Access shared state to update UI/Cache if needed
-            let mut current_vibrance_lock = state.current_vibrance.lock().unwrap();
-
-            if is_cs2 {
-                // Only set vibrance if it hasn't been set to this value yet
-                if last_set_vibrance != Some(settings.cs2_vibrance) {
-                    let _ = app.emit(
-                        "log-info",
-                        format!(
-                            "CS2 detected! Changing vibrance to {}...",
-                            settings.cs2_vibrance
-                        ),
-                    );
-
-                    let hmonitor = unsafe { MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) };
-
-                    // * HINWEIS: Initialisierung von C-Structs
-                    // `std::mem::zeroed()` erstellt ein mit Nullen gefülltes Struct.
-                    // Das ist notwendig, weil Windows-APIs oft initialisierten Speicher erwarten.
-                    let mut monitor_info: MONITORINFOEXA = unsafe { std::mem::zeroed() };
-                    monitor_info.cbSize = std::mem::size_of::<MONITORINFOEXA>() as u32;
-
-                    let success = unsafe {
-                        GetMonitorInfoA(
-                            hmonitor,
-                            // Cast auf den generischen MONITORINFO Typ, den die API erwartet
-                            &mut monitor_info as *mut _ as *mut winapi::um::winuser::MONITORINFO,
-                        )
-                    };
-
-                    if success != 0 {
-                        // Konvertierung von C-String (null-terminiert) zu Rust String
-                        let device_name_c =
-                            unsafe { std::ffi::CStr::from_ptr(monitor_info.szDevice.as_ptr()) };
-                        let device_name = device_name_c.to_string_lossy().into_owned();
-
-                        // 2. Set CS2 vibrance on that monitor
-                        if let Err(e) = controller.set_vibrance_for_display(
-                            &app,
-                            &device_name,
-                            settings.cs2_vibrance,
-                        ) {
-                            let _ = app.emit(
-                                "log-error",
-                                format!(
-                                    "Failed to set CS2 vibrance for display {}: {}",
-                                    device_name, e
-                                ),
-                            );
-                        } else {
-                            let _ = app.emit(
-                                "log-info",
-                                format!("Successfully set CS2 vibrance on {}", device_name),
-                            );
-                            last_set_vibrance = Some(settings.cs2_vibrance);
-                            *current_vibrance_lock = Some(settings.cs2_vibrance);
+                            if let Err(e) = c.set_vibrance_for_display(
+                                &app,
+                                &device_name,
+                                settings.cs2_vibrance,
+                            ) {
+                                let _ = app.emit(
+                                    "log-error",
+                                    format!("Failed to set CS2 vibrance: {}", e),
+                                );
+                            } else {
+                                last_set_vibrance = Some(settings.cs2_vibrance);
+                                *current_vibrance_lock = Some(settings.cs2_vibrance);
+                            }
                         }
                     }
-                }
-            } else {
-                // CS2 is NOT foreground.
-                // Revert to default if needed (and only if not already default)
-                if last_set_vibrance != Some(settings.default_vibrance) {
-                    match controller.set_vibrance(&app, settings.default_vibrance) {
-                        Ok(_) => {
-                            // Only log sparingly or on change
-                            let _ = app.emit(
-                                "log-info",
-                                format!(
-                                    "Reverted to default vibrance: {}",
-                                    settings.default_vibrance
-                                ),
-                            );
-                            last_set_vibrance = Some(settings.default_vibrance);
-                            *current_vibrance_lock = Some(settings.default_vibrance);
-                        }
-                        Err(e) => {
-                            let _ = app.emit(
-                                "log-error",
-                                format!("Failed to set default vibrance: {}", e),
-                            );
+                } else {
+                    // CS2 is NOT foreground.
+                    if last_set_vibrance != Some(settings.default_vibrance) {
+                        match c.set_vibrance(&app, settings.default_vibrance) {
+                            Ok(_) => {
+                                last_set_vibrance = Some(settings.default_vibrance);
+                                *current_vibrance_lock = Some(settings.default_vibrance);
+                            }
+                            Err(e) => {
+                                let _ = app.emit(
+                                    "log-error",
+                                    format!("Failed to set default vibrance: {}", e),
+                                );
+                            }
                         }
                     }
                 }

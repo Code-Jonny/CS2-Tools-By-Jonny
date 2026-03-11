@@ -17,89 +17,69 @@
   import CpuAffinity from "@components/CpuAffinity.vue";
   import NvidiaVibrance from "@components/NvidiaVibrance.vue";
   import SettingsComponent from "@components/Settings.vue";
+  import { listen } from "@tauri-apps/api/event";
 
-  let mainLoopIntervalId: ReturnType<typeof setInterval> | undefined = undefined;
-  let isMainLoopLogicRunning = false;
-  let previousCs2RunningState = false;
   const affinitySetPids = new Set<number>();
 
-  // Main Loop Logic
-  async function mainLoop() {
-    if (isMainLoopLogicRunning) return;
-    isMainLoopLogicRunning = true;
+  let cleanupProcessListener: (() => void) | null = null;
+  let cleanupWindowListener: (() => void) | null = null;
 
+  async function handleCs2Process(status: "started" | "stopped") {
     try {
-
-      registerLogListener();
-
       await runningProcesses.refresh();
-      const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
-      const cs2RunningStateChanged = cs2Running !== previousCs2RunningState;
-      previousCs2RunningState = cs2Running;
 
-      // Power Plans
-      if (cs2RunningStateChanged && settings.powerPlanManagementActive) {
-        if (cs2Running && settings.powerPlanCS2.guid) {
+      if (status === "started") {
+        // Power Plans
+        if (settings.powerPlanManagementActive && settings.powerPlanCS2.guid) {
           await powerPlans.setActive(settings.powerPlanCS2.guid);
-        } else if (!cs2Running && settings.powerPlanDefault.guid) {
+        }
+
+        // CPU Affinity
+        if (settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
+          const pids = runningProcesses.getPidsForName("cs2.exe");
+          const selectedCores = settings.cpuAffinity.selectedCores;
+
+          for (const pid of pids) {
+            if (!affinitySetPids.has(pid)) {
+              try {
+                await invoke("set_process_affinity", { pid, cores: selectedCores });
+                logInfo(`[Affinity] Successfully enforced for CS2 (PID ${pid}) with cores [${selectedCores.join(", ")}]`);
+                affinitySetPids.add(pid);
+              } catch (e) {
+                logError(`[Affinity] Failed to set for CS2 (PID ${pid}):`, e);
+              }
+            }
+          }
+        }
+
+        // Process Killing
+        if (settings.processManagementActive && settings.processesToKill?.length > 0) {
+          for (const processName of settings.processesToKill) {
+            const pids = runningProcesses.getPidsForName(processName);
+            for (const pid of pids) {
+              await terminateProcess(pid);
+            }
+          }
+        }
+      } else if (status === "stopped") {
+        // Power Plans
+        if (settings.powerPlanManagementActive && settings.powerPlanDefault.guid) {
           await powerPlans.setActive(settings.powerPlanDefault.guid);
         }
+
+        // Cleanup tracking
+        affinitySetPids.clear();
       }
-
-      // CPU Affinity
-      // Force affinity on every loop iteration to prevent CS2 or Windows from resetting it
-      // Also handle PID changes (e.g. launcher -> game process)
-      if (cs2RunningStateChanged && cs2Running && settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
-        const pids = runningProcesses.getPidsForName("cs2.exe");
-        const selectedCores = settings.cpuAffinity.selectedCores;
-
-        // Cleanup old PIDs
-        for (const trackedPid of affinitySetPids) {
-          if (!pids.includes(trackedPid)) {
-            affinitySetPids.delete(trackedPid);
-          }
-        }
-
-        for (const pid of pids) {
-          try {
-            await invoke("set_process_affinity", { pid, cores: selectedCores });
-            if (!affinitySetPids.has(pid)) {
-              logInfo(`[Affinity] Successfully enforced for CS2 (PID ${pid}) with cores [${selectedCores.join(", ")}]`);
-              affinitySetPids.add(pid);
-            }
-          } catch (e) {
-            logError(`[Affinity] Failed to set for CS2 (PID ${pid}):`, e);
-          }
-        }
-      }
-
-      // Process Killing
-      if (cs2RunningStateChanged && cs2Running && settings.processManagementActive && settings.processesToKill?.length > 0) {
-        for (const processName of settings.processesToKill) {
-          const pids = runningProcesses.getPidsForName(processName);
-          for (const pid of pids) {
-            await terminateProcess(pid);
-          }
-        }
-      }
-
     } catch (error) {
-      logError("Error in main loop:", error);
-    } finally {
-      isMainLoopLogicRunning = false;
+      logError("Error in handling CS2 process state:", error);
     }
   }
 
-  function startMainLoop() {
-    stopMainLoop();
-    const interval = settings.pollingIntervalMs || 5000;
-    mainLoopIntervalId = setInterval(mainLoop, interval);
-  }
-
-  function stopMainLoop() {
-    if (mainLoopIntervalId !== undefined) {
-      clearInterval(mainLoopIntervalId);
-      mainLoopIntervalId = undefined;
+  async function handleCs2Window(status: "foreground" | "background") {
+    try {
+      // Logic for foreground/background states can go here
+    } catch (error) {
+      logError("Error in handling CS2 window state:", error);
     }
   }
 
@@ -110,25 +90,35 @@
 
     logInfo("App mounted. Performing initializations.");
     try {
+      registerLogListener();
       await loadAndInitializeSettings();
       await invoke("set_minimize_to_tray", { enable: settings.minimizeToTray });
       await applyStartMinimizedSetting();
       await powerPlans.refresh();
       await runningProcesses.refresh();
-      startMainLoop();
+
+      // Listen to Rust events
+      cleanupProcessListener = await listen("cs2process", (event) => {
+        const status = event.payload as "started" | "stopped";
+        logInfo(`[Event] cs2process state changed to: ${status}`);
+        handleCs2Process(status);
+      });
+
+      cleanupWindowListener = await listen("cs2window", (event) => {
+        const status = event.payload as "foreground" | "background";
+        logInfo(`[Event] cs2window state changed to: ${status}`);
+        handleCs2Window(status);
+      });
+
     } catch (e) {
       logError("Error during initializations:", e);
     }
   });
 
   onUnmounted(() => {
-    stopMainLoop();
+    if (cleanupProcessListener) cleanupProcessListener();
+    if (cleanupWindowListener) cleanupWindowListener();
     window.removeEventListener("hashchange", updateView);
-  });
-
-  // Watch polling interval
-  watch(() => settings.pollingIntervalMs, () => {
-    startMainLoop(); // Restart with new interval
   });
 
   // Watch minimize to tray
