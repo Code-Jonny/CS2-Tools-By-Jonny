@@ -13,28 +13,25 @@
   const checkingGpu = ref(true);
 
   const syncSettings = async () => {
-    if (!isSettingsLoaded.value) return;
+    if (!isSettingsLoaded.value || !hasNvidiaGpu.value) return;
     try {
-      await invoke("set_vibrance_settings", {
-        enabled: settings.vibranceSettings.enabled,
-        defaultVibrance: settings.vibranceSettings.defaultVibrance,
-        cs2Vibrance: settings.vibranceSettings.cs2Vibrance,
-        pollingRate: Math.max(100, settings.pollingIntervalMs || 1000), // Ensure at least 100ms
-      });
-      logInfo("Synced vibrance settings to backend");
+      if (settings.vibranceSettings.enabled) {
+        await invoke("apply_vibrance", { level: settings.vibranceSettings.defaultVibrance });
+        logInfo("Applied new vibrance default setting");
+      }
     } catch (error) {
-      logError("Failed to sync vibrance settings", error);
+      logError("Failed to apply vibrance settings", error);
     }
   };
 
   watch(
-    [() => settings.vibranceSettings, () => settings.pollingIntervalMs],
+    () => [settings.vibranceSettings.enabled, settings.vibranceSettings.defaultVibrance],
     syncSettings,
     { deep: true }
   );
 
   watch(isSettingsLoaded, (loaded) => {
-    if (loaded) syncSettings();
+    if (loaded && hasNvidiaGpu.value) syncSettings();
   }, { immediate: true });
 
   onMounted(async () => {

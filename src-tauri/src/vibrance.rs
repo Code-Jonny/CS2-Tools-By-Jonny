@@ -1,5 +1,5 @@
-use anyhow::{anyhow, Context, Result};
-use nvapi::{sys, ConnectedIdsFlags, PhysicalGpu};
+use anyhow::{anyhow, Result};
+use nvapi::{sys, PhysicalGpu};
 use std::mem;
 use tauri::{AppHandle, Emitter};
 
@@ -190,97 +190,6 @@ impl NvidiaController {
         Ok(())
     }
 
-    /// Sets the digital vibrance level for all connected NVIDIA displays.
-    ///
-    /// # Arguments
-    ///
-    /// * `level` - The vibrance level to set (0-100).
-    pub fn set_vibrance(&mut self, app: &AppHandle, level: u32) -> Result<()> {
-        if level > 100 {
-            return Err(anyhow!("Vibrance level must be between 0 and 100"));
-        }
-
-        // 1. Enumerate Physical GPUs (as requested by user, and for logging)
-        // `context`: Fügt dem Fehler zusätzliche Informationen hinzu ("Failed to enumerate GPUs").
-        let gpus = PhysicalGpu::enumerate().context("Failed to enumerate GPUs")?;
-        if gpus.is_empty() {
-            return Err(anyhow!("No NVIDIA GPUs found."));
-        }
-
-        for gpu in &gpus {
-            // 2. Get connected displays for this GPU
-            let connected_ids = gpu
-                .display_ids_connected(ConnectedIdsFlags::empty())
-                .unwrap_or_default();
-            let _ = app.emit(
-                "log-info",
-                format!(
-                    "GPU {:?} has {} connected display(s)",
-                    gpu,
-                    connected_ids.len()
-                ),
-            );
-        }
-
-        // 3. Set Digital Vibrance (DVC)
-        let mut success_count = 0;
-        let mut i = 0;
-        loop {
-            let mut handle: sys::handles::NvDisplayHandle = unsafe { mem::zeroed() };
-            // Wir iterieren über alle Display-Handles (0, 1, 2...), bis die API "End Enumeration" meldet.
-            let status = unsafe { sys::dispcontrol::NvAPI_EnumNvidiaDisplayHandle(i, &mut handle) };
-
-            if status == sys::status::NVAPI_END_ENUMERATION {
-                break;
-            }
-            if status != sys::status::NVAPI_OK {
-                let _ = app.emit(
-                    "log-warning",
-                    format!(
-                        "EnumNvidiaDisplayHandle failed at index {}: {:?}",
-                        i, status
-                    ),
-                );
-                break;
-            }
-
-            let _ = app.emit("log-info", format!("Found Display Handle at index {}", i));
-
-            // Attempt to set DVC for this display handle
-            match self.set_dvc_for_handle(app, handle, level) {
-                Ok(_) => {
-                    let _ = app.emit(
-                        "log-info",
-                        format!("Successfully set vibrance for display handle index {}", i),
-                    );
-                    success_count += 1;
-                }
-                Err(e) => {
-                    let _ = app.emit(
-                        "log-warning",
-                        format!(
-                            "Failed to set vibrance for display handle index {}: {}",
-                            i, e
-                        ),
-                    );
-                }
-            }
-
-            i += 1;
-        }
-
-        if success_count == 0 {
-            let _ = app.emit("log-warning", "No displays were updated. This might be because no displays support DVC or no displays are connected.");
-        } else {
-            let _ = app.emit(
-                "log-info",
-                format!("Updated vibrance on {} display(s).", success_count),
-            );
-        }
-
-        Ok(())
-    }
-
     /// Interne Hilfsfunktion zum Setzen der Vibrance für ein spezifisches Handle.
     fn set_dvc_for_handle(
         &self,
@@ -343,5 +252,48 @@ impl NvidiaController {
             }
         }
         Ok(())
+    }
+}
+use winapi::um::winuser::{
+    GetForegroundWindow, GetMonitorInfoA, MonitorFromWindow, MONITORINFOEXA,
+    MONITOR_DEFAULTTONEAREST,
+};
+
+#[tauri::command]
+pub fn check_nvidia_gpu() -> bool {
+    NvidiaController::has_nvidia_gpu()
+}
+
+#[tauri::command]
+pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<(), String> {
+    if !NvidiaController::has_nvidia_gpu() {
+        return Err("No Nvidia GPU".into());
+    }
+    let mut controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
+
+    let hwnd = unsafe { GetForegroundWindow() };
+    if hwnd.is_null() {
+        return Err("No foreground window".into());
+    }
+
+    let hmonitor = unsafe { MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) };
+    let mut monitor_info: MONITORINFOEXA = unsafe { std::mem::zeroed() };
+    monitor_info.cbSize = std::mem::size_of::<MONITORINFOEXA>() as u32;
+
+    let success = unsafe {
+        GetMonitorInfoA(
+            hmonitor,
+            &mut monitor_info as *mut _ as *mut winapi::um::winuser::MONITORINFO,
+        )
+    };
+
+    if success != 0 {
+        let device_name_c = unsafe { std::ffi::CStr::from_ptr(monitor_info.szDevice.as_ptr()) };
+        let device_name = device_name_c.to_string_lossy().into_owned();
+        controller
+            .set_vibrance_for_display(&app, &device_name, level)
+            .map_err(|e| e.to_string())
+    } else {
+        Err("Failed to get monitor info".into())
     }
 }

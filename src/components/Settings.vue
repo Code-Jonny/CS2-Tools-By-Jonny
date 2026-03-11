@@ -3,25 +3,16 @@
   import { onMounted, watch, ref } from "vue";
   import Button from "@elements/Button.vue";
   import Toggle from "@elements/Toggle.vue";
-  import TextInput from "@elements/TextInput.vue";
   import Card from "@elements/Card.vue";
   import { setAutostart, checkAutostartStatus } from "@lib/startupUtils";
   import { logInfo, logError } from "@lib/logger";
-  import { defaultAppSettings } from "@lib/settingsStore"; // Need to export reset logic or implement it here
+  import { defaultAppSettings } from "@lib/settingsStore";
 
-  // We need a reset function. The old file imported `resetToDefaults` from `settingsStore`.
-  // I didn't export `resetToDefaults` in `settingsStore.ts`. I should fix that or implement it here.
-  // I'll implement it here or adding it to settingsStore is better.
-  // For now, I'll implement a reset function here that resets the reactive object.
-
-  const pollingIntervalSeconds = ref(settings.pollingIntervalMs / 1000);
-  const pollingIntervalError = ref<string | null>(null);
   const autostartError = ref<string | null>(null);
   const isInitialized = ref(false);
 
   const resetToDefaults = async () => {
     Object.assign(settings, JSON.parse(JSON.stringify(defaultAppSettings)));
-    // Also clear persistence? The watcher will handle saving the new defaults.
   };
 
   onMounted(async () => {
@@ -51,31 +42,6 @@
     } catch (error: any) {
       logError("Error updating autostart setting (post-init):", error);
       autostartError.value = `Failed to update autostart: ${error.message || "Unknown error"}`;
-      // Revert setting if failed?? Svelte code didn't revert but showed error.
-    }
-  });
-
-  function handlePollingIntervalChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const valStr = input.value.replace(",", ".");
-    const val = parseFloat(valStr);
-
-    if (isNaN(val) || val < 1) {
-      pollingIntervalError.value = "Polling interval must be a valid number (e.g., 3.5) and at least 1 second.";
-      return;
-    }
-
-    pollingIntervalError.value = null;
-    pollingIntervalSeconds.value = val;
-    settings.pollingIntervalMs = Math.round(val * 1000);
-  }
-
-  // Sync back if store changes (e.g. reset)
-  watch(() => settings.pollingIntervalMs, (newMs) => {
-    const newSec = newMs / 1000;
-    if (pollingIntervalSeconds.value !== newSec) {
-      pollingIntervalSeconds.value = newSec;
-      pollingIntervalError.value = null;
     }
   });
 
@@ -110,16 +76,6 @@
       <div class="setting-item">
         <Toggle label="Enable Debug Log" id="enableDebugLog"
                 v-model:checked="settings.enableDebugLog" />
-      </div>
-    </Card>
-
-    <Card title="Application Performance" icon="graph-up">
-      <div class="setting-item">
-        <TextInput label="Polling Interval (seconds)" id="pollingInterval"
-                   :modelValue="pollingIntervalSeconds.toString()"
-                   @input="handlePollingIntervalChange" placeholder="e.g. 5.0"
-                   :error="pollingIntervalError || undefined" />
-        <p class="help-text">How often the app checks for CS2 status.</p>
       </div>
     </Card>
 

@@ -77,7 +77,15 @@
 
   async function handleCs2Window(status: "foreground" | "background") {
     try {
-      // Logic for foreground/background states can go here
+      if (settings.vibranceSettings?.enabled) {
+        if (status === "foreground") {
+          await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.cs2Vibrance });
+          logInfo(`[Vibrance] CS2 in foreground. Applied CS2 vibrance ${settings.vibranceSettings.cs2Vibrance}`);
+        } else if (status === "background") {
+          await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
+          logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
+        }
+      }
     } catch (error) {
       logError("Error in handling CS2 window state:", error);
     }

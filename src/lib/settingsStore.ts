@@ -7,7 +7,6 @@ export const defaultAppSettings = {
   startMinimized: false,
   minimizeToTray: true,
   enableDebugLog: false,
-  pollingIntervalMs: 5000,
   processesToKill: [] as string[],
   powerPlanCS2: {
     name: "",
