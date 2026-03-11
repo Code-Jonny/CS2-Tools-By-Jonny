@@ -106,6 +106,11 @@
         <Toggle label="Minimize to System Tray on Close" id="minimizeToTray"
                 v-model:checked="settings.minimizeToTray" />
       </div>
+
+      <div class="setting-item">
+        <Toggle label="Enable Debug Log" id="enableDebugLog"
+                v-model:checked="settings.enableDebugLog" />
+      </div>
     </Card>
 
     <Card title="Application Performance" icon="graph-up">

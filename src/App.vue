@@ -45,7 +45,7 @@
       // CPU Affinity
       // Force affinity on every loop iteration to prevent CS2 or Windows from resetting it
       // Also handle PID changes (e.g. launcher -> game process)
-      if (cs2Running && settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
+      if (cs2RunningStateChanged && cs2Running && settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
         const pids = runningProcesses.getPidsForName("cs2.exe");
         const selectedCores = settings.cpuAffinity.selectedCores;
 
@@ -70,7 +70,7 @@
       }
 
       // Process Killing
-      if (cs2Running && settings.processManagementActive && settings.processesToKill?.length > 0) {
+      if (cs2RunningStateChanged && cs2Running && settings.processManagementActive && settings.processesToKill?.length > 0) {
         for (const processName of settings.processesToKill) {
           const pids = runningProcesses.getPidsForName(processName);
           for (const pid of pids) {
