@@ -18,7 +18,7 @@ export async function setAutostart(enableAutoStart: boolean): Promise<void> {
       await disable();
     }
   } catch (error) {
-    logError("Failed to toggle autostart:", error);
+    logError("[MinimizedToTray] Failed to toggle autostart:", error);
     throw error;
   }
 }
@@ -27,7 +27,7 @@ export async function checkAutostartStatus(): Promise<boolean> {
   try {
     return await isEnabled();
   } catch (error) {
-    logError("Failed to check autostart status:", error);
+    logError("[MinimizedToTray] Failed to check autostart status:", error);
     return false;
   }
 }
@@ -39,7 +39,7 @@ export async function applyStartMinimizedSetting(): Promise<void> {
       if (settings.minimizeToTray) {
         // Start hidden (in tray)
         // Since window starts hidden (tauri.conf.json visible: false), we don't need to do anything
-        logInfo("Starting minimized to tray (hidden).");
+        logInfo("[MinimizedToTray] Starting minimized to tray (hidden).");
       } else {
         // Start minimized in taskbar
         // To ensure it appears in taskbar, we need to show it first then minimize
@@ -47,7 +47,7 @@ export async function applyStartMinimizedSetting(): Promise<void> {
         await invoke("show_minimized");
       }
     } catch (error) {
-      logError("Failed to minimize window:", error);
+      logError("[MinimizedToTray] Failed to minimize window:", error);
       await appWindow.show(); // Fallback
     }
   } else {

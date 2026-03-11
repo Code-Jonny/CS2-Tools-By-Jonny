@@ -67,26 +67,30 @@ pub fn get_processes() -> Vec<ProcessInfo> {
 /// # Arguments
 /// * `pid` - Die Prozess-ID des zu beendenden Prozesses.
 #[tauri::command]
-pub fn terminate_process(pid: u32) -> Result<(), String> {
+pub fn terminate_process(app: AppHandle, pid: u32) -> Result<(), String> {
     let mut sys = System::new();
     // Wir müssen die Prozesse aktualisieren, um sicherzustellen, dass der Prozess existiert
     // und wir ein aktuelles Handle darauf bekommen.
     sys.refresh_processes(ProcessesToUpdate::All, true);
 
-    let pid = sysinfo::Pid::from_u32(pid);
+    let sys_pid = sysinfo::Pid::from_u32(pid);
 
     // * HINWEIS: `if let` Syntax
     // Das ist eine Kurzform für ein `match`, wenn uns nur der `Some`-Fall interessiert.
-    // "Wenn `sys.process(pid)` einen Wert (`Some(process)`) zurückgibt, dann führe den Block aus."
-    if let Some(process) = sys.process(pid) {
+    // "Wenn `sys.process(sys_pid)` einen Wert (`Some(process)`) zurückgibt, dann führe den Block aus."
+    if let Some(process) = sys.process(sys_pid) {
         // `kill()` sendet das SIGKILL (oder Äquivalent) Signal.
         if process.kill() {
             Ok(())
         } else {
-            Err("Failed to kill process".to_string())
+            let err_msg = format!("Failed to kill process with PID {}", pid);
+            let _ = app.emit("log-error", &err_msg);
+            Err(err_msg)
         }
     } else {
-        Err("Process not found".to_string())
+        let err_msg = format!("Process with PID {} not found", pid);
+        let _ = app.emit("log-error", &err_msg);
+        Err(err_msg)
     }
 }
 
@@ -109,13 +113,17 @@ pub fn get_cpu_count() -> usize {
 #[tauri::command]
 pub fn set_process_affinity(app: AppHandle, pid: u32, cores: Vec<u32>) -> Result<(), String> {
     if cores.is_empty() {
-        return Err("No cores specified".to_string());
+        let err_msg = format!("No cores specified for PID {}", pid);
+        let _ = app.emit("log-error", &err_msg);
+        return Err(err_msg);
     }
 
     let mut mask_val: u64 = 0;
     for core in &cores {
         if *core >= 64 {
-            return Err(format!("Core index {} is too high (max 63)", core));
+            let err_msg = format!("Core index {} is too high (max 63) for PID {}", core, pid);
+            let _ = app.emit("log-error", &err_msg);
+            return Err(err_msg);
         }
         mask_val |= 1 << core;
     }
@@ -136,7 +144,9 @@ pub fn set_process_affinity(app: AppHandle, pid: u32, cores: Vec<u32>) -> Result
             // 1. Prozess-Handle öffnen mit Berechtigung zum Setzen von Informationen.
             let handle = OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid);
             if handle.is_null() {
-                return Err("Failed to open process".to_string());
+                let err_msg = format!("Failed to open process with PID {} to set affinity", pid);
+                let _ = app.emit("log-error", &err_msg);
+                return Err(err_msg);
             }
 
             // * FIX: SetProcessAffinityMask expects a specific integer type (DWORD_PTR).
@@ -148,7 +158,9 @@ pub fn set_process_affinity(app: AppHandle, pid: u32, cores: Vec<u32>) -> Result
             CloseHandle(handle);
 
             if result == 0 {
-                return Err("Failed to set affinity".to_string());
+                let err_msg = format!("Failed to set affinity for PID {}", pid);
+                let _ = app.emit("log-error", &err_msg);
+                return Err(err_msg);
             }
             Ok(())
         }
@@ -156,6 +168,8 @@ pub fn set_process_affinity(app: AppHandle, pid: u32, cores: Vec<u32>) -> Result
     // Fallback für Nicht-Windows-Systeme
     #[cfg(not(target_os = "windows"))]
     {
-        Err("Not supported on this OS".to_string())
+        let err_msg = "Setting process affinity is not supported on this OS".to_string();
+        let _ = app.emit("log-error", &err_msg);
+        Err(err_msg)
     }
 }

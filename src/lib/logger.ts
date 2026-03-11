@@ -37,12 +37,12 @@ export function logError(...args: any[]): void {
 
 export async function registerLogListener(): Promise<void> {
   await listen<string>("log-info", (event) =>
-    logInfo("Backend:", event.payload),
+    logInfo("[Backend]", event.payload),
   );
   await listen<string>("log-warn", (event) =>
-    logWarn("Backend:", event.payload),
+    logWarn("[Backend]", event.payload),
   );
   await listen<string>("log-error", (event) =>
-    logError("Backend:", event.payload),
+    logError("[Backend]", event.payload),
   );
 }

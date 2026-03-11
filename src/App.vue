@@ -88,7 +88,7 @@
     window.addEventListener("hashchange", updateView);
     updateView();
 
-    logInfo("App mounted. Performing initializations.");
+    logInfo("[Frontend] App mounted. Performing initializations.");
     try {
       registerLogListener();
       await loadAndInitializeSettings();
@@ -100,13 +100,13 @@
       // Listen to Rust events
       cleanupProcessListener = await listen("cs2process", (event) => {
         const status = event.payload as "started" | "stopped";
-        logInfo(`[Event] cs2process state changed to: ${status}`);
+        logInfo(`[CS2Process] cs2process state changed to: ${status}`);
         handleCs2Process(status);
       });
 
       cleanupWindowListener = await listen("cs2window", (event) => {
         const status = event.payload as "foreground" | "background";
-        logInfo(`[Event] cs2window state changed to: ${status}`);
+        logInfo(`[CS2Window] cs2window state changed to: ${status}`);
         handleCs2Window(status);
       });
 
@@ -133,14 +133,14 @@
       if (settings.powerPlanCS2?.guid) {
         const match = powerPlans.plans.find((p) => p.guid === settings.powerPlanCS2.guid);
         if (match && match.name !== settings.powerPlanCS2.name) {
-          logInfo(`Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`);
+          logInfo(`[PowerPlans] Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`);
           settings.powerPlanCS2.name = match.name;
         }
       }
       if (settings.powerPlanDefault?.guid) {
         const match = powerPlans.plans.find((p) => p.guid === settings.powerPlanDefault.guid);
         if (match && match.name !== settings.powerPlanDefault.name) {
-          logInfo(`Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`);
+          logInfo(`[PowerPlans] Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`);
           settings.powerPlanDefault.name = match.name;
         }
       }
