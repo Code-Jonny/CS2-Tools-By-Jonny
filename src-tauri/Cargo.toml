@@ -1,10 +1,10 @@
 [package]
 name = "CS2ToolsByJonny"
-version = "1.0.1"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+version = "2.0.0"
+description = "Maximize your competitive edge in Counter-Strike 2 with intelligent system optimization"
+authors = ["Code-Jonny"]
+license = "MIT"
+repository = "https://github.com/Code-Jonny/CS2-Tools-By-Jonny"
 edition = "2021"
 rust-version = "1.77.2"
 
