@@ -4,13 +4,14 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { logInfo, logError } from "@lib/logger";
 
 export async function terminateProcess(pid: number): Promise<void> {
   try {
     await invoke("terminate_process", { pid });
-    console.log(`Attempted to terminate process: ${pid}`);
+    logInfo(`Attempted to terminate process: ${pid}`);
   } catch (error) {
-    console.error(`Failed to terminate process ${pid}:`, error);
+    logError(`Failed to terminate process ${pid}:`, error);
     // throw error;
   }
 }

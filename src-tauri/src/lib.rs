@@ -57,8 +57,6 @@ pub fn run() {
     tauri::Builder::default()
         // * HINWEIS: Plugin-Registrierung
         // Hier werden offizielle Tauri-Plugins geladen.
-        // `tauri_plugin_log`: Ermöglicht Logging (Konsolenausgabe, Dateien).
-        .plugin(tauri_plugin_log::Builder::default().build())
         // `tauri_plugin_autostart`: Ermöglicht es der App, beim Systemstart automatisch zu starten.
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -84,7 +82,7 @@ pub fn run() {
             // Wir übergeben den geklonten Arc-Pointer an den Monitor-Thread.
             // Da `vibrance_state_clone` hier "bewegt" (moved) wird, kann es danach in dieser
             // Funktion nicht mehr verwendet werden. Das ist okay, da wir es nur hier brauchen.
-            monitor::start_monitor_thread(vibrance_state_clone);
+            monitor::start_monitor_thread(app.handle().clone(), vibrance_state_clone);
 
             app.manage(AppSettingsState {
                 minimize_to_tray: Mutex::new(true),

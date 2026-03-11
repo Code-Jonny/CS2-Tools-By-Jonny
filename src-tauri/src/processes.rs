@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sysinfo::{ProcessesToUpdate, System};
+use tauri::{AppHandle, Emitter};
 
 // * HINWEIS: Conditional Compilation
 // Diese Importe werden nur kompiliert, wenn das Zielbetriebssystem Windows ist.
@@ -106,7 +107,7 @@ pub fn get_cpu_count() -> usize {
 /// * `pid` - Die Prozess-ID.
 /// * `cores` - Eine Liste der CPU-Kerne, die verwendet werden sollen.
 #[tauri::command]
-pub fn set_process_affinity(pid: u32, cores: Vec<u32>) -> Result<(), String> {
+pub fn set_process_affinity(app: AppHandle, pid: u32, cores: Vec<u32>) -> Result<(), String> {
     if cores.is_empty() {
         return Err("No cores specified".to_string());
     }
@@ -119,9 +120,12 @@ pub fn set_process_affinity(pid: u32, cores: Vec<u32>) -> Result<(), String> {
         mask_val |= 1 << core;
     }
 
-    println!(
-        "Setting affinity for PID {} to Cores {:?} (Mask: {}, Binary: {:b})",
-        pid, cores, mask_val, mask_val
+    let _ = app.emit(
+        "log-info",
+        format!(
+            "Setting affinity for PID {} to Cores {:?} (Mask: {}, Binary: {:b})",
+            pid, cores, mask_val, mask_val
+        ),
     );
 
     #[cfg(target_os = "windows")]

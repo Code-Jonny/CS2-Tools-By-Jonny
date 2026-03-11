@@ -2,6 +2,7 @@
   import { onMounted, ref, watch } from "vue";
   import { invoke } from "@tauri-apps/api/core";
   import { settings, isSettingsLoaded } from "@lib/settingsStore";
+  import { logInfo, logError } from "@lib/logger";
   import Card from "@elements/Card.vue";
   import HelpCard from "@elements/HelpCard.vue";
   import Toggle from "@elements/Toggle.vue";
@@ -20,9 +21,9 @@
         cs2Vibrance: settings.vibranceSettings.cs2Vibrance,
         pollingRate: Math.max(100, settings.pollingIntervalMs || 1000), // Ensure at least 100ms
       });
-      console.log("Synced vibrance settings to backend");
+      logInfo("Synced vibrance settings to backend");
     } catch (error) {
-      console.error("Failed to sync vibrance settings", error);
+      logError("Failed to sync vibrance settings", error);
     }
   };
 
@@ -41,7 +42,7 @@
       hasNvidiaGpu.value = await invoke<boolean>("check_nvidia_gpu");
       // hasNvidiaGpu.value = false; // Test fallback
     } catch (e) {
-      console.error("Failed to check Nvidia GPU:", e);
+      logError("Failed to check Nvidia GPU:", e);
     } finally {
       checkingGpu.value = false;
     }

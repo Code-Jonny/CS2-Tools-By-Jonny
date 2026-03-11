@@ -8,6 +8,7 @@
   import { applyStartMinimizedSetting } from "@lib/startupUtils";
   import { currentView, updateView } from "@lib/viewStore";
   import { isSidebarExpanded } from "@lib/sidebarStore";
+  import { logInfo, logError } from "@lib/logger";
 
   import Sidebar from "@components/Sidebar.vue";
   import Dashboard from "@components/Dashboard.vue";
@@ -60,11 +61,11 @@
           try {
             await invoke("set_process_affinity", { pid, cores: selectedCores });
             if (!affinitySetPids.has(pid)) {
-              console.log(`[Affinity] Successfully enforced for CS2 (PID ${pid}) with cores [${selectedCores.join(", ")}]`);
+              logInfo(`[Affinity] Successfully enforced for CS2 (PID ${pid}) with cores [${selectedCores.join(", ")}]`);
               affinitySetPids.add(pid);
             }
           } catch (e) {
-            console.error(`[Affinity] Failed to set for CS2 (PID ${pid}):`, e);
+            logError(`[Affinity] Failed to set for CS2 (PID ${pid}):`, e);
           }
         }
       }
@@ -80,7 +81,7 @@
       }
 
     } catch (error) {
-      console.error("Error in main loop:", error);
+      logError("Error in main loop:", error);
     } finally {
       isMainLoopLogicRunning = false;
     }
@@ -104,7 +105,7 @@
     window.addEventListener("hashchange", updateView);
     updateView();
 
-    console.log("App mounted. Performing initializations.");
+    logInfo("App mounted. Performing initializations.");
     try {
       await loadAndInitializeSettings();
       await invoke("set_minimize_to_tray", { enable: settings.minimizeToTray });
@@ -113,7 +114,7 @@
       await runningProcesses.refresh();
       startMainLoop();
     } catch (e) {
-      console.error("Error during initializations:", e);
+      logError("Error during initializations:", e);
     }
   });
 
@@ -139,14 +140,14 @@
       if (settings.powerPlanCS2?.guid) {
         const match = powerPlans.plans.find((p) => p.guid === settings.powerPlanCS2.guid);
         if (match && match.name !== settings.powerPlanCS2.name) {
-          console.log(`Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`);
+          logInfo(`Auto-correcting CS2 Power Plan name: ${settings.powerPlanCS2.name} -> ${match.name}`);
           settings.powerPlanCS2.name = match.name;
         }
       }
       if (settings.powerPlanDefault?.guid) {
         const match = powerPlans.plans.find((p) => p.guid === settings.powerPlanDefault.guid);
         if (match && match.name !== settings.powerPlanDefault.name) {
-          console.log(`Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`);
+          logInfo(`Auto-correcting Default Power Plan name: ${settings.powerPlanDefault.name} -> ${match.name}`);
           settings.powerPlanDefault.name = match.name;
         }
       }

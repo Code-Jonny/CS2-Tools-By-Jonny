@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context, Result};
-use log::{debug, info, warn};
 use nvapi::{sys, ConnectedIdsFlags, PhysicalGpu};
 use std::mem;
+use tauri::{AppHandle, Emitter};
 
 // Define the DVC struct as it is missing in nvapi-sys 0.1.3
 /// Struktur für Digital Vibrance Control (DVC) Informationen.
@@ -80,8 +80,8 @@ pub struct NvidiaController;
 
 impl NvidiaController {
     /// Initializes the NVIDIA controller.
-    pub fn new() -> Result<Self> {
-        debug!("Initializing NvAPI...");
+    pub fn new(app: &AppHandle) -> Result<Self> {
+        let _ = app.emit("log-info", "Initializing NvAPI...");
 
         // Initialize the NvAPI library.
         // `map_err`: Wandelt den NvAPI-Fehler in einen `anyhow::Error` um,
@@ -93,7 +93,7 @@ impl NvidiaController {
             )
         })?;
 
-        info!("NvAPI initialized successfully.");
+        let _ = app.emit("log-info", "NvAPI initialized successfully.");
         Ok(Self)
     }
 
@@ -118,7 +118,12 @@ impl NvidiaController {
     ///
     /// * `display_name` - The name of the display (e.g., "\\.\DISPLAY1").
     /// * `level` - The vibrance level to set (0-100).
-    pub fn set_vibrance_for_display(&mut self, display_name: &str, level: u32) -> Result<()> {
+    pub fn set_vibrance_for_display(
+        &mut self,
+        app: &AppHandle,
+        display_name: &str,
+        level: u32,
+    ) -> Result<()> {
         if level > 100 {
             return Err(anyhow!("Vibrance level must be between 0 and 100"));
         }
@@ -146,7 +151,10 @@ impl NvidiaController {
             let c_name = std::ffi::CString::new(display_name)?;
 
             // Log output for debugging
-            println!("Attempting to get handle for display: '{}'", display_name);
+            let _ = app.emit(
+                "log-info",
+                format!("Attempting to get handle for display: '{}'", display_name),
+            );
 
             // `mem::zeroed()`: Erstellt ein leeres Handle-Objekt, das von der C-Funktion gefüllt wird.
             let mut handle: sys::handles::NvDisplayHandle = mem::zeroed();
@@ -155,9 +163,12 @@ impl NvidiaController {
             let status = get_handle(c_name.as_ptr(), &mut handle);
 
             if status != sys::status::NVAPI_OK {
-                println!(
-                    "NvAPI Error getting handle for '{}': {:?}",
-                    display_name, status
+                let _ = app.emit(
+                    "log-error",
+                    format!(
+                        "NvAPI Error getting handle for '{}': {:?}",
+                        display_name, status
+                    ),
                 );
                 return Err(anyhow!(
                     "Failed to get handle for display {}: {:?}",
@@ -166,11 +177,14 @@ impl NvidiaController {
                 ));
             }
 
-            println!(
-                "Successfully got handle for '{}'. Setting DVC now...",
-                display_name
+            let _ = app.emit(
+                "log-info",
+                format!(
+                    "Successfully got handle for '{}'. Setting DVC now...",
+                    display_name
+                ),
             );
-            self.set_dvc_for_handle(handle, level)?;
+            self.set_dvc_for_handle(app, handle, level)?;
         }
 
         Ok(())
@@ -181,7 +195,7 @@ impl NvidiaController {
     /// # Arguments
     ///
     /// * `level` - The vibrance level to set (0-100).
-    pub fn set_vibrance(&mut self, level: u32) -> Result<()> {
+    pub fn set_vibrance(&mut self, app: &AppHandle, level: u32) -> Result<()> {
         if level > 100 {
             return Err(anyhow!("Vibrance level must be between 0 and 100"));
         }
@@ -198,10 +212,13 @@ impl NvidiaController {
             let connected_ids = gpu
                 .display_ids_connected(ConnectedIdsFlags::empty())
                 .unwrap_or_default();
-            debug!(
-                "GPU {:?} has {} connected display(s)",
-                gpu,
-                connected_ids.len()
+            let _ = app.emit(
+                "log-info",
+                format!(
+                    "GPU {:?} has {} connected display(s)",
+                    gpu,
+                    connected_ids.len()
+                ),
             );
         }
 
@@ -217,25 +234,34 @@ impl NvidiaController {
                 break;
             }
             if status != sys::status::NVAPI_OK {
-                warn!(
-                    "EnumNvidiaDisplayHandle failed at index {}: {:?}",
-                    i, status
+                let _ = app.emit(
+                    "log-warning",
+                    format!(
+                        "EnumNvidiaDisplayHandle failed at index {}: {:?}",
+                        i, status
+                    ),
                 );
                 break;
             }
 
-            debug!("Found Display Handle at index {}", i);
+            let _ = app.emit("log-info", format!("Found Display Handle at index {}", i));
 
             // Attempt to set DVC for this display handle
-            match self.set_dvc_for_handle(handle, level) {
+            match self.set_dvc_for_handle(app, handle, level) {
                 Ok(_) => {
-                    info!("Successfully set vibrance for display handle index {}", i);
+                    let _ = app.emit(
+                        "log-info",
+                        format!("Successfully set vibrance for display handle index {}", i),
+                    );
                     success_count += 1;
                 }
                 Err(e) => {
-                    warn!(
-                        "Failed to set vibrance for display handle index {}: {}",
-                        i, e
+                    let _ = app.emit(
+                        "log-warning",
+                        format!(
+                            "Failed to set vibrance for display handle index {}: {}",
+                            i, e
+                        ),
                     );
                 }
             }
@@ -244,9 +270,12 @@ impl NvidiaController {
         }
 
         if success_count == 0 {
-            warn!("No displays were updated. This might be because no displays support DVC or no displays are connected.");
+            let _ = app.emit("log-warning", "No displays were updated. This might be because no displays support DVC or no displays are connected.");
         } else {
-            info!("Updated vibrance on {} display(s).", success_count);
+            let _ = app.emit(
+                "log-info",
+                format!("Updated vibrance on {} display(s).", success_count),
+            );
         }
 
         Ok(())
@@ -255,6 +284,7 @@ impl NvidiaController {
     /// Interne Hilfsfunktion zum Setzen der Vibrance für ein spezifisches Handle.
     fn set_dvc_for_handle(
         &self,
+        app: &AppHandle,
         handle: sys::handles::NvDisplayHandle,
         level_percent: u32,
     ) -> Result<()> {
@@ -285,12 +315,15 @@ impl NvidiaController {
                 return Err(anyhow!("Failed to get DVC info: {:?}", status));
             }
 
-            debug!(
-                "DVC Info: min={}, max={}, current={}, default={}",
-                dvc_info.min_level,
-                dvc_info.max_level,
-                dvc_info.current_level,
-                dvc_info.default_level
+            let _ = app.emit(
+                "log-info",
+                format!(
+                    "DVC Info: min={}, max={}, current={}, default={}",
+                    dvc_info.min_level,
+                    dvc_info.max_level,
+                    dvc_info.current_level,
+                    dvc_info.default_level
+                ),
             );
 
             // Calculate new level

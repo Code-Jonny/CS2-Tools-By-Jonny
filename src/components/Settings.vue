@@ -6,7 +6,7 @@
   import TextInput from "@elements/TextInput.vue";
   import Card from "@elements/Card.vue";
   import { setAutostart, checkAutostartStatus } from "@lib/startupUtils";
-  import { devLog, devError } from "@lib/logger";
+  import { logInfo, logError } from "@lib/logger";
   import { defaultAppSettings } from "@lib/settingsStore"; // Need to export reset logic or implement it here
 
   // We need a reset function. The old file imported `resetToDefaults` from `settingsStore`.
@@ -28,13 +28,13 @@
     try {
       const registryAutostartStatus = await checkAutostartStatus();
       if (settings.autostartWithWindows !== registryAutostartStatus) {
-        devLog(
+        logInfo(
           `Autostart mismatch onMount: Store is ${settings.autostartWithWindows}, Registry is ${registryAutostartStatus}. Syncing store to registry.`
         );
         settings.autostartWithWindows = registryAutostartStatus;
       }
     } catch (error) {
-      devError("Error checking autostart status on mount:", error);
+      logError("Error checking autostart status on mount:", error);
       autostartError.value = "Could not verify autostart status.";
     }
     isInitialized.value = true;
@@ -45,11 +45,11 @@
     if (newValue === oldValue) return;
 
     try {
-      devLog(`Autostart setting changed to: ${newValue} (post-init). Updating registry.`);
+      logInfo(`Autostart setting changed to: ${newValue} (post-init). Updating registry.`);
       await setAutostart(newValue);
       autostartError.value = null;
     } catch (error: any) {
-      devError("Error updating autostart setting (post-init):", error);
+      logError("Error updating autostart setting (post-init):", error);
       autostartError.value = `Failed to update autostart: ${error.message || "Unknown error"}`;
       // Revert setting if failed?? Svelte code didn't revert but showed error.
     }
