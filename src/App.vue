@@ -8,7 +8,7 @@
   import { applyStartMinimizedSetting } from "@lib/startupUtils";
   import { currentView, updateView } from "@lib/viewStore";
   import { isSidebarExpanded } from "@lib/sidebarStore";
-  import { logInfo, logError } from "@lib/logger";
+  import { logInfo, logError, registerLogListener } from "@lib/logger";
 
   import Sidebar from "@components/Sidebar.vue";
   import Dashboard from "@components/Dashboard.vue";
@@ -29,6 +29,9 @@
     isMainLoopLogicRunning = true;
 
     try {
+
+      registerLogListener();
+
       await runningProcesses.refresh();
       const cs2Running = runningProcesses.isProcessRunning("cs2.exe");
       const cs2RunningStateChanged = cs2Running !== previousCs2RunningState;

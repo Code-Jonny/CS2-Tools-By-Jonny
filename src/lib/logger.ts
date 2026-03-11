@@ -3,6 +3,7 @@
  * @description A simple logger utility that only logs messages in development mode.
  */
 import { settings } from "@lib/settingsStore";
+import { listen } from "@tauri-apps/api/event";
 
 /**
  * Logs a message to the console only in development mode.
@@ -32,4 +33,16 @@ export function logError(...args: any[]): void {
   if (import.meta.env.DEV || settings.enableDebugLog) {
     console.error(...args);
   }
+}
+
+export async function registerLogListener(): Promise<void> {
+  await listen<string>("log-info", (event) =>
+    logInfo("Backend:", event.payload),
+  );
+  await listen<string>("log-warn", (event) =>
+    logWarn("Backend:", event.payload),
+  );
+  await listen<string>("log-error", (event) =>
+    logError("Backend:", event.payload),
+  );
 }
