@@ -67,6 +67,13 @@
           await powerPlans.setActive(settings.powerPlanDefault.guid);
         }
 
+        // reset vibrance setting
+        // is needed because cs2window event only triggers when cs2 is running, so if user closes cs2 while it's in background, vibrance won't reset without this. and there could be a race condition where the cs2window detection is too slow.
+        if (settings.vibranceSettings?.enabled) {
+          await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
+          logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
+        }
+
         // Cleanup tracking
         affinitySetPids.clear();
       }

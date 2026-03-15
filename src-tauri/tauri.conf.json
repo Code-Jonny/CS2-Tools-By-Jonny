@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "CS2ToolsByJonny",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "identifier": "com.jonny.cs2tools",
   "build": {
     "frontendDist": "../dist",
@@ -31,7 +31,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["nsis", "msi"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
