@@ -27,11 +27,11 @@
 
 | Feature                 | Description                                                                                                       |
 | :---------------------- | :---------------------------------------------------------------------------------------------------------------- |
-| **⚡ Power Management** | Automatically engages the `High Performance` power plan when CS2 launches to prevent downclocking.                |
-| **💀 Process Killer**   | Configure a "kill list" (e.g., Chrome, Spotify) to automatically close apps that eat CPU/RAM.                     |
-| **🎨 Digital Vibrance** | **(Nvidia Only)** Automatically boost Digital Vibrance to 100% in-game for better visibility, and revert on exit. |
-| **🧠 CPU Affinity**     | Optimize CPU core usage. Use the "Optimized" preset to keep CS2 off system-heavy Core 0.                          |
-| **🛡️ VAC Safe**         | Works strictly with Windows APIs. Does **not** touch game memory or game files.                                   |
+| **⚡ Power Management** | Automatically engages the chosen power plan when CS2 launches to prevent downclocking (e.g. high performance).    |
+| **💀 Process Killer**   | Configure a "kill list" (e.g., Chrome, Spotify) to automatically close apps that eat CPU/RAM when CS 2 launches.  |
+| **🎨 Digital Vibrance** | **(Nvidia Only)** Automatically boost Digital Vibrance to 100% in-game for better visibility.                     |
+| **🧠 CPU Affinity**     | Optimize CPU core affinity. Use the "Optimized" preset to keep CS2 off system-heavy Core 0.                       |
+| **🛡️ VAC Safe**         | Works strictly with Windows / nVidia APIs. Does **not** touch game memory or game files.                          |
 
 ## ⚙️ How It Works
 
@@ -55,15 +55,6 @@ The application intelligently monitors for `cs2.exe`.
 2.  **Install** the application.
 3.  **Run** `CS2 Tools by Jonny` via the desktop shortcut or start menu.
 
-## 🕹️ Usage
-
-1.  **Dashboard:** Check which monitor hooks are active.
-2.  **Settings:**
-    - Enable **Autostart with Windows**.
-    - Toggle **Start Minimized**.
-3.  **Process Management:** Add heavy background apps to the kill list.
-4.  **Minimise:** Send the app to the system tray. It consumes minimal resources (~0% CPU).
-
 ## ❓ FAQ
 
 <details>
@@ -75,7 +66,7 @@ Yes, it is safe. CS2 Tools operates entirely outside of the game. It manages Win
 <details>
 <summary><strong>Does it improve FPS?</strong></summary>
 <br>
-Yes, mostly by improving frametime consistency (1% lows). By moving background tasks and ensuring the CPU doesn't downclock, the game runs smoother.
+Yes, mostly by improving frametime consistency (1% lows). By moving background tasks and ensuring the CPU uses the best fitting cpu cores, the game runs smoother.
 </details>
 
 <details>
