@@ -67,6 +67,12 @@
           <span class="linktext">Settings</span>
         </a>
       </li>
+      <li>
+        <a href="#/about" :class="{ active: currentView === 'about' }">
+          <LocalIcon iconName="info" />
+          <span class="linktext">About</span>
+        </a>
+      </li>
     </ul>
   </nav>
 </template>

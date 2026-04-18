@@ -21,6 +21,7 @@
   import CpuAffinity from "@components/CpuAffinity.vue";
   import NvidiaVibrance from "@components/NvidiaVibrance.vue";
   import SettingsComponent from "@components/Settings.vue";
+  import About from "@components/About.vue";
   import { listen } from "@tauri-apps/api/event";
 
   const affinitySetPids = new Set<number>();
@@ -194,7 +195,8 @@
     "power-plan-management": PowerPlanManagement,
     "cpu-affinity": CpuAffinity,
     "nvidia-vibrance": NvidiaVibrance,
-    "settings": SettingsComponent
+    "settings": SettingsComponent,
+    "about": About
   };
 
   const activeComponent = computed(() => {

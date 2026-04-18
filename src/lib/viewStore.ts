@@ -6,7 +6,8 @@ export type View =
   | "power-plan-management"
   | "cpu-affinity"
   | "nvidia-vibrance"
-  | "settings";
+  | "settings"
+  | "about";
 
 export const currentView = ref<View>("dashboard");
 
@@ -18,6 +19,7 @@ export function updateView() {
     "/cpu-affinity": "cpu-affinity",
     "/nvidia-vibrance": "nvidia-vibrance",
     "/settings": "settings",
+    "/about": "about",
   };
   currentView.value = map[hash] || "dashboard";
 }
