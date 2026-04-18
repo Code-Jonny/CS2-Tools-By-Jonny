@@ -16,6 +16,12 @@
              target="_blank">github.com/Code-Jonny/CS2-Tools-By-Jonny</a></strong>
       </p>
     </Card>
+
+    <Card title="License" icon="info-circle">
+      <p>
+        Lorem Ipsum License Text
+      </p>
+    </Card>
   </div>
 </template>
 

@@ -62,6 +62,12 @@
         </a>
       </li>
       <li>
+        <a href="#/gsi" :class="{ active: currentView === 'gsi' }">
+          <LocalIcon iconName="monitor" />
+          <span class="linktext">GSI</span>
+        </a>
+      </li>
+      <li>
         <a href="#/settings" :class="{ active: currentView === 'settings' }">
           <LocalIcon iconName="settings" />
           <span class="linktext">Settings</span>

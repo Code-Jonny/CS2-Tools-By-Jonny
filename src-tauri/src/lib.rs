@@ -1,4 +1,5 @@
 mod cs2monitoring;
+mod gsi;
 mod power;
 mod processes;
 mod vibrance;
@@ -41,6 +42,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(move |app| {
             cs2monitoring::start_monitor_thread(app.handle().clone());
+            gsi::start_gsi_server(app.handle().clone());
 
             app.manage(AppSettingsState {
                 minimize_to_tray: Mutex::new(true),
@@ -112,7 +114,9 @@ pub fn run() {
             vibrance::apply_vibrance_to_focused_display,
             vibrance::check_nvidia_gpu,
             set_minimize_to_tray,
-            show_minimized
+            show_minimized,
+            gsi::auto_detect_cs2_path,
+            gsi::install_gsi_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-  import { computed } from 'vue';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { listen } from '@tauri-apps/api/event';
   import { runningProcesses, type ProcessInfo } from "@lib/runningProcesses";
   import { settings } from "@lib/settingsStore";
   import { powerPlans } from "@lib/powerplans";
@@ -26,6 +27,21 @@
   const activePowerPlan = computed(() =>
     powerPlans.plans.find((p) => p.isActive) ?? null
   );
+
+  const gsiData = ref<any>(null);
+  let unlistenGSI: (() => void) | null = null;
+
+  onMounted(async () => {
+    unlistenGSI = await listen("gsi-update", (event) => {
+      gsiData.value = event.payload;
+    });
+  });
+
+  onUnmounted(() => {
+    if (unlistenGSI) {
+      unlistenGSI();
+    }
+  });
 </script>
 
 <template>
@@ -47,14 +63,12 @@
     <Card title="Active Power Plan" icon="power">
       <p v-if="powerPlans.error" class="error-text">
         <Icon iconName="danger-triangle" size="20" />
-        Error
-        loading power plan: {{ powerPlans.error }}
+        Error loading power plan: {{ powerPlans.error }}
       </p>
       <p v-else-if="activePowerPlan" class="status-indicator">
         {{ activePowerPlan.name }}
       </p>
-      <p v-else class="info-text">No active power plan found or not loaded yet.
-      </p>
+      <p v-else class="info-text">No active power plan found or not loaded yet.</p>
     </Card>
 
     <Card v-if="settings.processManagementActive"
@@ -69,6 +83,40 @@
       </ul>
       <p v-else class="info-text">No processes configured in the kill list.</p>
     </Card>
+
+    <Card v-if="settings.gsiEnabled" title="Game State Integration (GSI)" icon="settings-2-linear">
+      <div v-if="gsiData" class="gsi-stats">
+        <div class="stat-row">
+          <span class="stat-label">Map:</span>
+          <span class="stat-value">{{ gsiData.map?.name || 'N/A' }}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Phase:</span>
+          <span class="stat-value">{{ gsiData.map?.phase || 'N/A' }}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Score:</span>
+          <span class="stat-value">
+            CT {{ gsiData.map?.team_ct?.score || 0 }} - T {{ gsiData.map?.team_t?.score || 0 }}
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Player Name:</span>
+          <span class="stat-value">{{ gsiData.player?.name || 'N/A' }}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Kills / Deaths:</span>
+          <span class="stat-value">
+            {{ gsiData.player?.match_stats?.kills || 0 }} / {{ gsiData.player?.match_stats?.deaths || 0 }}
+          </span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Health:</span>
+          <span class="stat-value">{{ gsiData.player?.state?.health || 0 }} HP</span>
+        </div>
+      </div>
+      <p v-else class="info-text">Waiting for CS2 Game State...</p>
+    </Card>
   </div>
 </template>
 
@@ -77,13 +125,10 @@
     display: flex;
     flex-direction: column;
     gap: 25px;
-    /* Spacing between cards */
   }
 
   h1 {
-    /* Styles inherited from app.css or can be overridden here */
     margin-bottom: 25px;
-    /* More space after main title */
   }
 
   .status-indicator {
@@ -93,13 +138,12 @@
     font-size: 18px;
   }
 
-  .statu .status-indicator.running {
+  .status-indicator.running {
     color: var(--success-color, #28a745);
   }
 
   .status-indicator.not-running {
     color: var(--error-color, #dc3545);
-    /* Greyed out when not running */
   }
 
   .error-text {
@@ -114,7 +158,6 @@
     font-style: italic;
   }
 
-  /* Process Status List */
   .process-status-list {
     list-style: none;
     padding: 0;
@@ -132,7 +175,6 @@
     background-color: var(--background-primary);
     border-radius: 4px;
     font-size: 13px;
-    /* Slightly rounded for list items */
   }
 
   .status-tag {
@@ -145,20 +187,41 @@
 
   .status-tag.running-process {
     background-color: rgba(220, 53, 69, 0.2);
-    /* Red background alpha */
     color: var(--error-color);
   }
 
-  /* "Not Running" for kill list processes means GOOD/SUCCESS usually? 
-     Or just neutral? 
-     If the goal is to kill them, then "Not Running" is good.
-     But here it just shows status.
-     Let's stick to Green for Not Running if they are "Processes To Kill" :) 
-     Wait, if I want to play CS2, I want them dead. So Not Running = Good.
-  */
   .status-tag.not-running-process {
     background-color: rgba(40, 167, 69, 0.2);
-    /* Green background alpha */
     color: var(--success-color);
+  }
+
+  .gsi-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--background-secondary);
+  }
+
+  .stat-row:last-child {
+    border-bottom: none;
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .stat-value {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 500;
   }
 </style>

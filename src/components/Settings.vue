@@ -4,13 +4,21 @@
   import Button from "@elements/Button.vue";
   import Toggle from "@elements/Toggle.vue";
   import Card from "@elements/Card.vue";
+  import TextInput from "@elements/TextInput.vue";
   import { setAutostart, checkAutostartStatus } from "@lib/startupUtils";
   import { logInfo, logError } from "@lib/logger";
   import { defaultAppSettings } from "@lib/settingsStore";
-  import { confirm } from '@tauri-apps/plugin-dialog';
+  import { confirm, open } from "@tauri-apps/plugin-dialog";
+  import { invoke } from "@tauri-apps/api/core";
 
   const autostartError = ref<string | null>(null);
   const isInitialized = ref(false);
+
+  const gsiError = ref<string | null>(null);
+  const gsiSuccess = ref<string | null>(null);
+  const gsiLoadingAutoDetect = ref(false);
+  const gsiLoadingBrowse = ref(false);
+  const gsiLoadingApply = ref(false);
 
   const resetToDefaults = async () => {
     Object.assign(settings, JSON.parse(JSON.stringify(defaultAppSettings)));
@@ -52,11 +60,115 @@
       await resetToDefaults();
     }
   }
+
+  async function handleAutoDetectCs2Path() {
+    gsiError.value = null;
+    gsiSuccess.value = null;
+    gsiLoadingAutoDetect.value = true;
+    try {
+      const detectedPath = await invoke<string>("auto_detect_cs2_path");
+      settings.cs2Path = detectedPath;
+      gsiSuccess.value = "CS2 path detected successfully.";
+      logInfo(`Auto-detected CS2 path: ${detectedPath}`);
+    } catch (error: any) {
+      const errorMsg = error.message || String(error) || "Failed to auto-detect CS2 path.";
+      logError("Error auto-detecting CS2 path:", error);
+      gsiError.value = errorMsg;
+    } finally {
+      gsiLoadingAutoDetect.value = false;
+    }
+  }
+
+  async function handleBrowseCs2Path() {
+    gsiError.value = null;
+    gsiSuccess.value = null;
+    gsiLoadingBrowse.value = true;
+    try {
+      const selected = await open({
+        directory: true,
+        title: "Select CS2 Installation Folder",
+      });
+      if (selected && typeof selected === "string") {
+        settings.cs2Path = selected;
+        gsiSuccess.value = "Folder selected successfully.";
+        logInfo(`CS2 path selected: ${selected}`);
+      }
+    } catch (error: any) {
+      const errorMsg = error.message || String(error) || "Failed to browse folder.";
+      logError("Error browsing CS2 path:", error);
+      gsiError.value = errorMsg;
+    } finally {
+      gsiLoadingBrowse.value = false;
+    }
+  }
+
+  async function handleApplyGsiConfig() {
+    gsiError.value = null;
+    gsiSuccess.value = null;
+
+    if (!settings.cs2Path) {
+      gsiError.value = "CS2 installation path is not set. Please set it first.";
+      return;
+    }
+
+    gsiLoadingApply.value = true;
+    try {
+      await invoke("install_gsi_config", { cs2Path: settings.cs2Path });
+      gsiSuccess.value = "GSI configuration applied successfully.";
+      logInfo(`GSI config applied to: ${settings.cs2Path}`);
+    } catch (error: any) {
+      const errorMsg = error.message || String(error) || "Failed to apply GSI configuration.";
+      logError("Error applying GSI config:", error);
+      gsiError.value = errorMsg;
+    } finally {
+      gsiLoadingApply.value = false;
+    }
+  }
 </script>
 
 <template>
   <div class="settings-container">
     <h1>Settings</h1>
+
+    <Card title="CS2 Integration (GSI)" icon="settings">
+      <div class="setting-item">
+        <p class="section-description">
+          Configure Game State Integration (GSI) to enable real-time game data
+          access and advanced monitoring features.
+        </p>
+      </div>
+
+      <div class="setting-item">
+        <Toggle label="Enable Game State Integration" id="gsiEnabled"
+                v-model:checked="settings.gsiEnabled" />
+      </div>
+
+      <div class="setting-item">
+        <label for="cs2Path" class="input-label">CS2 Installation Path</label>
+        <TextInput id="cs2Path" v-model="settings.cs2Path"
+                   placeholder="C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive" />
+        <p v-if="gsiError" class="error-text">{{ gsiError }}</p>
+        <p v-if="gsiSuccess" class="success-text">{{ gsiSuccess }}</p>
+      </div>
+
+      <div class="setting-item buttons-row">
+        <Button variant="secondary" @click="handleAutoDetectCs2Path"
+                :disabled="gsiLoadingAutoDetect">
+          {{ gsiLoadingAutoDetect ? "Detecting..." : "Find Automatically" }}
+        </Button>
+        <Button variant="secondary" @click="handleBrowseCs2Path"
+                :disabled="gsiLoadingBrowse">
+          {{ gsiLoadingBrowse ? "Browsing..." : "Browse" }}
+        </Button>
+      </div>
+
+      <div class="setting-item">
+        <Button variant="primary" @click="handleApplyGsiConfig"
+                :disabled="gsiLoadingApply || !settings.cs2Path">
+          {{ gsiLoadingApply ? "Applying..." : "Apply GSI Config" }}
+        </Button>
+      </div>
+    </Card>
 
     <Card title="Startup & Behavior" icon="settings">
       <div class="setting-item">
@@ -88,8 +200,7 @@
 
     <div class="danger-zone">
       <h3>Danger Zone</h3>
-      <Button variant="danger" @click="handleResetToDefaults"
-              icon="solar:restart-circle-linear">
+      <Button variant="danger" @click="handleResetToDefaults">
         Reset All Settings
       </Button>
     </div>
@@ -121,6 +232,33 @@
     color: var(--error-color);
     font-size: 13px;
     margin-top: 5px;
+  }
+
+  .success-text {
+    color: var(--success-color, #28a745);
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  .section-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+
+  .input-label {
+    display: block;
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .buttons-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
   .danger-zone {

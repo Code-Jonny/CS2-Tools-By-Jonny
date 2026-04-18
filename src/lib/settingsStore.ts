@@ -28,6 +28,9 @@ export const defaultAppSettings = {
     enabled: false,
     selectedCores: [] as number[],
   },
+  cs2Path: "",
+  gsiEnabled: false,
+  bombTimerEnabled: false,
 };
 
 export type AppSettings = typeof defaultAppSettings;

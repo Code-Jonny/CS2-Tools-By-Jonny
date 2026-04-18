@@ -7,13 +7,15 @@ export type View =
   | "cpu-affinity"
   | "nvidia-vibrance"
   | "settings"
-  | "about";
+  | "about"
+  | "gsi";
 
 export const currentView = ref<View>("dashboard");
 
 export function updateView() {
   const hash = window.location.hash.substring(1); // Remove #
   const map: Record<string, View> = {
+    "/gsi": "gsi",
     "/process-management": "process-management",
     "/power-plan-management": "power-plan-management",
     "/cpu-affinity": "cpu-affinity",
