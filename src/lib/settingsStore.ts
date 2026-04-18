@@ -6,6 +6,7 @@ export const defaultAppSettings = {
   autostartWithWindows: false,
   startMinimized: false,
   minimizeToTray: true,
+  minimizeOnClose: false,
   enableDebugLog: false,
   processesToKill: [] as string[],
   powerPlanCS2: {

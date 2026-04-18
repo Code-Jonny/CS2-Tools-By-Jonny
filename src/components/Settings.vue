@@ -7,6 +7,7 @@
   import { setAutostart, checkAutostartStatus } from "@lib/startupUtils";
   import { logInfo, logError } from "@lib/logger";
   import { defaultAppSettings } from "@lib/settingsStore";
+  import { confirm } from '@tauri-apps/plugin-dialog';
 
   const autostartError = ref<string | null>(null);
   const isInitialized = ref(false);
@@ -46,7 +47,8 @@
   });
 
   async function handleResetToDefaults() {
-    if (confirm("Are you sure you want to reset all settings to default values?")) {
+    const userConfirmed = await confirm("Are you sure you want to reset all settings to default values?", { kind: "warning" });
+    if (userConfirmed) {
       await resetToDefaults();
     }
   }
@@ -71,6 +73,11 @@
       <div class="setting-item">
         <Toggle label="Minimize to System Tray instead of taskbar"
                 id="minimizeToTray" v-model:checked="settings.minimizeToTray" />
+      </div>
+
+      <div class="setting-item">
+        <Toggle label="Minimize on Close" id="minimizeOnClose"
+                v-model:checked="settings.minimizeOnClose" />
       </div>
 
       <div class="setting-item">

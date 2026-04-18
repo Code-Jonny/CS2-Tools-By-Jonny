@@ -25,6 +25,8 @@
   "dependencies": {
     "@iconify/vue": "^5.0.0",
     "@tauri-apps/plugin-autostart": "^2.5.1",
+    "@tauri-apps/plugin-dialog": "~2",
+    "@tauri-apps/plugin-process": "~2",
     "@tauri-apps/plugin-store": "^2.4.1",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vue/tsconfig": "^0.8.1",

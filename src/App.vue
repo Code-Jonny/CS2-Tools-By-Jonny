@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, watch, computed } from "vue";
   import { invoke } from "@tauri-apps/api/core";
+  import { getCurrentWindow } from "@tauri-apps/api/window";
+  // import { confirm } from '@tauri-apps/api/dialog';
   import { terminateProcess } from "@lib/terminateProcess";
   import { settings, loadAndInitializeSettings, isSettingsLoaded } from "@lib/settingsStore";
   import { powerPlans } from "@lib/powerplans";
@@ -9,6 +11,8 @@
   import { currentView, updateView } from "@lib/viewStore";
   import { isSidebarExpanded } from "@lib/sidebarStore";
   import { logInfo, logError, registerLogListener } from "@lib/logger";
+  import { exit } from '@tauri-apps/plugin-process';
+  import { confirm } from '@tauri-apps/plugin-dialog';
 
   import Sidebar from "@components/Sidebar.vue";
   import Dashboard from "@components/Dashboard.vue";
@@ -111,6 +115,27 @@
       await applyStartMinimizedSetting();
       await powerPlans.refresh();
       await runningProcesses.refresh();
+
+      await getCurrentWindow().onCloseRequested(async (event) => {
+
+        if (settings.minimizeOnClose) {
+          event.preventDefault();
+          await getCurrentWindow().minimize();
+          logInfo("[Frontend] Close requested, but minimizeOnClose is enabled. Window minimized instead of closed.");
+          return;
+        }
+
+        const userConfirmed = await confirm("Are you sure you want to exit CS2 Tools By Jonny?");
+
+        if (userConfirmed) {
+          logInfo("[Frontend] Close requested and confirmed. Exiting application.");
+          exit();
+          return;
+        } else {
+          event.preventDefault();
+          logInfo("[Frontend] Close requested but cancelled by user. Window remains open.");
+        }
+      });
 
       // Listen to Rust events
       cleanupProcessListener = await listen("cs2process", (event) => {
