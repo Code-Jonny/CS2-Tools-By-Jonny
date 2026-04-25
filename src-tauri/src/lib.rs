@@ -110,6 +110,7 @@ pub fn run() {
             processes::get_cpu_count,
             processes::set_process_affinity,
             vibrance::apply_vibrance_to_focused_display,
+            vibrance::apply_vibrance,
             vibrance::check_nvidia_gpu,
             set_minimize_to_tray,
             show_minimized

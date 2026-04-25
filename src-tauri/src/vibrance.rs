@@ -265,7 +265,7 @@ pub fn check_nvidia_gpu() -> bool {
 }
 
 #[tauri::command]
-pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<(), String> {
+pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<String, String> {
     if !NvidiaController::has_nvidia_gpu() {
         return Err("No Nvidia GPU".into());
     }
@@ -290,10 +290,23 @@ pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<(
     if success != 0 {
         let device_name_c = unsafe { std::ffi::CStr::from_ptr(monitor_info.szDevice.as_ptr()) };
         let device_name = device_name_c.to_string_lossy().into_owned();
-        controller
-            .set_vibrance_for_display(&app, &device_name, level)
-            .map_err(|e| e.to_string())
+        match controller.set_vibrance_for_display(&app, &device_name, level) {
+            Ok(_) => Ok(device_name),
+            Err(e) => Err(e.to_string()),
+        }
     } else {
         Err("Failed to get monitor info".into())
     }
+}
+
+#[tauri::command]
+pub fn apply_vibrance(app: AppHandle, display_name: String, level: u32) -> Result<(), String> {
+    if !NvidiaController::has_nvidia_gpu() {
+        return Err("No Nvidia GPU".into());
+    }
+    let mut controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
+
+    controller
+        .set_vibrance_for_display(&app, &display_name, level)
+        .map_err(|e| e.to_string())
 }

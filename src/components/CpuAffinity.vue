@@ -25,11 +25,11 @@
   });
 
   function toggleCore(coreIndex: number) {
-    const selected = settings.cpuAffinity.selectedCores;
+    const selected = settings.cpuManagement.selectedCores;
     if (selected.includes(coreIndex)) {
-      settings.cpuAffinity.selectedCores = selected.filter((c) => c !== coreIndex);
+      settings.cpuManagement.selectedCores = selected.filter((c) => c !== coreIndex);
     } else {
-      settings.cpuAffinity.selectedCores = [...selected, coreIndex].sort((a, b) => a - b);
+      settings.cpuManagement.selectedCores = [...selected, coreIndex].sort((a, b) => a - b);
     }
   }
 
@@ -39,7 +39,7 @@
     for (let i = 2; i < cpuCount.value; i++) {
       cores.push(i);
     }
-    settings.cpuAffinity.selectedCores = cores;
+    settings.cpuManagement.selectedCores = cores;
   }
 
   function selectAll() {
@@ -47,20 +47,20 @@
     for (let i = 0; i < cpuCount.value; i++) {
       cores.push(i);
     }
-    settings.cpuAffinity.selectedCores = cores;
+    settings.cpuManagement.selectedCores = cores;
   }
 </script>
 
 <template>
   <div class="cpu-affinity-container">
-    <h1>CPU Core Affinity</h1>
+    <h1>CPU Core Management</h1>
 
     <ContentBox>
-      <Toggle v-model:checked="settings.cpuAffinity.enabled"
-              id="affinity-toggle" label="Enable CPU Affinity Management" />
+      <Toggle v-model:checked="settings.cpuManagement.enabled"
+              id="affinity-toggle" label="Enable CPU Core Management" />
     </ContentBox>
 
-    <Card v-if="settings.cpuAffinity.enabled" title="Configure CPU Cores"
+    <Card v-if="settings.cpuManagement.enabled" title="Configure CPU Cores"
           icon="cpu">
       <p v-if="loading">Loading CPU info...</p>
       <div v-else>
@@ -75,10 +75,10 @@
 
         <div class="core-grid">
           <button v-for="(_, i) in cpuCount" :key="i" class="core-box"
-                  :class="{ selected: settings.cpuAffinity.selectedCores.includes(i) }"
+                  :class="{ selected: settings.cpuManagement.selectedCores.includes(i) }"
                   @click="toggleCore(i)" :aria-label="`Toggle Core ${i}`">
             <span class="core-label">Core {{ i }}</span>
-            <Icon v-if="settings.cpuAffinity.selectedCores.includes(i)"
+            <Icon v-if="settings.cpuManagement.selectedCores.includes(i)"
                   iconName="check-circle" size="20" />
             <span v-else class="unchecked-icon"></span>
           </button>
@@ -89,6 +89,16 @@
           1) to offload system tasks from the game.
         </p>
       </div>
+    </Card>
+
+    <Card v-if="settings.cpuManagement.enabled" title="CPU Parking" icon="cpu">
+      <Toggle v-model:checked="settings.cpuManagement.preventParking"
+              id="cpu-parking-toggle" label="Prevent CPU Core Parking" />
+      <p class="helper-text">
+        Preventing CPU core parking ensures that the selected cores remain
+        active and are not put into a low-power state by the operating system.
+        This can help maintain consistent performance for CS2.
+      </p>
     </Card>
 
     <div v-else class="placeholder-info">

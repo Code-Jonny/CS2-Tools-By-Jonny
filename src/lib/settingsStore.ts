@@ -24,9 +24,10 @@ export const defaultAppSettings = {
     defaultVibrance: 50,
     cs2Vibrance: 100,
   },
-  cpuAffinity: {
+  cpuManagement: {
     enabled: false,
     selectedCores: [] as number[],
+    preventParking: false,
   },
 };
 

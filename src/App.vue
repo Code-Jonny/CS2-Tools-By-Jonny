@@ -40,9 +40,9 @@
         }
 
         // CPU Affinity
-        if (settings.cpuAffinity?.enabled && settings.cpuAffinity?.selectedCores?.length > 0) {
+        if (settings.cpuManagement?.enabled && settings.cpuManagement?.selectedCores?.length > 0) {
           const pids = runningProcesses.getPidsForName("cs2.exe");
-          const selectedCores = settings.cpuAffinity.selectedCores;
+          const selectedCores = settings.cpuManagement.selectedCores;
 
           for (const pid of pids) {
             if (!affinitySetPids.has(pid)) {
@@ -75,8 +75,14 @@
         // reset vibrance setting
         // is needed because cs2window event only triggers when cs2 is running, so if user closes cs2 while it's in background, vibrance won't reset without this. and there could be a race condition where the cs2window detection is too slow.
         if (settings.vibranceSettings?.enabled) {
-          await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
-          logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
+          if (lastCs2Display) {
+            await invoke("apply_vibrance", { displayName: lastCs2Display, level: settings.vibranceSettings.defaultVibrance });
+            logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance} to ${lastCs2Display}`);
+            lastCs2Display = null;
+          } else {
+            await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
+            logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
+          }
         }
 
         // Cleanup tracking
@@ -87,15 +93,23 @@
     }
   }
 
+  let lastCs2Display: string | null = null;
+
   async function handleCs2Window(status: "foreground" | "background") {
     try {
       if (settings.vibranceSettings?.enabled) {
         if (status === "foreground") {
-          await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.cs2Vibrance });
-          logInfo(`[Vibrance] CS2 in foreground. Applied CS2 vibrance ${settings.vibranceSettings.cs2Vibrance}`);
-        } else if (status === "background") {
-          await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
-          logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
+          lastCs2Display = await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.cs2Vibrance });
+          logInfo(`[Vibrance] CS2 in foreground. Applied CS2 vibrance ${settings.vibranceSettings.cs2Vibrance} to ${lastCs2Display}`);
+        } else {
+          if (lastCs2Display) {
+            await invoke("apply_vibrance", { displayName: lastCs2Display, level: settings.vibranceSettings.defaultVibrance });
+            logInfo(`[Vibrance] CS2 not in foreground. Applied default vibrance ${settings.vibranceSettings.defaultVibrance} to ${lastCs2Display}`);
+            lastCs2Display = null;
+          } else {
+            await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
+            logInfo(`[Vibrance] CS2 not in foreground. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
+          }
         }
       }
     } catch (error) {
