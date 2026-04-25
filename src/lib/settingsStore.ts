@@ -31,6 +31,7 @@ export const defaultAppSettings = {
   cs2Path: "",
   gsiEnabled: false,
   bombTimerEnabled: false,
+  bombTimerOverlay: false,
 };
 
 export type AppSettings = typeof defaultAppSettings;

@@ -99,12 +99,12 @@ pub fn install_gsi_config(cs2_path: String) -> Result<String, String> {
     fs::create_dir_all(&config_dir)
         .map_err(|e| format!("Failed to create config directory: {}", e))?;
 
-    let config_vdf = r#""CS2Tools"
+    let config_vdf = r#""CS2ToolsByJonny"
 {
  "uri" "http://127.0.0.1:31337"
  "timeout" "5.0"
  "buffer"  "0.0"
- "throttle" "0.1"
+ "throttle" "0.25"
  "heartbeat" "30.0"
  "data"
  {
