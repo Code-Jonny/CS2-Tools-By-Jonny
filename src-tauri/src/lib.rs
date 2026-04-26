@@ -1,3 +1,4 @@
+mod cpu_parking;
 mod cs2monitoring;
 mod power;
 mod processes;
@@ -105,6 +106,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             power::get_power_plans,
             power::set_active_power_plan,
+            cpu_parking::get_core_parking_status,
+            cpu_parking::set_core_parking_status,
             processes::get_processes,
             processes::terminate_process,
             processes::get_cpu_count,

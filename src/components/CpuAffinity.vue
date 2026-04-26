@@ -1,7 +1,8 @@
 <script setup lang="ts">
-  import { onMounted, ref } from "vue";
+  import { onMounted, ref, watch } from "vue";
   import { invoke } from "@tauri-apps/api/core";
   import { settings } from "@lib/settingsStore";
+  import { logInfo, logError } from "@lib/logger";
   import Card from "@elements/Card.vue";
   import HelpCard from "@elements/HelpCard.vue";
   import Toggle from "@elements/Toggle.vue";
@@ -49,6 +50,22 @@
     }
     settings.cpuManagement.selectedCores = cores;
   }
+
+  // Fetch default parking statuses when preventParking is toggled on, if not present
+  watch(() => settings.cpuManagement.preventParking, async (newValue) => {
+    if (newValue && settings.cpuManagement.defaultAcParking === null) {
+      try {
+        const result = await invoke<{ acValue: number, dcValue: number }>("get_core_parking_status");
+        if (result) {
+          settings.cpuManagement.defaultAcParking = result.acValue;
+          settings.cpuManagement.defaultDcParking = result.dcValue;
+          logInfo(`[CPU Parking] Saved default AC ${result.acValue}% and DC ${result.dcValue}%`);
+        }
+      } catch (err) {
+        logError(`[CPU Parking] Failed to get default parking status: ${err}`);
+      }
+    }
+  });
 </script>
 
 <template>

@@ -28,6 +28,8 @@ export const defaultAppSettings = {
     enabled: false,
     selectedCores: [] as number[],
     preventParking: false,
+    defaultAcParking: null as number | null,
+    defaultDcParking: null as number | null,
   },
 };
 
@@ -74,7 +76,14 @@ export async function loadAndInitializeSettings() {
       if (await hasItem(key)) {
         const storedValue = await getItem(key);
         if (storedValue !== null && storedValue !== undefined) {
-          (settings as any)[key] = storedValue;
+          if (typeof storedValue === "object" && !Array.isArray(storedValue)) {
+            (settings as any)[key] = {
+              ...(defaultAppSettings as any)[key],
+              ...storedValue,
+            };
+          } else {
+            (settings as any)[key] = storedValue;
+          }
         } else {
           (settings as any)[key] = defaultAppSettings[key];
         }

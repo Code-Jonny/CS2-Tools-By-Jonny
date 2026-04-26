@@ -57,6 +57,16 @@
           }
         }
 
+        // CPU Parking
+        if (settings.cpuManagement?.enabled && settings.cpuManagement?.preventParking) {
+          try {
+            await invoke("set_core_parking_status", { acValue: 100, dcValue: 100 });
+            logInfo("[CPU Parking] Parking deactivated for CS2");
+          } catch (e) {
+            logError("[CPU Parking] Failed to deactivate parking:", e);
+          }
+        }
+
         // Process Killing
         if (settings.processManagementActive && settings.processesToKill?.length > 0) {
           for (const processName of settings.processesToKill) {
@@ -67,6 +77,18 @@
           }
         }
       } else if (status === "stopped") {
+        // CPU Parking
+        if (settings.cpuManagement?.enabled && settings.cpuManagement?.preventParking) {
+          try {
+            const ac = settings.cpuManagement.defaultAcParking ?? 10;
+            const dc = settings.cpuManagement.defaultDcParking ?? 10;
+            await invoke("set_core_parking_status", { acValue: ac, dcValue: dc });
+            logInfo(`[CPU Parking] Restored default parking (AC: ${ac}%, DC: ${dc}%)`);
+          } catch (e) {
+            logError("[CPU Parking] Failed to restore parking:", e);
+          }
+        }
+
         // Power Plans
         if (settings.powerPlanManagementActive && settings.powerPlanDefault.guid) {
           await powerPlans.setActive(settings.powerPlanDefault.guid);
