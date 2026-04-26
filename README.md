@@ -11,6 +11,7 @@
 
   <p align="center">
     <a href="#-features">Features</a> •
+    <a href="#-screenshots">Screenshots</a> •
     <a href="#-installation">Installation</a> •
     <a href="#-usage">Usage</a> •
     <a href="#-roadmap">Roadmap</a>
@@ -33,6 +34,20 @@
 | **🧠 CPU Management**          | Optimize CPU core affinity (e.g. skip Core 0 & 1) and prevent CPU Core Parking to ensure consistent performance.                      |
 | **🪟 App Behavior**            | Configurable window management: Start with Windows, minimize to tray, start minimized, and minimize on close.                         |
 | **🛡️ VAC Safe**                | Works strictly with Windows / nVidia APIs. Does **not** touch game memory or game files.                                              |
+
+## 🖼️ Screenshots
+
+<p align="center">
+  <a href="screenshots/dashboard.png"><img src="screenshots/dashboard.png" width="48%" alt="Dashboard"></a>
+  <a href="screenshots/cpu-core-management.png"><img src="screenshots/cpu-core-management.png" width="48%" alt="CPU Core Management"></a>
+</p>
+<p align="center">
+  <a href="screenshots/nvidia-vibrance.png"><img src="screenshots/nvidia-vibrance.png" width="48%" alt="Nvidia Digital Vibrance"></a>
+  <a href="screenshots/power-plans.png"><img src="screenshots/power-plans.png" width="48%" alt="Power Plans"></a>
+</p>
+<p align="center">
+  <a href="screenshots/process-management.png"><img src="screenshots/process-management.png" width="80%" alt="Process Management"></a>
+</p>
 
 ## ⚙️ How It Works
 
