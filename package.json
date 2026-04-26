@@ -10,7 +10,8 @@
     "check": "vue-tsc --noEmit -p tsconfig.app.json --composite false && tsc -p tsconfig.node.json",
     "test": "vitest",
     "test:vibrance": "vitest run src/components/NvidiaVibrance.test.ts",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build:release": "tauri build && node build-tools/copy-binaries.js && node build-tools/msix-packaging.js"
   },
   "devDependencies": {
     "@tauri-apps/api": "^2.9.1",
