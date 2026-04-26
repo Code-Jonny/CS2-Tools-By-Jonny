@@ -240,8 +240,12 @@ impl NvidiaController {
             // * HINWEIS: Lineare Interpolation
             // Die API verwendet interne Werte (z.B. 0-63), wir wollen Prozent (0-100).
             // Formel: min + (prozent * (max - min) / 100)
-            let range = dvc_info.max_level - dvc_info.min_level;
-            let new_val = dvc_info.min_level + (level_percent * range / 100);
+            // saturating_sub guards against wrap-around if NvAPI returns min > max.
+            // saturating_mul guards against overflow if NvAPI returns an unexpectedly large range.
+            let range = dvc_info.max_level.saturating_sub(dvc_info.min_level);
+            let new_val = dvc_info
+                .min_level
+                .saturating_add(level_percent.saturating_mul(range) / 100);
 
             dvc_info.current_level = new_val;
 
