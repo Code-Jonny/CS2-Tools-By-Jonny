@@ -86,11 +86,15 @@ pub fn run() {
                 .build(app)?;
 
             let app_handle = app.handle().clone();
-            let window = app.get_webview_window("main").unwrap();
+            let Some(window) = app.get_webview_window("main") else {
+                return Ok(());
+            };
 
             window.on_window_event(move |event| {
                 if let WindowEvent::Resized(_) = event {
-                    let window = app_handle.get_webview_window("main").unwrap();
+                    let Some(window) = app_handle.get_webview_window("main") else {
+                        return;
+                    };
                     if let Ok(true) = window.is_minimized() {
                         let state = app_handle.state::<AppSettingsState>();
                         let minimize_to_tray = *state.minimize_to_tray.lock().unwrap();
