@@ -12,7 +12,8 @@
   <p align="center">
     <a href="#-features">Features</a> •
     <a href="#-screenshots">Screenshots</a> •
-    <a href="#-installation">Installation</a> •
+    <a href="#-installation-github-binaries">Installation</a> •
+    <a href="#%EF%B8%8F-building-from-source">Building from Source</a> •
     <a href="#-usage">Usage</a> •
     <a href="#-roadmap">Roadmap</a>
   </p>
@@ -20,9 +21,12 @@
 
 ---
 
+<br>
+
 ## 🚀 About
 
 **CS2 Tools** is a lightweight, high-performance utility built with **Tauri v2** (Rust and Vue). It runs quietly in the background to enforce optimal system conditions whenever you play Counter-Strike 2, and cleans up when you're done.
+<br><br><br>
 
 ## ✨ Features
 
@@ -34,6 +38,8 @@
 | **🧠 CPU Management**          | Optimize CPU core affinity (e.g. skip Core 0 & 1) and prevent CPU Core Parking to ensure consistent performance.                      |
 | **🪟 App Behavior**            | Configurable window management: Start with Windows, minimize to tray, start minimized, and minimize on close.                         |
 | **🛡️ VAC Safe**                | Works strictly with Windows / nVidia APIs. Does **not** touch game memory or game files.                                              |
+
+<br><br><br>
 
 ## 🖼️ Screenshots
 
@@ -48,6 +54,7 @@
 <p align="center">
   <a href="screenshots/process-management.png"><img src="screenshots/process-management.png" width="80%" alt="Process Management"></a>
 </p>
+<br><br><br>
 
 ## ⚙️ How It Works
 
@@ -66,17 +73,65 @@ The application intelligently monitors for `cs2.exe`.
 2.  Restores your Desktop Vibrance level.
 3.  Restores default CPU Core Parking states.
 
+<br><br><br>
+
 ## 📥 Installation (Github Binaries)
 
 1.  **Download** the latest installer from the [Releases Page](https://github.com/Code-Jonny/cs2tools-by-jonny/releases).
 2.  **Install** the application.
 3.  **Run** `CS2 Tools by Jonny` via the desktop shortcut or start menu.
 
+<br><br><br>
+
 ## 📥 Installation (Microsoft Store)
 
 1.  **Visit** the [Microsoft Store](https://apps.microsoft.com/detail/9PHSNKWF7QM4).
 2.  **Install** the application.
 3.  **Run** `CS2 Tools by Jonny` via the desktop shortcut or start menu.
+
+<br><br><br>
+
+## 🛠️ Building from Source
+
+### Requirements
+
+To build the application yourself, you need to set up the Tauri v2 Windows development environment:
+
+- **[Node.js](https://nodejs.org/en)** (v18 or newer)
+- **[pnpm](https://pnpm.io/installation)** package manager
+- **[Rust](https://rustup.rs/)** (v1.77.2 or newer)
+- **C++ Build Tools**: Install via the Visual Studio Installer (Select "Desktop development with C++")
+- **Windows 10/11 SDK**: Included with the C++ Build Tools workload
+
+### Step-by-Step Build Process
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/Code-Jonny/cs2tools-by-jonny.git
+   cd cs2tools-by-jonny
+   ```
+
+2. **Install frontend and backend workspace dependencies:**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Run the app in Development Mode (Live Reload):**
+
+   ```bash
+   pnpm dev
+   ```
+
+   _This starts the Vite development server and launches the Tauri window._
+
+4. **Build the Release binaries:**
+   ```bash
+   pnpm build:release
+   ```
+   _This command runs `tauri build` to compile the Rust backend, and then executes custom post-build scripts `build-tools/binaries/` directory. Note: This command runs the msix-packaging script at the end that I need for publishing my releases on the Microsoft Store. You likely won't need that and will instead run into errors because it depends on additional dependencies._
+   <br><br><br>
 
 ## ❓ FAQ
 
@@ -103,6 +158,7 @@ Negligible. Built with Tauri 2 and Rust, it uses minimal RAM and CPU to ensure n
 <br>
 That happens because the installation file you downloaded from Github is not digitally signed. If you want to avoid this you can install the app from the Microsoft Store.
 </details>
+<br><br><br>
 
 ## 🔮 Roadmap & Wishlist
 
