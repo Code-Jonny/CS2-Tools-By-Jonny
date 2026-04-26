@@ -20,7 +20,9 @@ struct ShutdownState {
 
 #[tauri::command]
 fn set_minimize_to_tray(state: tauri::State<AppSettingsState>, enable: bool) {
-    *state.minimize_to_tray.lock().unwrap() = enable;
+    if let Ok(mut val) = state.minimize_to_tray.lock() {
+        *val = enable;
+    }
 }
 
 #[tauri::command]
@@ -107,7 +109,8 @@ pub fn run() {
                     };
                     if let Ok(true) = window.is_minimized() {
                         let state = app_handle.state::<AppSettingsState>();
-                        let minimize_to_tray = *state.minimize_to_tray.lock().unwrap();
+                        let minimize_to_tray =
+                            state.minimize_to_tray.lock().map(|v| *v).unwrap_or(true);
                         if minimize_to_tray {
                             let _ = window.hide();
                         }
