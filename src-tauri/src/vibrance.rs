@@ -80,6 +80,10 @@ pub struct NvidiaController;
 
 impl NvidiaController {
     /// Initializes the NVIDIA controller.
+    ///
+    /// Performs a single `nvapi::initialize()` call and verifies that at least one
+    /// NVIDIA GPU is present, so callers do not need a separate `has_nvidia_gpu()`
+    /// guard before constructing this type.
     pub fn new(app: &AppHandle) -> Result<Self> {
         let _ = app.emit("log-info", "Initializing NvAPI...");
 
@@ -92,6 +96,14 @@ impl NvidiaController {
                 e
             )
         })?;
+
+        // Verify GPU presence in the same init path to avoid a second
+        // driver round-trip when callers previously called has_nvidia_gpu() first.
+        let gpus = PhysicalGpu::enumerate()
+            .map_err(|e| anyhow!("Failed to enumerate NVIDIA GPUs: {}", e))?;
+        if gpus.is_empty() {
+            return Err(anyhow!("No NVIDIA GPU found"));
+        }
 
         let _ = app.emit("log-info", "NvAPI initialized successfully.");
         Ok(Self)
@@ -270,9 +282,7 @@ pub fn check_nvidia_gpu() -> bool {
 
 #[tauri::command]
 pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<String, String> {
-    if !NvidiaController::has_nvidia_gpu() {
-        return Err("No Nvidia GPU".into());
-    }
+    // NvidiaController::new() initializes NvAPI and checks GPU presence in one step.
     let mut controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
 
     let hwnd = unsafe { GetForegroundWindow() };
@@ -305,9 +315,7 @@ pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<S
 
 #[tauri::command]
 pub fn apply_vibrance(app: AppHandle, display_name: String, level: u32) -> Result<(), String> {
-    if !NvidiaController::has_nvidia_gpu() {
-        return Err("No Nvidia GPU".into());
-    }
+    // NvidiaController::new() initializes NvAPI and checks GPU presence in one step.
     let mut controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
 
     controller
