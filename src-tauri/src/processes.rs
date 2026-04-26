@@ -14,7 +14,7 @@ use winapi::um::processthreadsapi::OpenProcess;
 #[cfg(target_os = "windows")]
 use winapi::um::winbase::SetProcessAffinityMask;
 #[cfg(target_os = "windows")]
-use winapi::um::winnt::PROCESS_SET_INFORMATION;
+use winapi::um::winnt::{PROCESS_SET_INFORMATION, PROCESS_TERMINATE};
 
 /// Informationen über einen laufenden Prozess.
 ///
@@ -68,6 +68,44 @@ pub fn get_processes() -> Vec<ProcessInfo> {
 /// * `pid` - Die Prozess-ID des zu beendenden Prozesses.
 #[tauri::command]
 pub fn terminate_process(app: AppHandle, pid: u32) -> Result<(), String> {
+    // * SECURITY: Block termination of Windows system processes (System Idle Process and System).
+    // These PIDs are always reserved by the OS and must never be killed by user-space apps.
+    if pid == 0 || pid == 4 {
+        let err_msg = format!(
+            "Refusing to terminate protected system process with PID {}",
+            pid
+        );
+        let _ = app.emit("log-error", &err_msg);
+        return Err(err_msg);
+    }
+
+    // * SECURITY: Prevent the app from killing its own process.
+    if pid == std::process::id() {
+        let err_msg = "Refusing to terminate own process".to_string();
+        let _ = app.emit("log-error", &err_msg);
+        return Err(err_msg);
+    }
+
+    // * SECURITY: On Windows, verify we hold PROCESS_TERMINATE rights before proceeding.
+    // OpenProcess will return NULL if the caller's token lacks sufficient privileges,
+    // giving us an explicit permission check rather than relying on a silent kill failure.
+    #[cfg(target_os = "windows")]
+    {
+        unsafe {
+            let handle = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
+            if handle.is_null() {
+                let err_msg = format!(
+                    "Permission denied: cannot open process with PID {} for termination",
+                    pid
+                );
+                let _ = app.emit("log-error", &err_msg);
+                return Err(err_msg);
+            }
+            // Close the probe handle immediately; sysinfo will open its own handle below.
+            CloseHandle(handle);
+        }
+    }
+
     let mut sys = System::new();
     // Wir müssen die Prozesse aktualisieren, um sicherzustellen, dass der Prozess existiert
     // und wir ein aktuelles Handle darauf bekommen.
