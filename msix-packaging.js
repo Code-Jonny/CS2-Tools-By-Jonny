@@ -2,12 +2,17 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-// Passe diese Namen an deine App an!
-const APP_EXE_NAME = 'CS2ToolsByJonny.exe';
-const MSIX_OUTPUT_NAME = 'CS2ToolsByJonny.msix';
-
 // process.cwd() zeigt auf das Projekt-Hauptverzeichnis (wo pnpm ausgeführt wird)
 const rootDir = process.cwd();
+
+// Lese Version aus tauri.conf.json
+const tauriConfPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
+const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, 'utf8'));
+const appVersion = tauriConf.version;
+
+// Passe diese Namen an deine App an!
+const APP_EXE_NAME = 'CS2ToolsByJonny.exe';
+const MSIX_OUTPUT_NAME = `CS2ToolsByJonny_${appVersion}.msix`;
 
 // Pfade definieren
 const exePath = path.join(rootDir, 'src-tauri/target/release', APP_EXE_NAME);
