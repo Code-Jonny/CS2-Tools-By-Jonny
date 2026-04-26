@@ -10,6 +10,16 @@ const tauriConfPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
 const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, 'utf8'));
 const appVersion = tauriConf.version;
 
+// Ensure version is 4 parts for MSIX (e.g., 2.1.0.0)
+const msixVersion = appVersion.split('.').length === 3 ? `${appVersion}.0` : appVersion;
+
+// Update AppxManifest.xml
+const manifestPath = path.join(rootDir, 'msix-packaging', 'AppxManifest.xml');
+let manifestContent = fs.readFileSync(manifestPath, 'utf8');
+manifestContent = manifestContent.replace(/(<Identity[^>]*Version=")[^"]+("[^>]*>)/s, `$1${msixVersion}$2`);
+fs.writeFileSync(manifestPath, manifestContent, 'utf8');
+console.log(`Updated AppxManifest.xml version to ${msixVersion}`);
+
 // Passe diese Namen an deine App an!
 const APP_EXE_NAME = 'CS2ToolsByJonny.exe';
 const MSIX_OUTPUT_NAME = `CS2ToolsByJonny_${appVersion}.msix`;
