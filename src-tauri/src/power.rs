@@ -102,12 +102,45 @@ pub fn get_power_plans() -> Result<Vec<PowerPlan>, String> {
     Ok(plans)
 }
 
+/// Validates that a string is a well-formed Windows GUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).
+///
+/// Checks exact length (36), hyphens at positions 8/13/18/23, and that all
+/// remaining characters are ASCII hex digits. This prevents malformed or
+/// injected values from ever reaching `Command::arg`.
+fn is_valid_guid(guid: &str) -> bool {
+    if guid.len() != 36 {
+        return false;
+    }
+    let bytes = guid.as_bytes();
+    for pos in [8, 13, 18, 23] {
+        if bytes[pos] != b'-' {
+            return false;
+        }
+    }
+    for (i, &b) in bytes.iter().enumerate() {
+        if [8, 13, 18, 23].contains(&i) {
+            continue;
+        }
+        if !b.is_ascii_hexdigit() {
+            return false;
+        }
+    }
+    true
+}
+
 /// Setzt den aktiven Energiesparplan.
 ///
 /// # Arguments
 /// * `guid` - Die GUID des zu aktivierenden Plans als String.
 #[tauri::command]
 pub fn set_active_power_plan(guid: String) -> Result<(), String> {
+    // ! SECURITY: Validate GUID format before passing to any system call.
+    // Command::arg() quotes arguments, but edge cases in Windows
+    // CommandLineToArgvW parsing mean rejecting malformed input is
+    // safer than relying solely on quoting (defense in depth).
+    if !is_valid_guid(&guid) {
+        return Err(format!("Invalid GUID format: {guid}"));
+    }
     // ? ALTERNATIVE: Warum `powercfg` direkt und nicht `cmd /C`?
     // Hier brauchen wir kein `chcp` (keine Textausgabe, die wir parsen müssen),
     // also rufen wir das Programm direkt auf. Das ist effizienter und sicherer.
