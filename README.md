@@ -59,7 +59,7 @@ The application intelligently monitors for `cs2.exe`.
 
 ## 📥 Installation (Microsoft Store)
 
-1.  **Visit** the Microsoft Store using the [Windows App](ms-windows-store://pdp/?productid=9PHSNKWF7QM4) or the [Browser](https://apps.microsoft.com/detail/9PHSNKWF7QM4).
+1.  **Visit** the [Microsoft Store](https://apps.microsoft.com/detail/9PHSNKWF7QM4).
 2.  **Install** the application.
 3.  **Run** `CS2 Tools by Jonny` via the desktop shortcut or start menu.
 
