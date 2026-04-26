@@ -16,7 +16,7 @@
   import Dashboard from "@components/Dashboard.vue";
   import ProcessManagement from "@components/ProcessManagement.vue";
   import PowerPlanManagement from "@components/PowerPlanManagement.vue";
-  import CpuAffinity from "@components/CpuAffinity.vue";
+  import CpuCoreManagement from "@components/CpuCoreManagement.vue";
   import NvidiaVibrance from "@components/NvidiaVibrance.vue";
   import SettingsComponent from "@components/Settings.vue";
   import About from "@components/About.vue";
@@ -77,7 +77,7 @@
     "dashboard": Dashboard,
     "process-management": ProcessManagement,
     "power-plan-management": PowerPlanManagement,
-    "cpu-affinity": CpuAffinity,
+    "cpu-core-management": CpuCoreManagement,
     "nvidia-vibrance": NvidiaVibrance,
     "settings": SettingsComponent,
     "about": About

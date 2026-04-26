@@ -48,10 +48,10 @@
         </a>
       </li>
       <li>
-        <a href="#/cpu-affinity"
-           :class="{ active: currentView === 'cpu-affinity' }">
+        <a href="#/cpu-core-management"
+           :class="{ active: currentView === 'cpu-core-management' }">
           <LocalIcon iconName="cpu" />
-          <span class="linktext">CPU Core Affinity</span>
+          <span class="linktext">CPU Core Management</span>
         </a>
       </li>
       <li>

@@ -4,7 +4,7 @@ export type View =
   | "dashboard"
   | "process-management"
   | "power-plan-management"
-  | "cpu-affinity"
+  | "cpu-core-management"
   | "nvidia-vibrance"
   | "settings"
   | "about";
@@ -16,7 +16,7 @@ export function updateView() {
   const map: Record<string, View> = {
     "/process-management": "process-management",
     "/power-plan-management": "power-plan-management",
-    "/cpu-affinity": "cpu-affinity",
+    "/cpu-core-management": "cpu-core-management",
     "/nvidia-vibrance": "nvidia-vibrance",
     "/settings": "settings",
     "/about": "about",
