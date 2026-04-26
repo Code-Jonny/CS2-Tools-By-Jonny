@@ -4,13 +4,18 @@ mod power;
 mod processes;
 mod vibrance;
 
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{Manager, WindowEvent};
 
 struct AppSettingsState {
     minimize_to_tray: Mutex<bool>,
+}
+
+struct ShutdownState {
+    flag: Arc<AtomicBool>,
 }
 
 #[tauri::command]
@@ -26,6 +31,8 @@ fn show_minimized(window: tauri::WebviewWindow) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let shutdown = Arc::new(AtomicBool::new(false));
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
@@ -41,11 +48,14 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(move |app| {
-            cs2monitoring::start_monitor_thread(app.handle().clone());
+            let shutdown_for_thread = shutdown.clone();
+            cs2monitoring::start_monitor_thread(app.handle().clone(), shutdown_for_thread);
 
             app.manage(AppSettingsState {
                 minimize_to_tray: Mutex::new(true),
             });
+
+            app.manage(ShutdownState { flag: shutdown });
 
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
@@ -122,6 +132,13 @@ pub fn run() {
             set_minimize_to_tray,
             show_minimized
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            if let tauri::RunEvent::Exit = event {
+                if let Some(state) = app.try_state::<ShutdownState>() {
+                    state.flag.store(true, Ordering::Relaxed);
+                }
+            }
+        });
 }

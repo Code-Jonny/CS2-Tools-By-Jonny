@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use sysinfo::{ProcessesToUpdate, System};
@@ -7,10 +9,10 @@ use winapi::um::winuser::{GetForegroundWindow, GetWindowThreadProcessId};
 /// Startet den Hintergrund-Thread, der überwacht, ob CS2 im Vordergrund läuft.
 ///
 /// # Funktionsweise
-/// 1. Startet eine Endlosschleife (\loop\).
+/// 1. Läuft so lange, bis das `shutdown`-Flag auf `true` gesetzt wird.
 /// 2. Prüft jede Sekunde das aktive Fenster und laufende Prozesse.
 /// 3. Informiert das Frontend, ob CS2 läuft und fokussiert ist.
-pub fn start_monitor_thread(app: AppHandle) {
+pub fn start_monitor_thread(app: AppHandle, shutdown: Arc<AtomicBool>) {
     thread::spawn(move || {
         let _ = app.emit("log-info", "CS2 Monitor Thread started!");
 
@@ -19,7 +21,7 @@ pub fn start_monitor_thread(app: AppHandle) {
         let mut last_process_running = false;
         let mut last_window_foreground = false;
 
-        loop {
+        while !shutdown.load(Ordering::Relaxed) {
             thread::sleep(Duration::from_millis(1000));
 
             // Refresh processes to ensure we have the latest state
