@@ -131,7 +131,7 @@ impl NvidiaController {
     /// * `display_name` - The name of the display (e.g., "\\.\DISPLAY1").
     /// * `level` - The vibrance level to set (0-100).
     pub fn set_vibrance_for_display(
-        &mut self,
+        &self,
         app: &AppHandle,
         display_name: &str,
         level: u32,
@@ -283,7 +283,7 @@ pub fn check_nvidia_gpu() -> bool {
 #[tauri::command]
 pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<String, String> {
     // NvidiaController::new() initializes NvAPI and checks GPU presence in one step.
-    let mut controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
+    let controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
 
     let hwnd = unsafe { GetForegroundWindow() };
     if hwnd.is_null() {
@@ -316,7 +316,7 @@ pub fn apply_vibrance_to_focused_display(app: AppHandle, level: u32) -> Result<S
 #[tauri::command]
 pub fn apply_vibrance(app: AppHandle, display_name: String, level: u32) -> Result<(), String> {
     // NvidiaController::new() initializes NvAPI and checks GPU presence in one step.
-    let mut controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
+    let controller = NvidiaController::new(&app).map_err(|e| e.to_string())?;
 
     controller
         .set_vibrance_for_display(&app, &display_name, level)
