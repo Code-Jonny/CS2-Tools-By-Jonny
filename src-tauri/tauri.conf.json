@@ -24,10 +24,7 @@
         "fullscreen": false,
         "visible": false
       }
-    ],
-    "security": {
-      "csp": null
-    }
+    ]
   },
   "bundle": {
     "active": true,
