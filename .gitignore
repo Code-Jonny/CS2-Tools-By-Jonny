@@ -26,6 +26,7 @@ node_modules
 app
 app-ssr
 *.local
+CS2ToolsByJonny.msix
 
 # Editor directories and files
 .vscode/*
