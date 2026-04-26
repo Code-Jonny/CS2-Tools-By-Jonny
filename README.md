@@ -86,7 +86,7 @@ Negligible. Built with Tauri 2 and Rust, it uses minimal RAM and CPU to ensure n
 <details>
 <summary><strong>I get a warning when I start the app. What does it mean?</strong></summary>
 <br>
-That happens because the installation file you downloaded from Github are not digitally signed. If you want to avoid this you can install the app from the Microsoft Store.
+That happens because the installation file you downloaded from Github is not digitally signed. If you want to avoid this you can install the app from the Microsoft Store.
 </details>
 
 ## 🔮 Roadmap & Wishlist
