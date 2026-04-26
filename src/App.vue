@@ -1,9 +1,6 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, watch, computed } from "vue";
   import { invoke } from "@tauri-apps/api/core";
-  import { getCurrentWindow } from "@tauri-apps/api/window";
-  // import { confirm } from '@tauri-apps/api/dialog';
-  import { terminateProcess } from "@lib/terminateProcess";
   import { settings, loadAndInitializeSettings, isSettingsLoaded } from "@lib/settingsStore";
   import { powerPlans } from "@lib/powerplans";
   import { runningProcesses } from "@lib/runningProcesses";
@@ -11,8 +8,9 @@
   import { currentView, updateView } from "@lib/viewStore";
   import { isSidebarExpanded } from "@lib/sidebarStore";
   import { logInfo, logError, registerLogListener } from "@lib/logger";
-  import { exit } from '@tauri-apps/plugin-process';
-  import { confirm } from '@tauri-apps/plugin-dialog';
+
+  import { initWindowManager } from "@lib/windowManager";
+  import { initCs2EventTracking } from "@lib/eventOrchestrator";
 
   import Sidebar from "@components/Sidebar.vue";
   import Dashboard from "@components/Dashboard.vue";
@@ -22,122 +20,8 @@
   import NvidiaVibrance from "@components/NvidiaVibrance.vue";
   import SettingsComponent from "@components/Settings.vue";
   import About from "@components/About.vue";
-  import { listen } from "@tauri-apps/api/event";
 
-  const affinitySetPids = new Set<number>();
-
-  let cleanupProcessListener: (() => void) | null = null;
-  let cleanupWindowListener: (() => void) | null = null;
-
-  async function handleCs2Process(status: "started" | "stopped") {
-    try {
-      await runningProcesses.refresh();
-
-      if (status === "started") {
-        // Power Plans
-        if (settings.powerPlanManagementActive && settings.powerPlanCS2.guid) {
-          await powerPlans.setActive(settings.powerPlanCS2.guid);
-        }
-
-        // CPU Affinity
-        if (settings.cpuManagement?.enabled && settings.cpuManagement?.selectedCores?.length > 0) {
-          const pids = runningProcesses.getPidsForName("cs2.exe");
-          const selectedCores = settings.cpuManagement.selectedCores;
-
-          for (const pid of pids) {
-            if (!affinitySetPids.has(pid)) {
-              try {
-                await invoke("set_process_affinity", { pid, cores: selectedCores });
-                logInfo(`[Affinity] Successfully enforced for CS2 (PID ${pid}) with cores [${selectedCores.join(", ")}]`);
-                affinitySetPids.add(pid);
-              } catch (e) {
-                logError(`[Affinity] Failed to set for CS2 (PID ${pid}):`, e);
-              }
-            }
-          }
-        }
-
-        // CPU Parking
-        if (settings.cpuManagement?.enabled && settings.cpuManagement?.preventParking) {
-          try {
-            await invoke("set_core_parking_status", { acValue: 100, dcValue: 100 });
-            logInfo("[CPU Parking] Parking deactivated for CS2");
-          } catch (e) {
-            logError("[CPU Parking] Failed to deactivate parking:", e);
-          }
-        }
-
-        // Process Killing
-        if (settings.processManagementActive && settings.processesToKill?.length > 0) {
-          for (const processName of settings.processesToKill) {
-            const pids = runningProcesses.getPidsForName(processName);
-            for (const pid of pids) {
-              await terminateProcess(pid);
-            }
-          }
-        }
-      } else if (status === "stopped") {
-        // CPU Parking
-        if (settings.cpuManagement?.enabled && settings.cpuManagement?.preventParking) {
-          try {
-            const ac = settings.cpuManagement.defaultAcParking ?? 10;
-            const dc = settings.cpuManagement.defaultDcParking ?? 10;
-            await invoke("set_core_parking_status", { acValue: ac, dcValue: dc });
-            logInfo(`[CPU Parking] Restored default parking (AC: ${ac}%, DC: ${dc}%)`);
-          } catch (e) {
-            logError("[CPU Parking] Failed to restore parking:", e);
-          }
-        }
-
-        // Power Plans
-        if (settings.powerPlanManagementActive && settings.powerPlanDefault.guid) {
-          await powerPlans.setActive(settings.powerPlanDefault.guid);
-        }
-
-        // reset vibrance setting
-        // is needed because cs2window event only triggers when cs2 is running, so if user closes cs2 while it's in background, vibrance won't reset without this. and there could be a race condition where the cs2window detection is too slow.
-        if (settings.vibranceSettings?.enabled) {
-          if (lastCs2Display) {
-            await invoke("apply_vibrance", { displayName: lastCs2Display, level: settings.vibranceSettings.defaultVibrance });
-            logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance} to ${lastCs2Display}`);
-            lastCs2Display = null;
-          } else {
-            await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
-            logInfo(`[Vibrance] CS2 in background. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
-          }
-        }
-
-        // Cleanup tracking
-        affinitySetPids.clear();
-      }
-    } catch (error) {
-      logError("Error in handling CS2 process state:", error);
-    }
-  }
-
-  let lastCs2Display: string | null = null;
-
-  async function handleCs2Window(status: "foreground" | "background") {
-    try {
-      if (settings.vibranceSettings?.enabled) {
-        if (status === "foreground") {
-          lastCs2Display = await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.cs2Vibrance });
-          logInfo(`[Vibrance] CS2 in foreground. Applied CS2 vibrance ${settings.vibranceSettings.cs2Vibrance} to ${lastCs2Display}`);
-        } else {
-          if (lastCs2Display) {
-            await invoke("apply_vibrance", { displayName: lastCs2Display, level: settings.vibranceSettings.defaultVibrance });
-            logInfo(`[Vibrance] CS2 not in foreground. Applied default vibrance ${settings.vibranceSettings.defaultVibrance} to ${lastCs2Display}`);
-            lastCs2Display = null;
-          } else {
-            await invoke("apply_vibrance_to_focused_display", { level: settings.vibranceSettings.defaultVibrance });
-            logInfo(`[Vibrance] CS2 not in foreground. Applied default vibrance ${settings.vibranceSettings.defaultVibrance}`);
-          }
-        }
-      }
-    } catch (error) {
-      logError("Error in handling CS2 window state:", error);
-    }
-  }
+  let cleanupListeners: (() => void) | null = null;
 
   // Lifecycle
   onMounted(async () => {
@@ -148,44 +32,15 @@
     try {
       registerLogListener();
       await loadAndInitializeSettings();
+
+      initWindowManager();
+
       await invoke("set_minimize_to_tray", { enable: settings.minimizeToTray });
       await applyStartMinimizedSetting();
       await powerPlans.refresh();
       await runningProcesses.refresh();
 
-      await getCurrentWindow().onCloseRequested(async (event) => {
-
-        if (settings.minimizeOnClose) {
-          event.preventDefault();
-          await getCurrentWindow().minimize();
-          logInfo("[Frontend] Close requested, but minimizeOnClose is enabled. Window minimized instead of closed.");
-          return;
-        }
-
-        const userConfirmed = await confirm("Are you sure you want to exit CS2 Tools By Jonny?");
-
-        if (userConfirmed) {
-          logInfo("[Frontend] Close requested and confirmed. Exiting application.");
-          exit();
-          return;
-        } else {
-          event.preventDefault();
-          logInfo("[Frontend] Close requested but cancelled by user. Window remains open.");
-        }
-      });
-
-      // Listen to Rust events
-      cleanupProcessListener = await listen("cs2process", (event) => {
-        const status = event.payload as "started" | "stopped";
-        logInfo(`[CS2Process] cs2process state changed to: ${status}`);
-        handleCs2Process(status);
-      });
-
-      cleanupWindowListener = await listen("cs2window", (event) => {
-        const status = event.payload as "foreground" | "background";
-        logInfo(`[CS2Window] cs2window state changed to: ${status}`);
-        handleCs2Window(status);
-      });
+      cleanupListeners = await initCs2EventTracking();
 
     } catch (e) {
       logError("Error during initializations:", e);
@@ -193,15 +48,8 @@
   });
 
   onUnmounted(() => {
-    if (cleanupProcessListener) cleanupProcessListener();
-    if (cleanupWindowListener) cleanupWindowListener();
+    if (cleanupListeners) cleanupListeners();
     window.removeEventListener("hashchange", updateView);
-  });
-
-  // Watch minimize to tray
-  watch(() => settings.minimizeToTray, (enabled) => {
-    if (!isSettingsLoaded.value) return;
-    invoke("set_minimize_to_tray", { enable: enabled }).catch(console.error);
   });
 
   // Auto-correct power plan names
