@@ -28,6 +28,7 @@ app-ssr
 *.local
 *.msix
 build-tools/binaries/*
+build-tools/msix-packaging/*.exe
 
 # Editor directories and files
 .vscode/*

@@ -25,19 +25,21 @@
 
 ## 🚀 About
 
-**CS2 Tools** is a lightweight, high-performance utility built with **Tauri v2** (Rust and Vue). It runs quietly in the background to enforce optimal system conditions whenever you play Counter-Strike 2, and cleans up when you're done.
+**CS2 Tools By Jonny** is a lightweight Windows utility that swaps power plans, pins CPU cores, kills bloat processes, and bumps Nvidia vibrance the moment CS2 launches — and reverts it all when you're done.
 <br><br><br>
 
 ## ✨ Features
 
-| Feature                        | Description                                                                                                                           |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| **⚡ Power Management**        | Automatically engages the chosen power plan when CS2 launches to prevent downclocking (e.g. high performance).                        |
-| **💀 Process Killer**          | Configure a "kill list" (e.g., Chrome, Spotify) to automatically close apps that eat CPU, RAM and network bandwith when CS2 launches. |
-| **🎨 Nvidia Digital Vibrance** | **(Nvidia Only)** Set custom Nvidia Digital Vibrance levels for Desktop and In-Game. Automatically switches during play.              |
-| **🧠 CPU Management**          | Optimize CPU core affinity (e.g. skip Core 0 & 1) and prevent CPU Core Parking to ensure consistent performance.                      |
-| **🪟 App Behavior**            | Configurable window management: Start with Windows, minimize to tray, start minimized, and minimize on close.                         |
-| **🛡️ VAC Safe**                | Works strictly with Windows / nVidia APIs. Does **not** touch game memory or game files.                                              |
+| Feature                        | Description                                                                                                                                                      |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **⚡ Power plan switching**    | Auto-switch to High Performance when CS2 starts and back to Balanced when it closes (or any other custom power plan). No manual toggling.                        |
+| **💀 Process kill list**       | Define a list of background bloat — Discord overlays, sync clients, browsers — and have them shut down on launch.                                                |
+| **🎨 Nvidia Digital Vibrance** | **(Nvidia Only)** Bumps saturation only while CS2 is the focused window, on the monitor running CS2. Alt-tab away and your normal vibrance comes back instantly. |
+| **🧠 CPU core management**     | Pin CS2 to the exact cores you choose. Skip cores 0 & 1 to leave them for the OS, use all of them or define a custom core distribution template.                 |
+| **🪟 Live status dashboard**   | See what's running, what got killed, and which power plan is active — all from a single overview screen.                                                         |
+| **🛡️ Featherweight by design** | Built with Tauri (Rust + Vue), not Electron. Under 20 MB on disk and barely a blip on memory — because optimizing perf with a bloated app would be absurd.       |
+| **🔄 Reverts everything**      | When CS2 exits, every setting goes back to your defaults. No admin rights, no permanent “gaming mode.”                                                           |
+| **🛡️ VAC Safe**                | Works strictly with Windows / nVidia APIs. Does **not** touch game memory or game files.                                                                         |
 
 <br><br><br>
 
@@ -121,7 +123,7 @@ To build the application yourself, you need to set up the Tauri v2 Windows devel
 3. **Run the app in Development Mode (Live Reload):**
 
    ```bash
-   pnpm dev
+   pnpm run tauri dev
    ```
 
    _This starts the Vite development server and launches the Tauri window._
@@ -158,6 +160,20 @@ Negligible. Built with Tauri 2 and Rust, it uses minimal RAM and CPU to ensure n
 <br>
 That happens because the installation file you downloaded from Github is not digitally signed. If you want to avoid this you can install the app from the Microsoft Store.
 </details>
+<br><br><br>
+
+## 💲Completely free
+
+This app is completely free: no subscription, no one time fee.
+
+If you'd like to show your support (and only if you can afford to!), you can tip me via PayPal here:
+
+<form action="https://www.paypal.com/donate" method="post" target="_top">
+<input type="hidden" name="hosted_button_id" value="ZY4J7VV2AV2HC" />
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+<img alt="" border="0" src="https://www.paypal.com/en_DE/i/scr/pixel.gif" width="1" height="1" />
+</form>
+
 <br><br><br>
 
 ## 🔮 Roadmap & Wishlist
