@@ -11,12 +11,12 @@
 
   <p align="center">
     <a href="#-features">Features</a> •
-    <a href="#-screenshots">Screenshots</a> •
+    <a href="#%EF%B8%8F-screenshots">Screenshots</a> •
     <a href="#-installation-github-binaries">Installation</a> •
     <a href="#%EF%B8%8F-building-from-source">Building from Source</a> •
     <a href="#-faq">FAQ</a> •
-    <a href="#-completely-free">Completely free</a> •
-    <a href="#-roadmap">Roadmap</a>
+    <a href="#completely-free">Completely free</a> •
+    <a href="#-roadmap--wishlist">Roadmap</a>
   </p>
 </div>
 
