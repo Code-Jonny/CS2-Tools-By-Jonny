@@ -166,13 +166,7 @@ That happens because the installation file you downloaded from Github is not dig
 
 This app is completely free: no subscription, no one time fee.
 
-If you'd like to show your support (and only if you can afford to!), you can tip me via PayPal here:
-
-<form action="https://www.paypal.com/donate" method="post" target="_top">
-<input type="hidden" name="hosted_button_id" value="ZY4J7VV2AV2HC" />
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
-<img alt="" border="0" src="https://www.paypal.com/en_DE/i/scr/pixel.gif" width="1" height="1" />
-</form>
+If you'd like to show your support (and only if you can afford to!), you can tip me via [PayPal](https://www.paypal.com/donate/?hosted_button_id=ZY4J7VV2AV2HC) here
 
 <br><br><br>
 
