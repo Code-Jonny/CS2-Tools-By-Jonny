@@ -14,7 +14,8 @@
     <a href="#-screenshots">Screenshots</a> •
     <a href="#-installation-github-binaries">Installation</a> •
     <a href="#%EF%B8%8F-building-from-source">Building from Source</a> •
-    <a href="#-usage">Usage</a> •
+    <a href="#-faq">FAQ</a> •
+    <a href="#-completely-free">Completely free</a> •
     <a href="#-roadmap">Roadmap</a>
   </p>
 </div>
@@ -37,7 +38,7 @@
 | **🎨 Nvidia Digital Vibrance** | **(Nvidia Only)** Bumps saturation only while CS2 is the focused window, on the monitor running CS2. Alt-tab away and your normal vibrance comes back instantly. |
 | **🧠 CPU core management**     | Pin CS2 to the exact cores you choose. Skip cores 0 & 1 to leave them for the OS, use all of them or define a custom core distribution template.                 |
 | **🪟 Live status dashboard**   | See what's running, what got killed, and which power plan is active — all from a single overview screen.                                                         |
-| **🛡️ Featherweight by design** | Built with Tauri (Rust + Vue), not Electron. Under 20 MB on disk and barely a blip on memory — because optimizing perf with a bloated app would be absurd.       |
+| **🪶 Featherweight by design** | Built with Tauri (Rust + Vue), not Electron. Under 20 MB on disk and barely a blip on memory — because optimizing perf with a bloated app would be absurd.       |
 | **🔄 Reverts everything**      | When CS2 exits, every setting goes back to your defaults. No admin rights, no permanent “gaming mode.”                                                           |
 | **🛡️ VAC Safe**                | Works strictly with Windows / nVidia APIs. Does **not** touch game memory or game files.                                                                         |
 
