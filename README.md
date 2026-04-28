@@ -167,7 +167,7 @@ That happens because the installation file you downloaded from Github is not dig
 
 This app is completely free: no subscription, no one time fee.
 
-If you'd like to show your support (and only if you can afford to!), you can tip me via [PayPal](https://www.paypal.com/donate/?hosted_button_id=ZY4J7VV2AV2HC) here or you can send me a nice CS2 skin on [Steam](https://steamcommunity.com/tradeoffer/new/?partner=472413666&token=r8OLzAvB).
+If you'd like to show your support (and only if you can afford to!), you can tip me via [PayPal](https://www.paypal.com/donate/?hosted_button_id=ZY4J7VV2AV2HC) or you can send me a nice CS2 skin on [Steam](https://steamcommunity.com/tradeoffer/new/?partner=472413666&token=r8OLzAvB).
 
 <br><br><br>
 
