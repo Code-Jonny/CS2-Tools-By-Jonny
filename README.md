@@ -188,5 +188,6 @@ If you'd like to show your support (and only if you can afford to!), you can tip
 ---
 
 <div align="center">
-  <sub>Built with Vue 3.5, Tauri v2, and Rust. Designed for the CS2 Community.</sub>
+  <sub>Built with Vue 3.5, Tauri v2, and Rust. Designed for the CS2 Community.<br>
+  By [Jonny](https://steamcommunity.com/id/J-o-n-n-y/)</sub>
 </div>
